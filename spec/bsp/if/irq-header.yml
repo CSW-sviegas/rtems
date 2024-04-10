@@ -11,7 +11,7 @@ links:
 - role: interface-placement
   uid: domain
 - role: interface-ingroup
-  uid: group-interrupt
+  uid: /dev/irq/req/group
 path: bsp/irq.h
 prefix: bsps/include
 type: interface

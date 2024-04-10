@@ -1,15 +1,15 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
 enabled-by: true
 identifier: RTEMSImplClassicIntr
 links:
 - role: interface-ingroup
-  uid: group-shared
+  uid: /rtems/req/group
 non-functional-type: design-group
 rationale: null
 requirement-type: non-functional
 text: |
-  The shared ${/glossary/bsp:/term} interrupt support shall be a component
-  containing functions used to manage and process interrupts.
+  The software architecture shall have a component containing the Interrupt
+  Manager implementation.
 type: requirement

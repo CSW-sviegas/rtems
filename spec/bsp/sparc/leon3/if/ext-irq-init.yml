@@ -8,6 +8,6 @@ links:
 - role: interface-placement
   uid: irqimpl-header
 - role: interface-ingroup
-  uid: /bsp/if/group-interrupt
+  uid: /dev/irq/req/group
 name: leon3_ext_irq_init
 type: interface

@@ -26,7 +26,7 @@ links:
 - role: interface-placement
   uid: /bsp/if/bsp-header
 - role: interface-ingroup
-  uid: /bsp/if/group-interrupt
+  uid: /dev/irq/req/group
 name: LEON3_mp_irq
 notes: null
 type: interface
