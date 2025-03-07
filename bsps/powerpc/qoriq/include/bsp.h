@@ -54,6 +54,13 @@
 #define QORIQ_THREAD_COUNT QORIQ_PHYSICAL_THREAD_COUNT
 #endif
 
+#ifdef QORIQ_INITIAL_SPEFSCR
+/**
+ * @brief This constant is the SPEFSCR value of a new thread.
+ */
+#define PPC_INITIAL_SPEFSCR QORIQ_INITIAL_SPEFSCR
+#endif
+
 #ifndef ASM
 
 #include <rtems.h>
