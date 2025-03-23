@@ -49,7 +49,7 @@ uint32_t bsp_time_base_frequency = 10000000;
 #define MTIVPR(base) \
   __asm__ volatile ("mtivpr %0" : : "r" (base))
 
-#define VECTOR_TABLE_ENTRY_SIZE 16
+#define VECTOR_TABLE_ENTRY_SIZE 32
 
 #define MTIVOR(vec, offset) \
   do { \

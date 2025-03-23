@@ -31,6 +31,26 @@
 #include <libcpu/powerpc-utility.h>
 #include <bsp/vectors.h>
 
+#define VECTOR_TABLE_ENTRY_SIZE 32
+
+.macro EXCEPTION_PROLOGUE_FATAL exception_number, handler
+	.balign VECTOR_TABLE_ENTRY_SIZE
+	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
+	addi	r3, r1, EXC_GENERIC_SIZE
+	PPC_REG_STORE	r3, PPC_EXC_GPR1_PROLOGUE_OFFSET(r1)
+	li	r3, \exception_number
+	b	\handler
+.endm
+
+.macro EXCEPTION_PROLOGUE_INTERRUPT exception_number
+	.balign VECTOR_TABLE_ENTRY_SIZE
+	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
+	li	r3, \exception_number
+	b	ppc_exc_interrupt
+.endm
+
 	.globl _start
 	.globl bsp_exc_vector_base
 
@@ -106,105 +126,45 @@ copy:
 
 	/* Exception vector prologues area */
 	.section ".bsp_start_text", "ax"
-	.align 4
+	.balign VECTOR_TABLE_ENTRY_SIZE
 bsp_exc_vector_base:
 	/* Critical input */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 0
-	b	ppc_exc_fatal_critical
+	EXCEPTION_PROLOGUE_FATAL	0, ppc_exc_fatal_critical
 	/* Machine check */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 1
-	b	ppc_exc_fatal_machine_check
+	EXCEPTION_PROLOGUE_FATAL	1, ppc_exc_fatal_machine_check
 	/* Data storage */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 2
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	2, ppc_exc_fatal_normal
 	/* Instruction storage */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 3
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	3, ppc_exc_fatal_normal
 	/* External input */
-	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 4
-	b	ppc_exc_interrupt
+	EXCEPTION_PROLOGUE_INTERRUPT	4
 	/* Alignment */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 5
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	5, ppc_exc_fatal_normal
 	/* Program */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 6
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	6, ppc_exc_fatal_normal
 	/* Floating-point unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 7
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	7, ppc_exc_fatal_normal
 	/* System call */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 8
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	8, ppc_exc_fatal_normal
 	/* APU unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 9
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	9, ppc_exc_fatal_normal
 	/* Decrementer */
-	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
-	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
-	li	r3, 10
-	b	ppc_exc_interrupt
+	EXCEPTION_PROLOGUE_INTERRUPT	10
 	/* Fixed-interval timer interrupt */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 11
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	11, ppc_exc_fatal_normal
 	/* Watchdog timer interrupt */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 12
-	b	ppc_exc_fatal_critical
+	EXCEPTION_PROLOGUE_FATAL	12, ppc_exc_fatal_critical
 	/* Data TLB error */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 13
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	13, ppc_exc_fatal_normal
 	/* Instruction TLB error */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 14
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	14, ppc_exc_fatal_normal
 	/* Debug */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 15
-	b	ppc_exc_fatal_debug
+	EXCEPTION_PROLOGUE_FATAL	15, ppc_exc_fatal_debug
 	/* SPE APU unavailable or AltiVec unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 32
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	32, ppc_exc_fatal_normal
 	/* SPE floating-point data exception or AltiVec assist */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 33
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	33, ppc_exc_fatal_normal
 	/* SPE floating-point round exception */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 34
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	34, ppc_exc_fatal_normal
 	/* Performance monitor */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 35
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_FATAL	35, ppc_exc_fatal_normal
