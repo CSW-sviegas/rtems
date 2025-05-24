@@ -1064,7 +1064,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
   #define RTEMS_INTERRUPT_LOCK_REFERENCE( _designator, _target )
 #endif
 
-/* Find related documentation with spec:/rtems/intr/if/shared */
+/* Find related documentation with spec:/rtems/intr/if/option-shared */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -1074,7 +1074,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define RTEMS_INTERRUPT_SHARED ( (rtems_option) 0x00000000 )
 
-/* Find related documentation with spec:/rtems/intr/if/unique */
+/* Find related documentation with spec:/rtems/intr/if/option-unique */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -1086,7 +1086,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define RTEMS_INTERRUPT_UNIQUE ( (rtems_option) 0x00000001 )
 
-/* Find related documentation with spec:/rtems/intr/if/replace */
+/* Find related documentation with spec:/rtems/intr/if/option-replace */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -1468,7 +1468,7 @@ rtems_status_code rtems_interrupt_entry_remove(
  * If the option #RTEMS_INTERRUPT_UNIQUE is set, then it will be ensured that
  * the handler will be the only one for the interrupt vector.
  *
- * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handler may be
+ * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handlers may be
  * installed for the interrupt vector.
  *
  * If the option #RTEMS_INTERRUPT_REPLACE is set, then the handler specified by
