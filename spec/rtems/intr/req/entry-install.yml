@@ -1,11 +1,15 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/entry-install
+- role: interface-function
+  uid: ../if/option-enable
+- role: interface-function
+  uid: ../if/option-no-enable
 - role: interface-function
   uid: ../if/option-replace
 - role: interface-function
@@ -149,21 +153,27 @@ post-conditions:
     T_rsc_success( sc );
 
     if ( ctx->status == RTEMS_SUCCESSFUL ) {
-      uint32_t counter;
+      if ( ctx->enabled_after ) {
+        uint32_t counter;
 
-      counter = 1;
+        counter = 1;
 
-      if ( ctx->other_installed ) {
-        T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
-        ++counter;
+        if ( ctx->other_installed ) {
+          T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
+          ++counter;
+        }
+
+        if ( ctx->third_installed ) {
+          T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
+          ++counter;
+        }
+
+        T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
+      } else {
+        T_eq_u32( ctx->counter_by_entry[ 0 ], 0 );
+        T_eq_u32( ctx->counter_by_entry[ 1 ], 0 );
+        T_eq_u32( ctx->counter_by_entry[ 2 ], 0 );
       }
-
-      if ( ctx->third_installed ) {
-        T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
-        ++counter;
-      }
-
-      T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
     }
 pre-conditions:
 - name: Vector
@@ -182,26 +192,42 @@ pre-conditions:
       with an interrupt vector.
   test-epilogue: null
   test-prologue: null
-- name: Options
+- name: InstallOptions
   states:
   - name: Unique
     test-code: |
       ctx->options = RTEMS_INTERRUPT_UNIQUE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicates that an unique entry
+      While the ${../if/entry-install:/params[1]/name} indicate that an unique entry
       shall be installed.
   - name: Shared
     test-code: |
       ctx->options = RTEMS_INTERRUPT_SHARED;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicates that a shared entry
+      While the ${../if/entry-install:/params[1]/name} indicate that a shared entry
       shall be installed.
   - name: Replace
     test-code: |
       ctx->options = RTEMS_INTERRUPT_REPLACE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicates that the entry
+      While the ${../if/entry-install:/params[1]/name} indicate that the entry
       handler routine shall be replaced.
+  test-epilogue: null
+  test-prologue: null
+- name: Enable
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_ENABLE;
+    text: |
+      While the ${../if/entry-install:/params[1]/name} indicate that the interrupt
+      vector shall be enabled.
+  - name: 'No'
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_NO_ENABLE;
+    text: |
+      While the ${../if/entry-install:/params[1]/name} indicate that the interrupt
+      vector shall be not enabled.
   test-epilogue: null
   test-prologue: null
 - name: Entry
@@ -725,7 +751,7 @@ test-support: |
 
     if ( visited_entries == 0 && ctx->other_installed ) {
       T_eq_ptr( info, other_info );
-      T_eq_u32( options, ctx->other_options );
+      T_eq_u32( options, ctx->other_options & RTEMS_INTERRUPT_UNIQUE );
       T_eq_ptr( handler_routine, ctx->other_entry.handler );
       T_eq_ptr( handler_arg, ctx->other_entry.arg );
     } else if ( visited_entries == 1 && ctx->third_installed ) {
@@ -735,7 +761,7 @@ test-support: |
       T_eq_ptr( handler_arg, &third_arg );
     } else {
       T_eq_ptr( info, entry_info );
-      T_eq_u32( options, ctx->options );
+      T_eq_u32( options, ctx->options & RTEMS_INTERRUPT_UNIQUE );
       T_eq_ptr( handler_routine, ctx->entry_obj.handler );
       T_eq_ptr( handler_arg, ctx->entry_obj.arg );
     }
@@ -778,25 +804,25 @@ transition-map:
       then: CalledFromISR
     - if:
         pre-conditions:
-          Options: Replace
+          InstallOptions: Replace
       then: InvNum
     - if:
         pre-conditions:
+          InstallOptions: Shared
           Installed: Match
-          Options: Shared
       then: TooMany
     - if:
       - pre-conditions:
+          InstallOptions: Shared
           Installed: Unique
-          Options: Shared
       - pre-conditions:
+          InstallOptions: Unique
           Installed:
           - Unique
           - Other
           - EqRoutine
           - EqArg
           - Match
-          Options: Unique
       then: InUse
     - else: Ok
     Enable:
@@ -806,6 +832,7 @@ transition-map:
       then: N/A
     - if:
         post-conditions:
+          Enable: 'Yes'
           Status: Ok
       then-specified-by: CanEnable
     - else: Nop
@@ -823,7 +850,8 @@ transition-map:
     - else: 'No'
   pre-conditions:
     Vector: all
-    Options: all
+    InstallOptions: all
+    Enable: all
     Entry: all
     Routine:
       applicable:

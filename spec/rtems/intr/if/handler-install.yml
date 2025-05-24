@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Installs the interrupt handler routine and argument at the interrupt vector.
 copyrights:
-- Copyright (C) 2008, 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2008, 2025 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -43,6 +43,21 @@ description: |
   A second handler with the same argument for the interrupt vector will remain
   unchanged. The new handler will inherit the unique or shared options from the
   replaced handler.
+
+  One of the following mutually exclusive options
+
+  - ${option-enable:/name} and
+
+  - ${option-no-enable:/name}
+
+  may be set in the ${.:/params[2]/name} parameter.
+
+  If the option ${option-no-enable:/name} is cleared and the first entry or
+  handler is installed, then the interrupt vector is enabled. The option
+  ${option-enable:/name} has the value zero and names this default behaviour.
+
+  If the option ${option-no-enable:/name} is set, then the interrupt vector is
+  not enabled by the directive call.
 
   An informative description may be provided in ${.:/params[1]/name}. It may be
   used for system debugging and diagnostic tools. The referenced string has to be

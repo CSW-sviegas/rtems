@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Installs the interrupt entry at the interrupt vector.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -32,6 +32,21 @@ description: |
 
   If the option ${option-shared:/name} is set, then multiple handlers may be
   installed for the interrupt vector.
+
+  One of the following mutually exclusive options
+
+  - ${option-enable:/name} and
+
+  - ${option-no-enable:/name}
+
+  may be set in the ${.:/params[1]/name} parameter.
+
+  If the option ${option-no-enable:/name} is cleared and the first entry or
+  handler is installed, then the interrupt vector is enabled. The option
+  ${option-enable:/name} has the value zero and names this default behaviour.
+
+  If the option ${option-no-enable:/name} is set, then the interrupt vector is
+  not enabled by the directive call.
 enabled-by: true
 index-entries: []
 interface-type: function
@@ -93,11 +108,11 @@ return:
       An option specified by ${.:/params[1]/name} was not applicable.
     value: ${../../status/if/invalid-number:/name}
   - description: |
-      The ${option-unique:/name} option was set in ${.:/params[2]/name} and the
+      The ${option-unique:/name} option was set in ${.:/params[1]/name} and the
       interrupt vector was already occupied by a handler.
     value: ${../../status/if/resource-in-use:/name}
   - description: |
-      The ${option-shared:/name} option was set in ${.:/params[2]/name} and the
+      The ${option-shared:/name} option was set in ${.:/params[1]/name} and the
       interrupt vector was already occupied by a unique handler.
     value: ${../../status/if/resource-in-use:/name}
   - description: |

@@ -78,6 +78,10 @@ links:
 - role: placement-order
   uid: option-unique
 - role: placement-order
+  uid: option-enable
+- role: placement-order
+  uid: option-no-enable
+- role: placement-order
   uid: option-replace
 - role: placement-order
   uid: is-shared
