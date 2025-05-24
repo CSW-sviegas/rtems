@@ -7,7 +7,7 @@ definition:
   default:
     attributes: null
     body: |
-      ( ( ${.:/params[0]/name} ) & ${unique:/name} )
+      ( ( ${.:/params[0]/name} ) & ${option-unique:/name} )
     params:
     - ${../../option/if/option:/name} ${.:/params[0]/name}
     return: ${/c/if/bool:/name}
@@ -32,7 +32,7 @@ params:
   name: _options
 return:
   return: |
-    Returns true, if the interrupt handler unique option ${unique:/name} is set,
-    otherwise false.
+    Returns true, if the interrupt handler unique option ${option-unique:/name} is
+    set, otherwise false.
   return-values: []
 type: interface

@@ -7,11 +7,11 @@ links:
 - role: interface-function
   uid: ../if/entry-install
 - role: interface-function
-  uid: ../if/replace
+  uid: ../if/option-replace
 - role: interface-function
-  uid: ../if/shared
+  uid: ../if/option-shared
 - role: interface-function
-  uid: ../if/unique
+  uid: ../if/option-unique
 post-conditions:
 - name: Status
   states:

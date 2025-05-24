@@ -89,12 +89,12 @@ return:
       An option specified by ${.:/params[2]/name} was not applicable.
     value: ${../../status/if/invalid-number:/name}
   - description: |
-      The ${unique:/name} option was set in ${.:/params[2]/name} and the interrupt
-      vector was already occupied by a handler.
+      The ${option-unique:/name} option was set in ${.:/params[2]/name} and the
+      interrupt vector was already occupied by a handler.
     value: ${../../status/if/resource-in-use:/name}
   - description: |
-      The ${shared:/name} option was set in ${.:/params[2]/name} and the interrupt
-      vector was already occupied by a unique handler.
+      The ${option-shared:/name} option was set in ${.:/params[2]/name} and the
+      interrupt vector was already occupied by a unique handler.
     value: ${../../status/if/resource-in-use:/name}
   - description: |
       The handler specified by ${.:/params[4]/name} was already installed for the
@@ -102,7 +102,7 @@ return:
       the argument specified by ${.:/params[5]/name}.
     value: ${../../status/if/too-many:/name}
   - description: |
-      The ${replace:/name} option was set in ${.:/params[2]/name} and no handler to
-      replace was installed.
+      The ${option-replace:/name} option was set in ${.:/params[2]/name} and no
+      handler to replace was installed.
     value: ${../../status/if/unsatisfied:/name}
 type: interface
