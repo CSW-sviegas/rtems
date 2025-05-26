@@ -755,275 +755,88 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Entry: 'Null'
+      then: InvAddr
+    - if:
+        pre-conditions:
+          Init: 'No'
+      then: IncStat
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+      then: InvAddr
+    - if:
+        pre-conditions:
+          Vector: Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          ISR: 'Yes'
+      then: CalledFromISR
+    - if:
+        pre-conditions:
+          Options: Replace
+      then: InvNum
+    - if:
+        pre-conditions:
+          Installed: Match
+          Options: Shared
+      then: TooMany
+    - if:
+      - pre-conditions:
+          Installed: Unique
+          Options: Shared
+      - pre-conditions:
+          Installed:
+          - Unique
+          - Other
+          - EqRoutine
+          - EqArg
+          - Match
+          Options: Unique
+      then: InUse
+    - else: Ok
     Enable:
-    - specified-by: CanEnable
-    Installed: Last
-  pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Unique
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
+    - if:
+        pre-conditions:
+          Vector: Invalid
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: CanEnable
+    - else: Nop
     Installed:
-    - None
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Enable:
-    - specified-by: CanEnable
-    Installed: Last
+    - if:
+      - pre-conditions:
+          Vector: Invalid
+      - pre-conditions:
+          Entry: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Last
+    - else: 'No'
   pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Shared
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
-    Installed:
-    - None
-    - Other
-    - EqRoutine
-    - EqArg
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Enable: Nop
-    Installed: N/A
-  pre-conditions:
-    Vector:
-    - Valid
+    Vector: all
     Options: all
-    Entry:
-    - 'Null'
-    Routine: N/A
+    Entry: all
+    Routine:
+      applicable:
+        pre-conditions:
+          Entry: Obj
     Init: all
     ISR: all
-    CanEnable: all
-    Installed: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Enable: N/A
-    Installed: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    Options: all
-    Entry:
-    - 'Null'
-    Routine: N/A
-    Init: all
-    ISR: all
-    CanEnable: N/A
-    Installed: N/A
-- enabled-by: true
-  post-conditions:
-    Status: IncStat
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options: all
-    Entry:
-    - Obj
-    Routine: all
-    Init:
-    - 'No'
-    ISR: all
-    CanEnable: all
-    Installed: all
-- enabled-by: true
-  post-conditions:
-    Status: IncStat
-    Enable: N/A
-    Installed: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    Options: all
-    Entry:
-    - Obj
-    Routine: all
-    Init:
-    - 'No'
-    ISR: all
-    CanEnable: N/A
-    Installed: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options: all
-    Entry:
-    - Obj
-    Routine:
-    - 'Null'
-    Init:
-    - 'Yes'
-    ISR: all
-    CanEnable: all
-    Installed: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Enable: N/A
-    Installed: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    Options: all
-    Entry:
-    - Obj
-    Routine:
-    - 'Null'
-    Init:
-    - 'Yes'
-    ISR: all
-    CanEnable: N/A
-    Installed: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Enable: N/A
-    Installed: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    Options: all
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR: all
-    CanEnable: N/A
-    Installed: N/A
-- enabled-by: true
-  post-conditions:
-    Status: CalledFromISR
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options: all
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'Yes'
-    CanEnable: all
-    Installed: all
-- enabled-by: true
-  post-conditions:
-    Status: InvNum
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Replace
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
-    Installed: all
-- enabled-by: true
-  post-conditions:
-    Status: InUse
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Unique
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
+    CanEnable:
+      applicable:
+        pre-conditions:
+          Vector: Valid
     Installed:
-    - Unique
-    - Other
-    - EqRoutine
-    - EqArg
-    - Match
-- enabled-by: true
-  post-conditions:
-    Status: InUse
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Shared
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
-    Installed:
-    - Unique
-- enabled-by: true
-  post-conditions:
-    Status: TooMany
-    Enable: Nop
-    Installed: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    Options:
-    - Shared
-    Entry:
-    - Obj
-    Routine:
-    - Valid
-    Init:
-    - 'Yes'
-    ISR:
-    - 'No'
-    CanEnable: all
-    Installed:
-    - Match
+      applicable:
+        pre-conditions:
+          Vector: Valid
 type: requirement
