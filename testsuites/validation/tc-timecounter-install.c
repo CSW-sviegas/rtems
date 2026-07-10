@@ -139,14 +139,22 @@
  *   - Install a timecounter with a high quality level and normal frequency.
  *     Check that it was installed.
  *
+ *   - Check that tc_getfrequency() returns the expected frequency.
+ *
  *   - Install a timecounter with a high quality level and low frequency. Check
  *     that it was not installed.
+ *
+ *   - Check that tc_getfrequency() returns the expected frequency.
  *
  *   - Install a timecounter with a high quality level and high frequency.
  *     Check that it was installed.
  *
+ *   - Check that tc_getfrequency() returns the expected frequency.
+ *
  *   - Install a timecounter with a low quality level. Check that it was not
  *     installed.
+ *
+ *   - Check that tc_getfrequency() returns the expected frequency.
  *
  * - Call the directives to get the time in the highest resolution available to
  *   the system.
@@ -622,6 +630,11 @@ static void ScoreTimecounterValInstall_Action_3( void )
   T_eq_i64( sb, SBT_1S + 8 );
 
   /*
+   * Check that tc_getfrequency() returns the expected frequency.
+   */
+  T_eq_u64( tc_getfrequency(), 0x20000000 );
+
+  /*
    * Install a timecounter with a high quality level and low frequency. Check
    * that it was not installed.
    */
@@ -638,6 +651,11 @@ static void ScoreTimecounterValInstall_Action_3( void )
   T_eq_u32( GetCounter( hqlf ), 0 );
   T_eq_u32( GetCounter( hqnf ), 3 );
   T_eq_i64( sb, SBT_1S + 16 );
+
+  /*
+   * Check that tc_getfrequency() returns the expected frequency.
+   */
+  T_eq_u64( tc_getfrequency(), 0x20000000 );
 
   /*
    * Install a timecounter with a high quality level and high frequency. Check
@@ -660,6 +678,11 @@ static void ScoreTimecounterValInstall_Action_3( void )
   T_eq_i64( sb, SBT_1S + 28 );
 
   /*
+   * Check that tc_getfrequency() returns the expected frequency.
+   */
+  T_eq_u64( tc_getfrequency(), 0x40000000 );
+
+  /*
    * Install a timecounter with a low quality level. Check that it was not
    * installed.
    */
@@ -680,6 +703,11 @@ static void ScoreTimecounterValInstall_Action_3( void )
   T_eq_u32( GetCounter( hqhf ), 3 );
   T_eq_u32( GetCounter( lq ), 0 );
   T_eq_i64( sb, SBT_1S + 32 );
+
+  /*
+   * Check that tc_getfrequency() returns the expected frequency.
+   */
+  T_eq_u64( tc_getfrequency(), 0x40000000 );
 }
 
 /**
