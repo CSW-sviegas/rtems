@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: near match
+text: |
+  A near match of a string in another string is a sequence of characters in the
+  other string which has the length of the string and which differs from the
+  string in exactly one character.
+type: glossary

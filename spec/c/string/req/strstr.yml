@@ -1,0 +1,6097 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strstr
+- role: reference
+  uid: /ref/std/c23/strstr
+- role: reference
+  uid: /ref/std/c23/string-function-conventions
+- role: reference
+  uid: /ref/std/posix-2024/strstr
+post-conditions:
+- name: Result
+  states:
+  - name: S1
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_eq_ptr( ctx->retval[ i ], ctx->s1_buf );
+      }
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strstr:/name} shall be the value
+      of the ${../if/strstr:/params[0]/name} parameter.
+  - name: Occurrence
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_eq_ptr( ctx->retval[ i ], ctx->expected[ i ] );
+      }
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strstr:/name} shall be a pointer
+      to the first character of the first occurrence of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter.
+  - name: 'Null'
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_null( ctx->retval[ i ] );
+      }
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strstr:/name} shall be the
+      ${/c/if/null:/name} pointer.
+  test-epilogue: null
+  test-prologue: |
+    size_t i;
+
+    T_gt_sz( ctx->count, 0 );
+- name: S1
+  states:
+  - name: Nop
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_eq_int( ctx->s1_cmp[ i ], 0 );
+      }
+    text: |
+      The bytes of the string referenced by the ${../if/strstr:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: |
+    size_t i;
+- name: S2
+  states:
+  - name: Nop
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_eq_int( ctx->s2_cmp[ i ], 0 );
+      }
+    text: |
+      The bytes of the string referenced by the ${../if/strstr:/params[1]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: |
+    size_t i;
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      for ( i = 0; i < ctx->count; ++i ) {
+        T_eq_int( ctx->errno_value[ i ], -1 );
+      }
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: |
+    size_t i;
+pre-conditions:
+- name: Length
+  states:
+  - name: Empty
+    test-code: |
+      ctx->length = 0;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to zero.
+  - name: One
+    test-code: |
+      ctx->length = 1;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to one.
+  - name: Two
+    test-code: |
+      ctx->length = 2;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to two.
+  - name: Three
+    test-code: |
+      ctx->length = 3;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to three.
+  - name: Four
+    test-code: |
+      ctx->length = 4;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to four.
+  - name: Five
+    test-code: |
+      ctx->length = 5;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is equal to five.
+  - name: Long
+    test-code: |
+      ctx->length = 300;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is greater than five.
+  test-epilogue: null
+  test-prologue: null
+- name: Haystack
+  states:
+  - name: Shorter
+    test-code: |
+      ctx->haystack = HAYSTACK_SHORTER;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is less than the length of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter minus one.
+  - name: BelowNeedle
+    test-code: |
+      ctx->haystack = HAYSTACK_BELOW;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is equal to the length of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter minus one.
+  - name: EqualNeedle
+    test-code: |
+      ctx->haystack = HAYSTACK_EQUAL;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is equal to the length of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter.
+  - name: AboveNeedle
+    test-code: |
+      ctx->haystack = HAYSTACK_ABOVE;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is equal to the length of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter plus one.
+  - name: Longer
+    test-code: |
+      ctx->haystack = HAYSTACK_LONGER;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is greater than the length of the
+      string referenced by the ${../if/strstr:/params[1]/name} parameter plus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Border
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->border = true;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      has a ${../glossary/border:/term}.
+  - name: 'No'
+    test-code: |
+      ctx->border = false;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      has no ${../glossary/border:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Occurrences
+  states:
+  - name: None
+    test-code: |
+      ctx->occurrences = OCCURRENCES_NONE;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      does not occur in the string referenced by the ${../if/strstr:/params[0]/name}
+      parameter.
+  - name: One
+    test-code: |
+      ctx->occurrences = OCCURRENCES_ONE;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      occurs exactly once in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter.
+  - name: Several
+    test-code: |
+      ctx->occurrences = OCCURRENCES_SEVERAL;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      occurs more than once in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Position
+  states:
+  - name: Start
+    test-code: |
+      ctx->position = POSITION_START;
+    text: |
+      While the first occurrence of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is at index zero.
+  - name: Between
+    test-code: |
+      ctx->position = POSITION_BETWEEN;
+    text: |
+      While the first occurrence of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is at an index greater than zero,
+      while the first occurrence does not end at the last character of the string
+      referenced by the ${../if/strstr:/params[0]/name} parameter.
+  - name: End
+    test-code: |
+      ctx->position = POSITION_END;
+    text: |
+      While the first occurrence of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter is at an index greater than zero,
+      while the first occurrence ends at the last character of the string referenced
+      by the ${../if/strstr:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Overlap
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->overlap = true;
+    text: |
+      While two occurrences of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter share a character.
+  - name: 'No'
+    test-code: |
+      ctx->overlap = false;
+    text: |
+      While no two occurrences of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter share a character.
+  test-epilogue: null
+  test-prologue: null
+- name: Partial
+  states:
+  - name: 'No'
+    test-code: |
+      ctx->partial = PARTIAL_NO;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[0]/name} parameter
+      holds no ${../glossary/partial-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes, while
+      the string referenced by the ${../if/strstr:/params[0]/name} parameter does not
+      end with a ${../glossary/partial-match:/term}.
+  - name: Inside
+    test-code: |
+      ctx->partial = PARTIAL_INSIDE;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[0]/name} parameter
+      holds a ${../glossary/partial-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes, while
+      the string referenced by the ${../if/strstr:/params[0]/name} parameter does not
+      end with a ${../glossary/partial-match:/term}.
+  - name: Tail
+    test-code: |
+      ctx->partial = PARTIAL_TAIL;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[0]/name} parameter
+      ends with a ${../glossary/partial-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: NearMatch
+  states:
+  - name: None
+    test-code: |
+      ctx->near_match = NEAR_MATCH_NONE;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[0]/name} parameter
+      holds no ${../glossary/near-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes.
+  - name: First
+    test-code: |
+      ctx->near_match = NEAR_MATCH_FIRST;
+    text: |
+      While the first ${../glossary/near-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
+      in the first character.
+  - name: Inner
+    test-code: |
+      ctx->near_match = NEAR_MATCH_INNER;
+    text: |
+      While the first ${../glossary/near-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
+      in a character other than the first and the last character.
+  - name: Last
+    test-code: |
+      ctx->near_match = NEAR_MATCH_LAST;
+    text: |
+      While the first ${../glossary/near-match:/term} of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
+      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
+      in the last character, while the length of the string referenced by the
+      ${../if/strstr:/params[1]/name} parameter is greater than one.
+  test-epilogue: null
+  test-prologue: null
+- name: HighByte
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->high = true;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      holds a character with a value greater than 127, where the value is interpreted
+      as type `unsigned char`.
+  - name: 'No'
+    test-code: |
+      ctx->high = false;
+    text: |
+      While the string referenced by the ${../if/strstr:/params[1]/name} parameter
+      holds no character with a value greater than 127, where the value is
+      interpreted as type `unsigned char`.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/c23/strstr:/name} defines no error for the function. It leaves the
+  behaviour undefined where a parameter references no string, so the item states
+  no ${/c/if/null:/name} pointer. ${/ref/std/posix-2024/strstr:/name} states that
+  the function does not change ${/c/errno/if/errno:/name} on valid input.
+
+  Dimension Length covers the length of the string referenced by the
+  ${../if/strstr:/params[1]/name} parameter, 7 states.
+  ${/ref/std/c23/strstr:/name} specifies the result for a string of zero length
+  apart from every other string. The implementation of the pre-qualified library
+  selects its search by this length. It compares the length against one, two,
+  three and four. The states Empty to Five hold the values below, at and above
+  these boundaries. The Long state holds the values after these states.
+
+  Dimension Haystack covers the length of the string referenced by the
+  ${../if/strstr:/params[0]/name} parameter, 5 states. It takes this length
+  relative to the length of the string referenced by the
+  ${../if/strstr:/params[1]/name} parameter. The implementation compares the two
+  lengths. The states BelowNeedle, EqualNeedle and AboveNeedle hold the values
+  below, at and above this boundary. The states Shorter and Longer hold the
+  values below and above these states. An enumeration of all strings of these
+  lengths gives the skip reasons of the states up to AboveNeedle. It covers each
+  needle of up to seven characters. The skip reasons are the same for each length
+  from four on.
+
+  ${/ref/std/c23/strstr:/name} interprets each character of a string function as
+  type `unsigned char`. The characters with a value greater than 127 have a
+  negative value as type `signed char`. The HighByte dimension holds this
+  distinction.
+
+  Dimension Occurrences covers the number of occurrences of the string referenced
+  by the ${../if/strstr:/params[1]/name} parameter in the string referenced by
+  the ${../if/strstr:/params[0]/name} parameter, 3 states.
+  ${/ref/std/c23/strstr:/name} specifies the first occurrence, and only several
+  occurrences tell the first occurrence apart from another one. An empty string
+  occurs at each index of a string and after its last character. It therefore
+  occurs once in an empty string and more than once in every other string.
+
+  Dimension Position covers the index of the first occurrence relative to the
+  ends of the string referenced by the ${../if/strstr:/params[0]/name} parameter,
+  3 states. ${/ref/std/c23/strstr:/name} leaves an access beyond the end of an
+  object undefined. The End state holds this bound of the search. A string
+  without an occurrence has no first occurrence, so the dimension does not apply
+  to it.
+
+  Dimension Overlap covers the pairs of occurrences, 2 states. Two occurrences
+  share a character only where the string referenced by the
+  ${../if/strstr:/params[1]/name} parameter has a ${../glossary/border:/term}.
+
+  Dimension Partial covers the ${../glossary/partial-match:/term} before the
+  first occurrence and at the end of the string referenced by the
+  ${../if/strstr:/params[0]/name} parameter, 3 states. An occurrence can start
+  inside the characters which a ${../glossary/partial-match:/term} examines.
+
+  Dimension NearMatch covers the first ${../glossary/near-match:/term} before the
+  first occurrence, 4 states. ${/ref/std/c23/strstr:/name} locates the sequence
+  of characters of the string referenced by the ${../if/strstr:/params[1]/name}
+  parameter. An occurrence therefore needs a match of every character. A
+  ${../glossary/near-match:/term} fails this condition in exactly one character.
+  The states tell apart the first character, an inner character and the last
+  character. For a needle with a ${../glossary/border:/term}, the test places the
+  inner ${../glossary/near-match:/term} so that it shares characters with the
+  first occurrence. The implementation then reaches the shift after a mismatch in
+  the left half of a periodic needle.
+references: []
+requirement-type: functional
+skip-reasons:
+  AboveHaystackHasNoRoomBetween: |
+    In a haystack of the needle length plus one, an occurrence at an index greater
+    than zero ends at the last character.
+  AboveHaystackIsTwoSequences: |
+    A haystack of the needle length plus one holds exactly two sequences of the
+    needle length, at index zero and at index one. Each occurrence and each
+    ${../glossary/near-match:/term} is one of them, so two of them share all
+    characters but one.
+  BorderInNearMatch: |
+    A ${../glossary/near-match:/term} which differs in the first character ends
+    with each ${../glossary/border:/term} of the string. Without an occurrence,
+    such a ${../glossary/border:/term} is a ${../glossary/partial-match:/term}.
+  EmptyAtIndexZero: |
+    The first occurrence of an empty string is at index zero.
+  EmptyHasNoBorder: |
+    An empty string has no ${../glossary/border:/term}.
+  EmptyHasNoPrefix: |
+    An empty string has no proper non-empty prefix.
+  EmptyHaystackHoldsNoPartialMatch: |
+    An empty haystack holds no ${../glossary/partial-match:/term}.
+  EmptyHoldsNoCharacter: |
+    An empty string holds no character.
+  EmptyOccursEverywhere: |
+    An empty string occurs at each index of a string and after its last character.
+    It occurs once in an empty string only.
+  EqualCharactersFormNearMatch: |
+    For a needle of two equal characters, the character before the first occurrence
+    and each character next to a ${../glossary/partial-match:/term} differs from
+    the needle character. Together with the needle character it forms a
+    ${../glossary/near-match:/term}.
+  EqualHaystackIsNeedle: |
+    A haystack of the needle length which holds an occurrence is equal to the
+    needle. It holds one occurrence at index zero, and it holds no
+    ${../glossary/partial-match:/term} and no ${../glossary/near-match:/term}.
+  EqualHaystackIsOneSequence: |
+    A haystack of the needle length holds exactly one sequence of the needle
+    length. An occurrence or a ${../glossary/near-match:/term} is the whole
+    haystack, so the haystack ends with each of its suffixes.
+  NearMatchStartsWithPrefix: |
+    A ${../glossary/near-match:/term} which no occurrence precedes and which
+    matches the first character starts with a ${../glossary/partial-match:/term}.
+  NoIndexBeforeZero: |
+    No index is less than zero.
+  NoInnerCharacter: |
+    A string of at most two characters has no character other than its first and
+    its last character.
+  NoNegativeLength: |
+    A string has no negative length.
+  NoOccurrenceAfterEnd: |
+    No occurrence starts after an occurrence which ends at the last character.
+  NoPartialAtEnd: |
+    A string which ends with an occurrence does not end with a
+    ${../glossary/partial-match:/term}.
+  OneCharacterHasNoBorder: |
+    A string of one character has no ${../glossary/border:/term}.
+  OneCharacterHasNoPrefix: |
+    A string of one character has no proper non-empty prefix, so no
+    ${../glossary/partial-match:/term} of it exists.
+  OneCharacterHaystackEndsWithPartialMatch: |
+    A haystack of at most one character which holds a
+    ${../glossary/partial-match:/term} ends with it.
+  OtherCharacterIsNearMatch: |
+    For a string of one character, each other character is a
+    ${../glossary/near-match:/term} of it. A haystack which holds a character
+    before the first occurrence, or which holds a character and no occurrence,
+    holds such a character.
+  OverlapNeedsBorder: |
+    Two occurrences of a string without a ${../glossary/border:/term} share no
+    character.
+  OverlapNeedsTwo: |
+    An overlap needs two occurrences.
+  PartialMatchStartsNearMatch: |
+    For a needle of two characters, a ${../glossary/partial-match:/term} which does
+    not end the haystack starts a ${../glossary/near-match:/term} which differs in
+    the last character.
+  ShortHaystackHoldsNoNearMatch: |
+    A string which is shorter than the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter holds no
+    ${../glossary/near-match:/term} of it.
+  ShortHaystackHoldsNoOccurrence: |
+    A string which is shorter than the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter holds no occurrence of it.
+test-action: |
+  size_t shape;
+
+  ctx->count = 0;
+
+  for ( shape = 0; shape < ShapeCount( ctx ); ++shape ) {
+    size_t i;
+
+    i = ctx->count;
+    ctx->shape = shape;
+    ctx->size = 0;
+    T_quiet_true( Build( ctx, 2560 ) );
+    ctx->expected[ i ] = Find( ctx );
+    memcpy( ctx->s1_before, ctx->s1_buf, sizeof( ctx->s1_buf ) );
+    memcpy( ctx->s2_before, ctx->s2_buf, sizeof( ctx->s2_buf ) );
+    errno = -1;
+    ctx->retval[ i ] = strstr( ctx->s1_buf, ctx->s2_buf );
+    ctx->errno_value[ i ] = errno;
+    ctx->s1_cmp[ i ] = memcmp(
+      ctx->s1_before,
+      ctx->s1_buf,
+      sizeof( ctx->s1_buf )
+    );
+    ctx->s2_cmp[ i ] = memcmp(
+      ctx->s2_before,
+      ctx->s2_buf,
+      sizeof( ctx->s2_buf )
+    );
+    ctx->count = i + 1;
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the length of the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter.
+  description: null
+  member: |
+    size_t length
+- brief: |
+    This member specifies the length of the string referenced by the
+    ${../if/strstr:/params[0]/name} parameter relative to the length of the string
+    referenced by the ${../if/strstr:/params[1]/name} parameter.
+  description: null
+  member: |
+    Haystack haystack
+- brief: |
+    This member specifies the shape of the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter for a longer haystack.
+  description: null
+  member: |
+    size_t shape
+- brief: |
+    This member contains the period of the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter for a longer haystack.
+  description: null
+  member: |
+    size_t period
+- brief: |
+    This member is true, if the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter has a ${../glossary/border:/term}.
+  description: null
+  member: |
+    bool border
+- brief: |
+    This member specifies the number of occurrences.
+  description: null
+  member: |
+    Occurrences occurrences
+- brief: |
+    This member specifies the position of the first occurrence.
+  description: null
+  member: |
+    Position position
+- brief: |
+    This member is true, if two occurrences share a character.
+  description: null
+  member: |
+    bool overlap
+- brief: |
+    This member specifies the ${../glossary/partial-match:/term}.
+  description: null
+  member: |
+    Partial partial
+- brief: |
+    This member specifies the ${../glossary/near-match:/term}.
+  description: null
+  member: |
+    NearMatch near_match
+- brief: |
+    This member is true, if the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter holds a character with a value
+    greater than 127.
+  description: null
+  member: |
+    bool high
+- brief: |
+    This member contains the length of the string referenced by the
+    ${../if/strstr:/params[0]/name} parameter.
+  description: null
+  member: |
+    size_t size
+- brief: |
+    This member contains the count of ${../if/strstr:/name} calls.
+  description: null
+  member: |
+    size_t count
+- brief: |
+    This member contains the expected return value of each ${../if/strstr:/name}
+    call.
+  description: null
+  member: |
+    const char *expected[ 3 ]
+- brief: |
+    This member contains the return value of each ${../if/strstr:/name} call.
+  description: null
+  member: |
+    char *retval[ 3 ]
+- brief: |
+    This member contains the comparison of the string referenced by the
+    ${../if/strstr:/params[0]/name} parameter before and after each
+    ${../if/strstr:/name} call.
+  description: null
+  member: |
+    int s1_cmp[ 3 ]
+- brief: |
+    This member contains the comparison of the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter before and after each
+    ${../if/strstr:/name} call.
+  description: null
+  member: |
+    int s2_cmp[ 3 ]
+- brief: |
+    This member provides the string referenced by the
+    ${../if/strstr:/params[0]/name} parameter.
+  description: null
+  member: |
+    char s1_buf[ 8192 ]
+- brief: |
+    This member provides the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter.
+  description: null
+  member: |
+    char s2_buf[ 304 ]
+- brief: |
+    This member contains the string referenced by the
+    ${../if/strstr:/params[0]/name} parameter before the ${../if/strstr:/name}
+    call.
+  description: null
+  member: |
+    char s1_before[ 8192 ]
+- brief: |
+    This member contains the string referenced by the
+    ${../if/strstr:/params[1]/name} parameter before the ${../if/strstr:/name}
+    call.
+  description: null
+  member: |
+    char s2_before[ 304 ]
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after each
+    ${../if/strstr:/name} call.
+  description: null
+  member: |
+    int errno_value[ 3 ]
+test-context-support: |
+  typedef enum {
+    OCCURRENCES_NONE,
+    OCCURRENCES_ONE,
+    OCCURRENCES_SEVERAL
+  } Occurrences;
+
+  typedef enum {
+    POSITION_NONE,
+    POSITION_START,
+    POSITION_BETWEEN,
+    POSITION_END
+  } Position;
+
+  typedef enum { PARTIAL_NO, PARTIAL_INSIDE, PARTIAL_TAIL } Partial;
+
+  typedef enum {
+    NEAR_MATCH_NONE,
+    NEAR_MATCH_FIRST,
+    NEAR_MATCH_INNER,
+    NEAR_MATCH_LAST
+  } NearMatch;
+
+  typedef enum {
+    HAYSTACK_SHORTER,
+    HAYSTACK_BELOW,
+    HAYSTACK_EQUAL,
+    HAYSTACK_ABOVE,
+    HAYSTACK_LONGER
+  } Haystack;
+test-description: |
+  Each variant builds a pair of strings and calls ${../if/strstr:/name} for it.
+  For a needle of up to three characters, and for a haystack of at most the
+  needle length plus one, a table provides the strings. The entries for a needle
+  of up to three characters come from an enumeration of all strings over a few
+  letters. A recipe table builds the strings for longer needles from one of
+  several needle shapes. A longer haystack starts with a fill of 2560 characters
+  which do not occur in the needle. For a needle of at least five characters, a
+  longer haystack is built for three needle shapes, which lead the search through
+  both of its paths with left halves of different lengths. For a needle with a
+  ${../glossary/border:/term}, an inner ${../glossary/near-match:/term} before an
+  occurrence starts one period of the needle before it. The test compares each
+  result with a search of its own.
+test-header: null
+test-includes:
+- errno.h
+- stdbool.h
+- stdint.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->position = POSITION_NONE;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef CStringReqStrstr_Context Context;
+
+  #define FILLER 'c'
+
+  #define HIGH 0xb0
+
+  typedef struct {
+    unsigned char length;
+    unsigned char haystack;
+    unsigned char border;
+    unsigned char occurrences;
+    unsigned char position;
+    unsigned char overlap;
+    unsigned char partial;
+    unsigned char near_match;
+    const char   *s2;
+    const char   *s1;
+  } Literal;
+
+  typedef struct {
+    unsigned char haystack;
+    unsigned char border;
+    unsigned char occurrences;
+    unsigned char position;
+    unsigned char overlap;
+    unsigned char partial;
+    unsigned char near_match;
+    unsigned char family;
+    unsigned char base;
+    unsigned char lead;
+    unsigned char trail;
+    unsigned char at[ 2 ];
+    unsigned char with[ 2 ];
+  } Recipe;
+
+  static const Literal literals[] = {
+    { 0, 2, 0, 1, 1, 0, 0, 0, "", "" },
+    { 0, 3, 0, 2, 1, 0, 0, 0, "", "c" },
+    { 0, 4, 0, 2, 1, 0, 0, 0, "", "cc" },
+    { 1, 1, 0, 0, 0, 0, 0, 0, "d", "" },
+    { 1, 2, 0, 0, 0, 0, 0, 1, "d", "c" },
+    { 1, 2, 0, 1, 1, 0, 0, 0, "d", "d" },
+    { 1, 3, 0, 0, 0, 0, 0, 1, "d", "cc" },
+    { 1, 3, 0, 1, 1, 0, 0, 0, "d", "dc" },
+    { 1, 3, 0, 1, 3, 0, 0, 1, "d", "cd" },
+    { 1, 3, 0, 2, 1, 0, 0, 0, "d", "dd" },
+    { 1, 4, 0, 0, 0, 0, 0, 1, "a", "ccc" },
+    { 1, 4, 0, 1, 1, 0, 0, 0, "a", "acc" },
+    { 1, 4, 0, 1, 2, 0, 0, 1, "a", "cac" },
+    { 1, 4, 0, 1, 3, 0, 0, 1, "a", "cca" },
+    { 1, 4, 0, 2, 1, 0, 0, 0, "a", "aaa" },
+    { 1, 4, 0, 2, 2, 0, 0, 1, "a", "caa" },
+    { 2, 0, 0, 0, 0, 0, 0, 0, "de", "" },
+    { 2, 0, 1, 0, 0, 0, 0, 0, "dd", "" },
+    { 2, 1, 0, 0, 0, 0, 0, 0, "de", "e" },
+    { 2, 1, 0, 0, 0, 0, 2, 0, "de", "d" },
+    { 2, 1, 1, 0, 0, 0, 0, 0, "dd", "c" },
+    { 2, 1, 1, 0, 0, 0, 2, 0, "dd", "d" },
+    { 2, 2, 0, 0, 0, 0, 0, 0, "de", "ec" },
+    { 2, 2, 0, 0, 0, 0, 0, 1, "de", "ee" },
+    { 2, 2, 0, 0, 0, 0, 1, 3, "de", "dc" },
+    { 2, 2, 0, 0, 0, 0, 2, 0, "de", "ed" },
+    { 2, 2, 0, 0, 0, 0, 2, 3, "de", "dd" },
+    { 2, 2, 0, 1, 1, 0, 0, 0, "de", "de" },
+    { 2, 2, 1, 0, 0, 0, 0, 0, "dd", "cc" },
+    { 2, 2, 1, 0, 0, 0, 1, 3, "dd", "dc" },
+    { 2, 2, 1, 0, 0, 0, 2, 1, "dd", "cd" },
+    { 2, 2, 1, 1, 1, 0, 0, 0, "dd", "dd" },
+    { 2, 3, 0, 0, 0, 0, 0, 0, "de", "ecc" },
+    { 2, 3, 0, 0, 0, 0, 0, 1, "de", "eee" },
+    { 2, 3, 0, 0, 0, 0, 1, 3, "de", "dce" },
+    { 2, 3, 0, 0, 0, 0, 2, 0, "de", "ecd" },
+    { 2, 3, 0, 0, 0, 0, 2, 1, "de", "eed" },
+    { 2, 3, 0, 0, 0, 0, 2, 3, "de", "ddd" },
+    { 2, 3, 0, 1, 1, 0, 0, 0, "de", "dee" },
+    { 2, 3, 0, 1, 1, 0, 2, 0, "de", "ded" },
+    { 2, 3, 0, 1, 3, 0, 0, 0, "de", "ede" },
+    { 2, 3, 0, 1, 3, 0, 1, 3, "de", "dde" },
+    { 2, 3, 1, 0, 0, 0, 0, 0, "dd", "ccc" },
+    { 2, 3, 1, 0, 0, 0, 1, 1, "dd", "cdc" },
+    { 2, 3, 1, 0, 0, 0, 1, 3, "dd", "dcc" },
+    { 2, 3, 1, 0, 0, 0, 2, 1, "dd", "ccd" },
+    { 2, 3, 1, 0, 0, 0, 2, 3, "dd", "dcd" },
+    { 2, 3, 1, 1, 1, 0, 0, 0, "dd", "ddc" },
+    { 2, 3, 1, 1, 3, 0, 0, 1, "dd", "cdd" },
+    { 2, 3, 1, 2, 1, 1, 0, 0, "dd", "ddd" },
+    { 2, 4, 0, 0, 0, 0, 0, 0, "ab", "bccc" },
+    { 2, 4, 0, 0, 0, 0, 0, 1, "ab", "bbbb" },
+    { 2, 4, 0, 0, 0, 0, 1, 1, "ab", "bbac" },
+    { 2, 4, 0, 0, 0, 0, 1, 3, "ab", "acbb" },
+    { 2, 4, 0, 0, 0, 0, 2, 0, "ab", "bcca" },
+    { 2, 4, 0, 0, 0, 0, 2, 1, "ab", "bbaa" },
+    { 2, 4, 0, 0, 0, 0, 2, 3, "ab", "aaaa" },
+    { 2, 4, 0, 1, 1, 0, 0, 0, "ab", "abbb" },
+    { 2, 4, 0, 1, 1, 0, 2, 0, "ab", "abaa" },
+    { 2, 4, 0, 1, 2, 0, 0, 0, "ab", "babb" },
+    { 2, 4, 0, 1, 2, 0, 0, 1, "ab", "bbabb" },
+    { 2, 4, 0, 1, 2, 0, 1, 1, "ab", "bbaabb" },
+    { 2, 4, 0, 1, 2, 0, 1, 3, "ab", "aabb" },
+    { 2, 4, 0, 1, 2, 0, 2, 0, "ab", "baba" },
+    { 2, 4, 0, 1, 2, 0, 2, 1, "ab", "bbaba" },
+    { 2, 4, 0, 1, 2, 0, 2, 3, "ab", "aaba" },
+    { 2, 4, 0, 1, 3, 0, 0, 0, "ab", "bcab" },
+    { 2, 4, 0, 1, 3, 0, 0, 1, "ab", "bbab" },
+    { 2, 4, 0, 1, 3, 0, 1, 1, "ab", "bbaab" },
+    { 2, 4, 0, 1, 3, 0, 1, 3, "ab", "aaab" },
+    { 2, 4, 0, 2, 1, 0, 0, 0, "ab", "abab" },
+    { 2, 4, 0, 2, 1, 0, 2, 0, "ab", "ababa" },
+    { 2, 4, 0, 2, 2, 0, 0, 0, "ab", "babab" },
+    { 2, 4, 0, 2, 2, 0, 0, 1, "ab", "bbabab" },
+    { 2, 4, 0, 2, 2, 0, 1, 1, "ab", "bbaabab" },
+    { 2, 4, 0, 2, 2, 0, 1, 3, "ab", "aabab" },
+    { 2, 4, 0, 2, 2, 0, 2, 0, "ab", "bababa" },
+    { 2, 4, 0, 2, 2, 0, 2, 1, "ab", "bbababa" },
+    { 2, 4, 0, 2, 2, 0, 2, 3, "ab", "aababa" },
+    { 2, 4, 1, 0, 0, 0, 0, 0, "aa", "cccc" },
+    { 2, 4, 1, 0, 0, 0, 1, 1, "aa", "ccac" },
+    { 2, 4, 1, 0, 0, 0, 1, 3, "aa", "acac" },
+    { 2, 4, 1, 0, 0, 0, 2, 1, "aa", "caca" },
+    { 2, 4, 1, 0, 0, 0, 2, 3, "aa", "acca" },
+    { 2, 4, 1, 1, 1, 0, 0, 0, "aa", "aacc" },
+    { 2, 4, 1, 1, 1, 0, 2, 0, "aa", "aaca" },
+    { 2, 4, 1, 1, 2, 0, 0, 1, "aa", "caac" },
+    { 2, 4, 1, 1, 2, 0, 1, 1, "aa", "cacaac" },
+    { 2, 4, 1, 1, 2, 0, 1, 3, "aa", "acaac" },
+    { 2, 4, 1, 1, 2, 0, 2, 1, "aa", "caaca" },
+    { 2, 4, 1, 1, 2, 0, 2, 3, "aa", "acaaca" },
+    { 2, 4, 1, 1, 3, 0, 0, 1, "aa", "ccaa" },
+    { 2, 4, 1, 1, 3, 0, 1, 1, "aa", "cacaa" },
+    { 2, 4, 1, 1, 3, 0, 1, 3, "aa", "acaa" },
+    { 2, 4, 1, 2, 1, 0, 0, 0, "aa", "aacaa" },
+    { 2, 4, 1, 2, 1, 0, 2, 0, "aa", "aacaaca" },
+    { 2, 4, 1, 2, 1, 1, 0, 0, "aa", "aaaa" },
+    { 2, 4, 1, 2, 1, 1, 2, 0, "aa", "aaaca" },
+    { 2, 4, 1, 2, 2, 0, 0, 1, "aa", "caacaa" },
+    { 2, 4, 1, 2, 2, 0, 1, 1, "aa", "cacaacaa" },
+    { 2, 4, 1, 2, 2, 0, 1, 3, "aa", "acaacaa" },
+    { 2, 4, 1, 2, 2, 0, 2, 1, "aa", "caacaaca" },
+    { 2, 4, 1, 2, 2, 0, 2, 3, "aa", "acaacaaca" },
+    { 2, 4, 1, 2, 2, 1, 0, 1, "aa", "caaa" },
+    { 2, 4, 1, 2, 2, 1, 1, 1, "aa", "cacaaa" },
+    { 2, 4, 1, 2, 2, 1, 1, 3, "aa", "acaaa" },
+    { 2, 4, 1, 2, 2, 1, 2, 1, "aa", "caaaca" },
+    { 2, 4, 1, 2, 2, 1, 2, 3, "aa", "acaaaca" },
+    { 3, 0, 0, 0, 0, 0, 0, 0, "dde", "" },
+    { 3, 0, 0, 0, 0, 0, 2, 0, "dde", "d" },
+    { 3, 0, 1, 0, 0, 0, 0, 0, "ddd", "" },
+    { 3, 0, 1, 0, 0, 0, 2, 0, "ddd", "d" },
+    { 3, 1, 0, 0, 0, 0, 0, 0, "dde", "ee" },
+    { 3, 1, 0, 0, 0, 0, 1, 0, "dde", "de" },
+    { 3, 1, 0, 0, 0, 0, 2, 0, "dde", "dd" },
+    { 3, 1, 1, 0, 0, 0, 0, 0, "ddd", "cc" },
+    { 3, 1, 1, 0, 0, 0, 1, 0, "ddd", "dc" },
+    { 3, 1, 1, 0, 0, 0, 2, 0, "ddd", "dd" },
+    { 3, 2, 0, 0, 0, 0, 0, 0, "dde", "eee" },
+    { 3, 2, 0, 0, 0, 0, 0, 1, "dee", "eee" },
+    { 3, 2, 0, 0, 0, 0, 1, 0, "dde", "edc" },
+    { 3, 2, 0, 0, 0, 0, 1, 1, "dde", "ede" },
+    { 3, 2, 0, 0, 0, 0, 1, 2, "dde", "dee" },
+    { 3, 2, 0, 0, 0, 0, 1, 3, "dde", "ddc" },
+    { 3, 2, 0, 0, 0, 0, 2, 0, "dde", "edd" },
+    { 3, 2, 0, 0, 0, 0, 2, 2, "dee", "dde" },
+    { 3, 2, 0, 0, 0, 0, 2, 3, "dde", "ddd" },
+    { 3, 2, 0, 1, 1, 0, 0, 0, "dde", "dde" },
+    { 3, 2, 1, 0, 0, 0, 0, 0, "ddd", "ccc" },
+    { 3, 2, 1, 0, 0, 0, 1, 0, "ddd", "cdc" },
+    { 3, 2, 1, 0, 0, 0, 1, 3, "ddd", "ddc" },
+    { 3, 2, 1, 0, 0, 0, 2, 0, "ddd", "ccd" },
+    { 3, 2, 1, 0, 0, 0, 2, 1, "ddd", "cdd" },
+    { 3, 2, 1, 0, 0, 0, 2, 2, "ddd", "dcd" },
+    { 3, 2, 1, 1, 1, 0, 0, 0, "ddd", "ddd" },
+    { 3, 3, 0, 0, 0, 0, 0, 0, "dde", "eeee" },
+    { 3, 3, 0, 0, 0, 0, 0, 1, "dee", "eeee" },
+    { 3, 3, 0, 0, 0, 0, 1, 0, "dde", "dece" },
+    { 3, 3, 0, 0, 0, 0, 1, 1, "dde", "dede" },
+    { 3, 3, 0, 0, 0, 0, 1, 2, "dde", "deee" },
+    { 3, 3, 0, 0, 0, 0, 1, 3, "dde", "ddce" },
+    { 3, 3, 0, 0, 0, 0, 2, 0, "dde", "dedd" },
+    { 3, 3, 0, 0, 0, 0, 2, 1, "dde", "eded" },
+    { 3, 3, 0, 0, 0, 0, 2, 2, "dde", "deed" },
+    { 3, 3, 0, 0, 0, 0, 2, 3, "dde", "dddd" },
+    { 3, 3, 0, 1, 1, 0, 0, 0, "dde", "ddee" },
+    { 3, 3, 0, 1, 1, 0, 2, 0, "dde", "dded" },
+    { 3, 3, 0, 1, 3, 0, 0, 0, "dde", "edde" },
+    { 3, 3, 0, 1, 3, 0, 1, 0, "def", "ddef" },
+    { 3, 3, 0, 1, 3, 0, 1, 2, "dee", "ddee" },
+    { 3, 3, 0, 1, 3, 0, 1, 3, "dde", "ddde" },
+    { 3, 3, 1, 0, 0, 0, 0, 0, "ddd", "cccc" },
+    { 3, 3, 1, 0, 0, 0, 1, 0, "ddd", "ccdc" },
+    { 3, 3, 1, 0, 0, 0, 1, 1, "ddd", "cddc" },
+    { 3, 3, 1, 0, 0, 0, 1, 2, "ddd", "dcdc" },
+    { 3, 3, 1, 0, 0, 0, 1, 3, "ddd", "ddcc" },
+    { 3, 3, 1, 0, 0, 0, 2, 0, "ddd", "dccd" },
+    { 3, 3, 1, 0, 0, 0, 2, 1, "ddd", "ccdd" },
+    { 3, 3, 1, 0, 0, 0, 2, 2, "ddd", "dcdd" },
+    { 3, 3, 1, 0, 0, 0, 2, 3, "ddd", "ddcd" },
+    { 3, 3, 1, 1, 1, 0, 0, 0, "ddd", "dddc" },
+    { 3, 3, 1, 1, 1, 0, 2, 0, "ded", "dedd" },
+    { 3, 3, 1, 1, 3, 0, 0, 0, "ded", "eded" },
+    { 3, 3, 1, 1, 3, 0, 0, 1, "ddd", "cddd" },
+    { 3, 3, 1, 1, 3, 0, 1, 0, "ded", "dded" },
+    { 3, 3, 1, 2, 1, 1, 0, 0, "ddd", "dddd" },
+  };
+
+  static const Recipe recipes[] = {
+    { 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, { 5, 0 }, { 1, 0 } },
+    { 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 0, 1, 0, 0, 0, 0, 0, 1, 9, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 0, 1, 0, 0, 0, 1, 0, 1, 2, 0, 0, { 5, 0 }, { 1, 0 } },
+    { 0, 1, 0, 0, 0, 2, 0, 1, 2, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 1, { 0, 0 }, { 0, 0 } },
+    { 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, { 6, 0 }, { 1, 0 } },
+    { 1, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 1, 1, 0, 0, 0, 0, 0, 1, 5, 0, 1, { 0, 0 }, { 0, 0 } },
+    { 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, { 6, 0 }, { 1, 0 } },
+    { 1, 1, 0, 0, 0, 2, 0, 1, 1, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 2, 0, 0, 0, 0, 0, 0, 0, 5, 1, 1, { 0, 0 }, { 0, 0 } },
+    { 2, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, { 1, 0 }, { 1, 0 } },
+    { 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, { 1, 2 }, { 1, 1 } },
+    { 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, { 1, 0 }, { 1, 0 } },
+    { 2, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, { 2, 0 }, { 1, 0 } },
+    { 2, 0, 0, 0, 0, 1, 3, 0, 0, 0, 0, { 7, 0 }, { 1, 0 } },
+    { 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, { 1, 7 }, { 1, 2 } },
+    { 2, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, { 2, 0 }, { 2, 0 } },
+    { 2, 0, 0, 0, 0, 2, 3, 0, 0, 0, 0, { 7, 0 }, { 2, 0 } },
+    { 2, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 2, 1, 0, 0, 0, 0, 0, 1, 5, 1, 1, { 0, 0 }, { 0, 0 } },
+    { 2, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, { 1, 7 }, { 1, 1 } },
+    { 2, 1, 0, 0, 0, 1, 2, 6, 0, 0, 0, { 6, 0 }, { 1, 0 } },
+    { 2, 1, 0, 0, 0, 1, 3, 1, 0, 0, 0, { 7, 0 }, { 1, 0 } },
+    { 2, 1, 0, 0, 0, 2, 0, 1, 0, 0, 0, { 1, 2 }, { 1, 1 } },
+    { 2, 1, 0, 0, 0, 2, 1, 1, 0, 0, 0, { 1, 0 }, { 1, 0 } },
+    { 2, 1, 0, 0, 0, 2, 2, 1, 0, 0, 0, { 2, 0 }, { 1, 0 } },
+    { 2, 1, 0, 0, 0, 2, 3, 5, 0, 0, 0, { 7, 0 }, { 3, 0 } },
+    { 2, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, { 0, 0 }, { 0, 0 } },
+    { 3, 0, 0, 0, 0, 0, 0, 0, 6, 1, 1, { 0, 0 }, { 0, 0 } },
+    { 3, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, { 1, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, { 1, 2 }, { 1, 1 } },
+    { 3, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, { 1, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 1, 2, 0, 0, 0, 1, { 2, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 1, 3, 0, 0, 0, 1, { 7, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, { 1, 2 }, { 1, 1 } },
+    { 3, 0, 0, 0, 0, 2, 1, 0, 0, 0, 2, { 1, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, { 2, 0 }, { 1, 0 } },
+    { 3, 0, 0, 0, 0, 2, 3, 0, 0, 0, 2, { 7, 0 }, { 1, 0 } },
+    { 3, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, { 0, 0 }, { 0, 0 } },
+    { 3, 0, 1, 1, 0, 2, 0, 0, 0, 0, 2, { 0, 0 }, { 0, 0 } },
+    { 3, 0, 1, 3, 0, 0, 0, 0, 0, 0, 3, { 1, 7 }, { 1, 2 } },
+    { 3, 0, 1, 3, 0, 1, 0, 9, 0, 2, 0, { 0, 0 }, { 0, 0 } },
+    { 3, 0, 1, 3, 0, 1, 2, 2, 0, 0, 3, { 2, 0 }, { 2, 0 } },
+    { 3, 0, 1, 3, 0, 1, 3, 0, 0, 0, 3, { 7, 0 }, { 2, 0 } },
+    { 3, 1, 0, 0, 0, 0, 0, 1, 6, 1, 1, { 0, 0 }, { 0, 0 } },
+    { 3, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, { 1, 2 }, { 1, 1 } },
+    { 3, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, { 1, 0 }, { 1, 0 } },
+    { 3, 1, 0, 0, 0, 1, 2, 1, 0, 0, 1, { 2, 0 }, { 1, 0 } },
+    { 3, 1, 0, 0, 0, 1, 3, 1, 0, 0, 1, { 7, 0 }, { 1, 0 } },
+    { 3, 1, 0, 0, 0, 2, 0, 1, 0, 0, 2, { 2, 3 }, { 1, 1 } },
+    { 3, 1, 0, 0, 0, 2, 1, 1, 0, 0, 2, { 1, 2 }, { 1, 1 } },
+    { 3, 1, 0, 0, 0, 2, 2, 1, 0, 0, 2, { 2, 0 }, { 1, 0 } },
+    { 3, 1, 0, 0, 0, 2, 3, 1, 0, 0, 2, { 7, 0 }, { 1, 0 } },
+    { 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, { 0, 0 }, { 0, 0 } },
+    { 3, 1, 1, 1, 0, 2, 0, 5, 0, 0, 2, { 0, 0 }, { 0, 0 } },
+    { 3, 1, 1, 3, 0, 0, 0, 5, 0, 1, 0, { 0, 0 }, { 0, 0 } },
+    { 3, 1, 1, 3, 0, 0, 1, 1, 0, 0, 2, { 1, 0 }, { 1, 0 } },
+    { 3, 1, 1, 3, 0, 1, 0, 5, 0, 0, 2, { 2, 3 }, { 2, 3 } },
+    { 3, 1, 2, 1, 1, 0, 0, 1, 0, 0, 2, { 0, 0 }, { 0, 0 } },
+  };
+
+  static const char recipe_chars[] = { '\0', FILLER, 'd', 'e' };
+
+  static bool IsVariant(
+    const Context *ctx,
+    unsigned char  haystack,
+    unsigned char  border,
+    unsigned char  occurrences,
+    unsigned char  position,
+    unsigned char  overlap,
+    unsigned char  partial,
+    unsigned char  near_match
+  )
+  {
+    return haystack == ctx->haystack && border == (unsigned char) ctx->border &&
+           occurrences == ctx->occurrences && position == ctx->position &&
+           overlap == (unsigned char) ctx->overlap && partial == ctx->partial &&
+           near_match == ctx->near_match;
+  }
+
+  static void AddFill( Context *ctx, size_t n )
+  {
+    memset( &ctx->s1_buf[ ctx->size ], FILLER, n );
+    ctx->size += n;
+  }
+
+  static void AddPrefix( Context *ctx, size_t n )
+  {
+    memcpy( &ctx->s1_buf[ ctx->size ], ctx->s2_buf, n );
+    ctx->size += n;
+  }
+
+  static size_t ShapeCount( const Context *ctx )
+  {
+    if ( ctx->haystack == HAYSTACK_LONGER && ctx->length >= 5 ) {
+      return 3;
+    }
+
+    return 1;
+  }
+
+  static void MakeLongerNeedle( Context *ctx )
+  {
+    static const char *const periods[] = { "ab", "abe", "abbe" };
+    const char              *period;
+    size_t                   shape;
+    size_t                   n;
+    size_t                   i;
+
+    shape = ctx->shape;
+    period = periods[ shape ];
+    ctx->period = strlen( period );
+    n = ctx->length;
+
+    for ( i = 0; i < n; ++i ) {
+      char c;
+
+      if ( ctx->border ) {
+        c = period[ i % ctx->period ];
+      } else if ( i == 0 ) {
+        c = 'b';
+      } else if ( shape == 0 ) {
+        c = 'a';
+      } else if ( shape == 1 ) {
+        c = i + 1 == n ? 'e' : 'a';
+      } else {
+        c = ( i % 2 ) != 0 ? 'a' : 'e';
+      }
+
+      ctx->s2_buf[ i ] = c;
+    }
+
+    ctx->s2_buf[ n ] = '\0';
+  }
+
+  static void AddNearMatch( Context *ctx )
+  {
+    size_t len;
+    size_t i;
+
+    len = ctx->length;
+
+    if (
+      ctx->near_match == NEAR_MATCH_FIRST && ctx->border &&
+      ctx->partial == PARTIAL_NO
+    ) {
+      /* The occurrence holds the border at the end of the near match */
+      AddFill( ctx, 1 );
+      memcpy( &ctx->s1_buf[ ctx->size ], &ctx->s2_buf[ 1 ], ctx->period - 1 );
+      ctx->size += ctx->period - 1;
+      return;
+    }
+
+    if (
+      ctx->near_match == NEAR_MATCH_INNER && ctx->border &&
+      ctx->occurrences != OCCURRENCES_NONE
+    ) {
+      /* The near match starts one period before the occurrence */
+      AddPrefix( ctx, ctx->period );
+      ctx->s1_buf[ ctx->size - ctx->period + 1 ] = FILLER;
+      return;
+    }
+
+    switch ( ctx->near_match ) {
+      case NEAR_MATCH_FIRST:
+        i = 0;
+        break;
+      case NEAR_MATCH_INNER:
+        i = len / 2;
+        break;
+      case NEAR_MATCH_LAST:
+        i = len - 1;
+        break;
+      default:
+        return;
+    }
+
+    AddPrefix( ctx, len );
+    ctx->s1_buf[ ctx->size - len + i ] = FILLER;
+    AddFill( ctx, 1 );
+  }
+
+  static void AddMisses( Context *ctx, size_t fill )
+  {
+    AddFill( ctx, fill );
+
+    if ( ctx->partial == PARTIAL_INSIDE ) {
+      AddPrefix( ctx, ctx->length - 2 );
+      AddFill( ctx, 2 );
+    }
+
+    AddNearMatch( ctx );
+  }
+
+  static void BuildLonger( Context *ctx, size_t fill )
+  {
+    size_t len;
+
+    len = ctx->length;
+    MakeLongerNeedle( ctx );
+    ctx->size = 0;
+
+    if ( ctx->occurrences == OCCURRENCES_NONE ) {
+      AddMisses( ctx, fill );
+    } else {
+      if ( ctx->position != POSITION_START ) {
+        AddMisses( ctx, fill );
+      }
+
+      AddPrefix( ctx, len );
+
+      if ( ctx->occurrences == OCCURRENCES_SEVERAL ) {
+        if ( ctx->overlap ) {
+          memcpy(
+            &ctx->s1_buf[ ctx->size ],
+            &ctx->s2_buf[ len - ctx->period ],
+            ctx->period
+          );
+          ctx->size += ctx->period;
+        } else {
+          AddFill( ctx, 1 );
+          AddPrefix( ctx, len );
+        }
+      }
+
+      if ( ctx->position == POSITION_BETWEEN ) {
+        AddFill( ctx, fill + 1 );
+      } else if ( ctx->position == POSITION_START ) {
+        AddFill( ctx, fill );
+      }
+    }
+
+    if ( ctx->partial == PARTIAL_TAIL ) {
+      AddFill( ctx, 1 );
+      AddPrefix( ctx, len - 1 );
+    }
+  }
+
+  static bool BuildLiteral( Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( literals ); ++i ) {
+      const Literal *lit;
+
+      lit = &literals[ i ];
+
+      if (
+        lit->length == ctx->length && IsVariant(
+                                        ctx,
+                                        lit->haystack,
+                                        lit->border,
+                                        lit->occurrences,
+                                        lit->position,
+                                        lit->overlap,
+                                        lit->partial,
+                                        lit->near_match
+                                      )
+      ) {
+        ctx->size = strlen( lit->s1 );
+        memcpy( ctx->s1_buf, lit->s1, ctx->size );
+        memcpy( ctx->s2_buf, lit->s2, ctx->length );
+        ctx->s2_buf[ ctx->length ] = '\0';
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static void MakeFamilyNeedle( Context *ctx, unsigned char family )
+  {
+    size_t n;
+    size_t i;
+
+    n = ctx->length;
+
+    for ( i = 0; i < n; ++i ) {
+      char c;
+
+      switch ( family ) {
+        case 0:
+          c = i + 1 == n ? 'e' : 'd';
+          break;
+        case 1:
+          c = 'd';
+          break;
+        case 2:
+          c = i == 0 ? 'd' : 'e';
+          break;
+        case 5:
+          c = i == 1 ? 'e' : 'd';
+          break;
+        case 6:
+          c = ( i == 1 || i + 1 == n ) ? 'e' : 'd';
+          break;
+        default:
+          c = i + 1 == n ? 'e' : ( i + 2 == n ? 'f' : 'd' );
+          break;
+      }
+
+      ctx->s2_buf[ i ] = c;
+    }
+
+    ctx->s2_buf[ n ] = '\0';
+  }
+
+  static size_t RecipeIndex( size_t n, unsigned char at )
+  {
+    switch ( at ) {
+      case 1:
+        return 0;
+      case 2:
+        return 1;
+      case 3:
+        return 2;
+      case 4:
+        return n / 2;
+      default:
+        return n - ( 8 - (size_t) at );
+    }
+  }
+
+  static bool BuildRecipe( Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( recipes ); ++i ) {
+      const Recipe *r;
+      size_t        n;
+      size_t        size;
+      size_t        start;
+      size_t        j;
+
+      r = &recipes[ i ];
+
+      if ( !IsVariant(
+             ctx,
+             r->haystack,
+             r->border,
+             r->occurrences,
+             r->position,
+             r->overlap,
+             r->partial,
+             r->near_match
+           ) ) {
+        continue;
+      }
+
+      n = ctx->length;
+      MakeFamilyNeedle( ctx, r->family );
+      ctx->size = 0;
+
+      if ( r->lead != 0 ) {
+        ctx->s1_buf[ ctx->size ] = recipe_chars[ r->lead ];
+        ++ctx->size;
+      }
+
+      start = ctx->size;
+
+      switch ( r->base ) {
+        case 0:
+          size = n;
+          memcpy( &ctx->s1_buf[ start ], ctx->s2_buf, size );
+          break;
+        case 1:
+          size = n - 1;
+          memcpy( &ctx->s1_buf[ start ], ctx->s2_buf, size );
+          break;
+        case 2:
+          size = n - 2;
+          memcpy( &ctx->s1_buf[ start ], ctx->s2_buf, size );
+          break;
+        case 3:
+          size = n - 1;
+          memcpy( &ctx->s1_buf[ start ], &ctx->s2_buf[ 1 ], size );
+          break;
+        case 4:
+          size = n - 2;
+          memcpy( &ctx->s1_buf[ start ], &ctx->s2_buf[ 2 ], size );
+          break;
+        case 9:
+          size = 0;
+          break;
+        default:
+          size = n + r->base - 7;
+          memset( &ctx->s1_buf[ start ], FILLER, size );
+          break;
+      }
+
+      for ( j = 0; j < 2; ++j ) {
+        size_t at;
+
+        if ( r->at[ j ] == 0 ) {
+          continue;
+        }
+
+        at = RecipeIndex( n, r->at[ j ] );
+
+        if ( at < size ) {
+          ctx->s1_buf[ start + at ] = recipe_chars[ r->with[ j ] ];
+        }
+      }
+
+      ctx->size += size;
+
+      if ( r->trail != 0 ) {
+        ctx->s1_buf[ ctx->size ] = recipe_chars[ r->trail ];
+        ++ctx->size;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  static void MapHighByte( Context *ctx )
+  {
+    char   letter;
+    size_t i;
+
+    letter = ctx->s2_buf[ 0 ];
+
+    for ( i = 0; i < ctx->length; ++i ) {
+      if ( ctx->s2_buf[ i ] == letter ) {
+        ctx->s2_buf[ i ] = (char) HIGH;
+      }
+    }
+
+    for ( i = 0; i < ctx->size; ++i ) {
+      if ( ctx->s1_buf[ i ] == letter ) {
+        ctx->s1_buf[ i ] = (char) HIGH;
+      }
+    }
+  }
+
+  static bool Build( Context *ctx, size_t fill )
+  {
+    bool ok;
+
+    if ( ctx->haystack == HAYSTACK_LONGER && ctx->length >= 3 ) {
+      BuildLonger( ctx, fill );
+      ok = true;
+    } else if ( ctx->length <= 3 ) {
+      ok = BuildLiteral( ctx );
+    } else {
+      ok = BuildRecipe( ctx );
+    }
+
+    if ( ok && ctx->high && ctx->length > 0 ) {
+      MapHighByte( ctx );
+    }
+
+    ctx->s1_buf[ ctx->size ] = '\0';
+    return ok;
+  }
+
+  static const char *Find( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i + ctx->length <= ctx->size; ++i ) {
+      if ( memcmp( &ctx->s1_buf[ i ], ctx->s2_buf, ctx->length ) == 0 ) {
+        return &ctx->s1_buf[ i ];
+      }
+    }
+
+    return NULL;
+  }
+test-target: testsuites/validation/tc-string-strstr.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial: all
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - First
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial: all
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'Yes'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: Occurrence
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions:
+    Result: S1
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte:
+    - 'No'
+- enabled-by: true
+  post-conditions:
+    Result: S1
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte:
+    - 'No'
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackHasNoRoomBetween
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'Yes'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border: all
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Inside
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: AboveHaystackIsTwoSequences
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - AboveNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: BorderInNearMatch
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyAtIndexZero
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    - End
+    Overlap: all
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyHasNoBorder
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    - Several
+    Position: all
+    Overlap: all
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyHasNoPrefix
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyHaystackHoldsNoPartialMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyHoldsNoCharacter
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyHoldsNoCharacter
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte:
+    - 'Yes'
+- enabled-by: true
+  post-conditions: EmptyHoldsNoCharacter
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte:
+    - 'Yes'
+- enabled-by: true
+  post-conditions: EmptyOccursEverywhere
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap: all
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EmptyOccursEverywhere
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualCharactersFormNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualCharactersFormNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualCharactersFormNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualCharactersFormNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Empty
+    - One
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsNeedle
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsOneSequence
+  pre-conditions:
+    Length:
+    - Two
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsOneSequence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsOneSequence
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsOneSequence
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - First
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: EqualHaystackIsOneSequence
+  pre-conditions:
+    Length:
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - EqualNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: NearMatchStartsWithPrefix
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NearMatchStartsWithPrefix
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NearMatchStartsWithPrefix
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NearMatchStartsWithPrefix
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoIndexBeforeZero
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoInnerCharacter
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoInnerCharacter
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoInnerCharacter
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoInnerCharacter
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoInnerCharacter
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - Inner
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoNegativeLength
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - Shorter
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoOccurrenceAfterEnd
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - End
+    Overlap: all
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoOccurrenceAfterEnd
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: NoPartialAtEnd
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial: all
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoBorder
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoPrefix
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoPrefix
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoPrefix
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoPrefix
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHasNoPrefix
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OneCharacterHaystackEndsWithPartialMatch
+  pre-conditions:
+    Length:
+    - Three
+    Haystack:
+    - Shorter
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OtherCharacterIsNearMatch
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OtherCharacterIsNearMatch
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OtherCharacterIsNearMatch
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OverlapNeedsBorder
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'Yes'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OverlapNeedsBorder
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position: all
+    Overlap:
+    - 'Yes'
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OverlapNeedsTwo
+  pre-conditions:
+    Length:
+    - Empty
+    Haystack: all
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'Yes'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: OverlapNeedsTwo
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'Yes'
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: OverlapNeedsTwo
+  pre-conditions:
+    Length:
+    - One
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack: all
+    Border: all
+    Occurrences:
+    - One
+    Position: all
+    Overlap:
+    - 'Yes'
+    Partial: all
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: PartialMatchStartsNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - BelowNeedle
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: PartialMatchStartsNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: PartialMatchStartsNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: PartialMatchStartsNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    Haystack:
+    - EqualNeedle
+    - AboveNeedle
+    - Longer
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoNearMatch
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoNearMatch
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch:
+    - First
+    - Inner
+    - Last
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoNearMatch
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - None
+    Position: N/A
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - One
+    Haystack:
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - Between
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - One
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border: all
+    Occurrences:
+    - One
+    Position:
+    - End
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Start
+    Overlap: all
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'Yes'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap: all
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Start
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    - Tail
+    NearMatch:
+    - None
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - One
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - Inside
+    - Tail
+    NearMatch: all
+    HighByte: all
+- enabled-by: true
+  post-conditions: ShortHaystackHoldsNoOccurrence
+  pre-conditions:
+    Length:
+    - Two
+    - Three
+    - Four
+    - Five
+    - Long
+    Haystack:
+    - Shorter
+    - BelowNeedle
+    Border:
+    - 'No'
+    Occurrences:
+    - Several
+    Position:
+    - Between
+    Overlap:
+    - 'No'
+    Partial:
+    - 'No'
+    NearMatch:
+    - None
+    - First
+    HighByte: all
+type: requirement

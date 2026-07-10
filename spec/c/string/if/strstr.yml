@@ -1,0 +1,50 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Locate the first occurrence in the string specified by ${.:/params[0]/name} of
+  the sequence of characters from the string specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    return: char *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/strstr
+name: strstr
+notes: |
+  See ${/ref/std/c23/strstr:/name}.
+params:
+- description: |
+    is the pointer to the string to be searched.
+  dir: in
+  name: s1
+- description: |
+    is the pointer to the string to search for.
+  dir: in
+  name: s2
+return:
+  return: |
+    Returns a pointer to the first character of the string specified by the
+    ${.:/params[0]/name} parameter if the string specified by the
+    ${.:/params[1]/name} parameter is an empty string. Returns a pointer to the
+    first occurrence of the string specified by the ${.:/params[1]/name} parameter
+    in the string specified by the ${.:/params[0]/name} parameter. Returns a null
+    pointer if the sequence of characters from the string specified by the
+    ${.:/params[1]/name} parameter does not occur in the string specified by the
+    ${.:/params[0]/name} parameter.
+  return-values: []
+type: interface

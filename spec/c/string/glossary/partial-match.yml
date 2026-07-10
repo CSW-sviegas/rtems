@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: partial match
+text: |
+  A partial match of a string in another string is an occurrence of a proper
+  non-empty prefix of the string in the other string which shares no character
+  with an occurrence of the string in the other string.
+type: glossary
