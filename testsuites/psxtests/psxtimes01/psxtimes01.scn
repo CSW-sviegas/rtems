@@ -8,7 +8,7 @@ _times( &end_tm ) -- OK
 Check various values
 
 *** Testing timespec_get() functions ***
-timespec_get( NULL, TIME_UTC ) returns 0
+timespec_get( NULL, TIME_UTC ) returns TIME_UTC
 timespec_get( &start_ts, 999 ) returns 0
 timespec_get( &start_ts, TIME_UTC ) -- OK
 timespec_get( &end_ts, TIME_UTC ) -- OK

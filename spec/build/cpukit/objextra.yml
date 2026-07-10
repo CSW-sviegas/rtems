@@ -869,6 +869,7 @@ source:
 - cpukit/posix/src/sigprocmask.c
 - cpukit/posix/src/sysconf.c
 - cpukit/posix/src/timespecget.c
+- cpukit/posix/src/timespecgetres.c
 - cpukit/posix/src/vfork.c
 - cpukit/posix/src/wait.c
 - cpukit/posix/src/waitpid.c

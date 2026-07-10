@@ -44,14 +44,13 @@
 
 int timespec_get( struct timespec *ts, int base )
 {
-  if ( ts == NULL ) {
-    return 0;
-  }
-
   if ( base != TIME_UTC ) {
     return 0;
   }
 
-  _TOD_Get( ts );
+  if ( ts != NULL ) {
+    _TOD_Get( ts );
+  }
+
   return base;
 }

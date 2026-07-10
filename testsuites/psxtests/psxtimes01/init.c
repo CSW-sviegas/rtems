@@ -100,9 +100,9 @@ static void test_timespec_functions( void )
 
   puts( "\n*** Testing timespec_get() functions ***" );
 
-  puts( "timespec_get( NULL, TIME_UTC ) returns 0" );
+  puts( "timespec_get( NULL, TIME_UTC ) returns TIME_UTC" );
   result = timespec_get( NULL, TIME_UTC );
-  rtems_test_assert( result == 0 );
+  rtems_test_assert( result == TIME_UTC );
 
   puts( "timespec_get( &start_ts, 999 ) returns 0" );
   result = timespec_get( &start_ts, 999 );
