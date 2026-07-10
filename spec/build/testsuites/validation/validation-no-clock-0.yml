@@ -27,6 +27,7 @@ links:
 source:
 - testsuites/validation/tc-acfg-max-thread-name-size.c
 - testsuites/validation/tc-acfg.c
+- testsuites/validation/tc-assert.c
 - testsuites/validation/tc-attr.c
 - testsuites/validation/tc-barrier-create.c
 - testsuites/validation/tc-barrier-delete.c
@@ -141,6 +142,7 @@ source:
 - testsuites/validation/tr-tod-convert-date.c
 - testsuites/validation/tr-tod-convert-time.c
 - testsuites/validation/ts-validation-no-clock-0.c
+- testsuites/validation/tx-assert.c
 stlib: []
 target: testsuites/validation/ts-validation-no-clock-0.exe
 type: build

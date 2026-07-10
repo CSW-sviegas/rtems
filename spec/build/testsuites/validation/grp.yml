@@ -14,6 +14,7 @@ extra-files:
 - testsuites/validation/ts-default.h
 - testsuites/validation/ts-fatal-sysinit.h
 - testsuites/validation/ts-idle.h
+- testsuites/validation/tx-assert.h
 - testsuites/validation/tx-register-check.h
 - testsuites/validation/tx-support.h
 - testsuites/validation/tx-thread-queue.h
@@ -64,6 +65,8 @@ links:
   uid: validation-acfg-1
 - role: build-dependency
   uid: validation-cache
+- role: build-dependency
+  uid: validation-cxx-0
 - role: build-dependency
   uid: validation-intr
 - role: build-dependency

@@ -28,6 +28,7 @@ actions:
     - validation-acfg-0
     - validation-acfg-1
     - validation-cache
+    - validation-cxx-0
     - validation-intr
     - validation-no-clock-0
     - validation-no-clock-1
