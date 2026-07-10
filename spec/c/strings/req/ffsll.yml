@@ -1,0 +1,137 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/ffsll
+- role: reference
+  uid: /ref/std/posix-2024/ffs
+post-conditions:
+- name: Result
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/ffsll:/name} shall be equal to
+      zero.
+  - name: Index
+    test-code: |
+      unsigned long long value;
+      int                expected;
+
+      value = (unsigned long long) ctx->i;
+      expected = 1;
+
+      while ( ( value & 1U ) == 0 ) {
+        value >>= 1;
+        ++expected;
+      }
+
+      T_eq_int( ctx->result, expected );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/ffsll:/name} shall be the number
+      of the least significant bit set in the value of the
+      ${../if/ffsll:/params[0]/name} parameter, with the bits of the value numbered
+      from one at the least significant bit.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Value
+  states:
+  - name: MinusOne
+    test-code: |
+      ctx->i = -1LL;
+    text: |
+      While the value of the ${../if/ffsll:/params[0]/name} parameter is equal to
+      minus one.
+  - name: Zero
+    test-code: |
+      ctx->i = 0;
+    text: |
+      While the value of the ${../if/ffsll:/params[0]/name} parameter is equal to
+      zero.
+  - name: One
+    test-code: |
+      ctx->i = 1LL;
+    text: |
+      While the value of the ${../if/ffsll:/params[0]/name} parameter is equal to
+      one.
+  - name: Least
+    test-code: |
+      ctx->i = 0x0008010000000001LL;
+    text: |
+      While the least significant bit of the value of the
+      ${../if/ffsll:/params[0]/name} parameter is set, while the value of the
+      ${../if/ffsll:/params[0]/name} parameter is neither one nor minus one.
+  - name: Middle
+    test-code: |
+      ctx->i = 0x0008010000000000LL;
+    text: |
+      While the least significant bit set in the value of the
+      ${../if/ffsll:/params[0]/name} parameter is neither the least significant bit
+      nor the most significant bit of the value.
+  - name: Most
+    test-code: |
+      ctx->i = LLONG_MIN;
+    text: |
+      While the most significant bit is the only bit set in the value of the
+      ${../if/ffsll:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/ffs:/name} defines no error for the function.
+
+  Dimension Value covers the value of the ${../if/ffsll:/params[0]/name}
+  parameter, 6 states. The implementation compares the value against zero. The
+  states MinusOne, Zero and One hold the value below this boundary, at it and
+  above it. The other states cover the position of the least significant bit set
+  in the value. The Least and Most states hold the two ends of the index range,
+  one and the number of bits of type `long long`. The Most state holds the
+  minimum value of the type, so the sign bit is set. The Middle state holds every
+  other value.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = ffsll( ctx->i );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/ffsll:/params[0]/name} parameter value.
+  description: null
+  member: long long i
+- brief: |
+    This member contains the return value of the ${../if/ffsll:/name} call.
+  description: null
+  member: int result
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- limits.h
+- strings.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-strings-ffsll.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: Zero
+    - else: Index
+  pre-conditions:
+    Value: all
+type: requirement
