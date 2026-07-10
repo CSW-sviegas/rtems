@@ -1,0 +1,428 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strspn
+- role: reference
+  uid: /ref/std/c23/strspn
+- role: reference
+  uid: /ref/std/c23/string-function-conventions
+- role: reference
+  uid: /ref/std/posix-2024/strspn
+post-conditions:
+- name: Result
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->retval, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strspn:/name} shall be equal to
+      zero.
+  - name: Index
+    test-code: |
+      T_eq_sz( ctx->retval, ctx->stop );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strspn:/name} shall be equal to
+      the index of the first character of the string referenced by the
+      ${../if/strspn:/params[0]/name} parameter which does not occur in the string
+      referenced by the ${../if/strspn:/params[1]/name} parameter.
+  - name: Length
+    test-code: |
+      T_eq_sz( ctx->retval, ctx->length );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strspn:/name} shall be equal to
+      the length of the string referenced by the ${../if/strspn:/params[0]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: S1
+  states:
+  - name: Nop
+    test-code: |
+      CheckUnchanged( ctx->s1_buf, ctx->s1_before, sizeof( ctx->s1_buf ) );
+    text: |
+      The bytes of the string referenced by the ${../if/strspn:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: S2
+  states:
+  - name: Nop
+    test-code: |
+      CheckUnchanged( ctx->s2_buf, ctx->s2_before, sizeof( ctx->s2_buf ) );
+    text: |
+      The bytes of the string referenced by the ${../if/strspn:/params[1]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Accept
+  states:
+  - name: Empty
+    test-code: |
+      ctx->accept_length = 0;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[1]/name} parameter is equal to zero.
+  - name: One
+    test-code: |
+      ctx->accept_length = 1;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[1]/name} parameter is equal to one.
+  - name: Several
+    test-code: |
+      ctx->accept_length = ACCEPT_MAX;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[1]/name} parameter is greater than one.
+  test-epilogue: null
+  test-prologue: null
+- name: HighByte
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->high = true;
+    text: |
+      While the string referenced by the ${../if/strspn:/params[1]/name} parameter
+      holds a character with a value greater than 127, where the value is interpreted
+      as type `unsigned char`.
+  - name: 'No'
+    test-code: |
+      ctx->high = false;
+    text: |
+      While the string referenced by the ${../if/strspn:/params[1]/name} parameter
+      holds no character with a value greater than 127, where the value is
+      interpreted as type `unsigned char`.
+  test-epilogue: null
+  test-prologue: null
+- name: Segment
+  states:
+  - name: Empty
+    test-code: |
+      ctx->segment = SEGMENT_EMPTY;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[0]/name} parameter is equal to zero.
+  - name: None
+    test-code: |
+      ctx->segment = SEGMENT_NONE;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[0]/name} parameter is greater than zero, while the first
+      character of the string referenced by the ${../if/strspn:/params[0]/name}
+      parameter does not occur in the string referenced by the
+      ${../if/strspn:/params[1]/name} parameter.
+  - name: Part
+    test-code: |
+      ctx->segment = SEGMENT_PART;
+    text: |
+      While the first character of the string referenced by the
+      ${../if/strspn:/params[0]/name} parameter occurs in the string referenced by
+      the ${../if/strspn:/params[1]/name} parameter, while a character of the string
+      referenced by the ${../if/strspn:/params[0]/name} parameter does not occur in
+      the string referenced by the ${../if/strspn:/params[1]/name} parameter.
+  - name: Whole
+    test-code: |
+      ctx->segment = SEGMENT_WHOLE;
+    text: |
+      While the length of the string referenced by the
+      ${../if/strspn:/params[0]/name} parameter is greater than zero, while each
+      character of the string referenced by the ${../if/strspn:/params[0]/name}
+      parameter occurs in the string referenced by the
+      ${../if/strspn:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/c23/strspn:/name} defines the ${/glossary/returnvalue:/term} as the
+  length of the maximum initial segment of the string referenced by the
+  ${../if/strspn:/params[0]/name} parameter. The segment consists of characters
+  of the string referenced by the ${../if/strspn:/params[1]/name} parameter. It
+  defines no error. It leaves the behaviour undefined where a parameter
+  references no string, so the item states no ${/c/if/null:/name} pointer.
+  ${/ref/std/posix-2024/strspn:/name} states that the function does not change
+  ${/c/errno/if/errno:/name} on valid input.
+
+  Dimension Accept covers the length of the string referenced by the
+  ${../if/strspn:/params[1]/name} parameter, 3 states. An empty string holds no
+  character, so it accepts none. One character and several characters tell apart
+  a test of the first character from a test of each character of the string.
+
+  ${/ref/std/c23/string-function-conventions:/name} interprets each character of
+  a string function as type `unsigned char`. The characters with a value greater
+  than 127 have a negative value as type `signed char`. The HighByte dimension
+  holds this distinction.
+
+  Dimension Segment covers the maximum initial segment relative to the string
+  referenced by the ${../if/strspn:/params[0]/name} parameter, 4 states. The
+  segment of an empty string is empty. The segment of a string of a length
+  greater than zero is empty, a proper prefix of the string, or the whole string.
+
+  The state code of each dimension records its state. The action builds both
+  strings from the three records.
+references: []
+requirement-type: functional
+skip-reasons:
+  EmptyHoldsNoCharacter: |
+    An empty string holds no character.
+test-action: |
+  Build( ctx );
+  memcpy( ctx->s1_before, ctx->s1_buf, sizeof( ctx->s1_buf ) );
+  memcpy( ctx->s2_before, ctx->s2_buf, sizeof( ctx->s2_buf ) );
+  errno = -1;
+  ctx->retval = strspn(
+    (const char *) ctx->s1_buf,
+    (const char *) ctx->s2_buf
+  );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the length of the string referenced by the
+    ${../if/strspn:/params[1]/name} parameter.
+  description: null
+  member: |
+    size_t accept_length
+- brief: |
+    This member is true, if the string referenced by the
+    ${../if/strspn:/params[1]/name} parameter holds a character with a value
+    greater than 127.
+  description: null
+  member: |
+    bool high
+- brief: |
+    This member specifies the maximum initial segment.
+  description: null
+  member: |
+    Segment segment
+- brief: |
+    This member contains the index of the first character of the string referenced
+    by the ${../if/strspn:/params[0]/name} parameter which does not occur in the
+    string referenced by the ${../if/strspn:/params[1]/name} parameter.
+  description: null
+  member: |
+    size_t stop
+- brief: |
+    This member contains the length of the string referenced by the
+    ${../if/strspn:/params[0]/name} parameter.
+  description: null
+  member: |
+    size_t length
+- brief: |
+    This member provides the string referenced by the
+    ${../if/strspn:/params[0]/name} parameter.
+  description: null
+  member: |
+    unsigned char s1_buf[ 16 ]
+- brief: |
+    This member provides the string referenced by the
+    ${../if/strspn:/params[1]/name} parameter.
+  description: null
+  member: |
+    unsigned char s2_buf[ 8 ]
+- brief: |
+    This member contains the content of the memory which holds the string
+    referenced by the ${../if/strspn:/params[0]/name} parameter before the
+    ${../if/strspn:/name} call.
+  description: null
+  member: |
+    unsigned char s1_before[ 16 ]
+- brief: |
+    This member contains the content of the memory which holds the string
+    referenced by the ${../if/strspn:/params[1]/name} parameter before the
+    ${../if/strspn:/name} call.
+  description: null
+  member: |
+    unsigned char s2_before[ 8 ]
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/strspn:/name} call.
+  description: null
+  member: |
+    size_t retval
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/strspn:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: |
+  typedef enum {
+    SEGMENT_EMPTY,
+    SEGMENT_NONE,
+    SEGMENT_PART,
+    SEGMENT_WHOLE
+  } Segment;
+test-description: |
+  The string referenced by the ${../if/strspn:/params[1]/name} parameter is
+  followed by the first character of the string referenced by the
+  ${../if/strspn:/params[0]/name} parameter which does not occur in it. A segment
+  of a proper prefix or of the whole string holds each character of the string
+  referenced by the ${../if/strspn:/params[1]/name} parameter. A character which
+  occurs follows the segment and the end of the string. Where the string
+  referenced by the ${../if/strspn:/params[1]/name} parameter holds a character
+  greater than 127, the character which does not occur differs from it in the
+  most significant bit only.
+test-header: null
+test-includes:
+- errno.h
+- stdbool.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  memset( ctx->s1_buf, 0, sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 0, sizeof( ctx->s2_buf ) );
+  ctx->stop = 0;
+  ctx->length = 0;
+  ctx->retval = SIZE_MAX;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define ACCEPT_MAX 3
+
+  static const unsigned char accept_low[ ACCEPT_MAX ] = { 'a', 'c', 'e' };
+
+  static const unsigned char accept_high[ ACCEPT_MAX ] = { 0xe2, 'c', 'e' };
+
+  static void CheckUnchanged(
+    const unsigned char *actual,
+    const unsigned char *expected,
+    size_t               size
+  )
+  {
+    size_t i;
+
+    for ( i = 0; i < size; ++i ) {
+      T_quiet_eq_u8( actual[ i ], expected[ i ] );
+    }
+  }
+
+  static void Build( Context *ctx )
+  {
+    const unsigned char *members;
+    unsigned char        reject;
+    size_t               i;
+    size_t               n;
+
+    if ( ctx->high ) {
+      members = accept_high;
+      reject = 0x62;
+    } else {
+      members = accept_low;
+      reject = 'b';
+    }
+
+    for ( i = 0; i < ctx->accept_length; ++i ) {
+      ctx->s2_buf[ i ] = members[ i ];
+    }
+
+    ctx->s2_buf[ ctx->accept_length + 1 ] = reject;
+    n = 0;
+
+    switch ( ctx->segment ) {
+      case SEGMENT_NONE:
+        ctx->s1_buf[ n ] = reject;
+        ++n;
+        ctx->s1_buf[ n ] = members[ 0 ];
+        ++n;
+        break;
+      case SEGMENT_PART:
+      case SEGMENT_WHOLE:
+        for ( i = 0; i < 2 * ctx->accept_length; ++i ) {
+          ctx->s1_buf[ n ] = members[ i % ctx->accept_length ];
+          ++n;
+        }
+
+        ctx->stop = n;
+
+        if ( ctx->segment == SEGMENT_PART ) {
+          ctx->s1_buf[ n ] = reject;
+          ++n;
+          ctx->s1_buf[ n ] = members[ 0 ];
+          ++n;
+        }
+
+        break;
+      default:
+        break;
+    }
+
+    ctx->length = n;
+    ctx->s1_buf[ n + 1 ] = members[ 0 ];
+  }
+test-target: testsuites/validation/tc-string-strspn.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Segment:
+          - Empty
+          - None
+      then: Zero
+    - if:
+        pre-conditions:
+          Segment: Part
+      then: Index
+    - else: Length
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Accept:
+    - One
+    - Several
+    HighByte: all
+    Segment: all
+- enabled-by: true
+  post-conditions:
+    Result: Zero
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    Accept:
+    - Empty
+    HighByte:
+    - 'No'
+    Segment:
+    - Empty
+    - None
+- enabled-by: true
+  post-conditions: EmptyHoldsNoCharacter
+  pre-conditions:
+    Accept:
+    - Empty
+    HighByte:
+    - 'Yes'
+    Segment: all
+- enabled-by: true
+  post-conditions: EmptyHoldsNoCharacter
+  pre-conditions:
+    Accept:
+    - Empty
+    HighByte:
+    - 'No'
+    Segment:
+    - Part
+    - Whole
+type: requirement

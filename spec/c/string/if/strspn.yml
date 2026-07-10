@@ -1,0 +1,46 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the length of the maximum initial segment of the string specified by
+  ${.:/params[0]/name} that consists of only characters from the string specified
+  by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    return: size_t
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/strspn
+name: strspn
+notes: |
+  See ${/ref/std/c23/strspn:/name}.
+params:
+- description: |
+    is the pointer to the string to be scanned.
+  dir: in
+  name: s1
+- description: |
+    is the pointer to the string which holds the characters of the segment.
+  dir: in
+  name: s2
+return:
+  return: |
+    Returns the length of the maximum initial segment of the string referenced by
+    ${.:/params[0]/name} which consists of characters of the string referenced by
+    ${.:/params[1]/name}.
+  return-values: []
+type: interface
