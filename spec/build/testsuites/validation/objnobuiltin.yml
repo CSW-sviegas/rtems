@@ -36,4 +36,5 @@ source:
 - testsuites/validation/tc-string-strstr.c
 - testsuites/validation/tc-strings-ffs.c
 - testsuites/validation/tc-strings-ffsl.c
+- testsuites/validation/tc-strings-ffsll.c
 type: build
