@@ -23,9 +23,13 @@ links:
 - role: validation
   uid: /c/time/if/clock-monotonic
 - role: validation
+  uid: /c/time/if/clock-process-cputime-id
+- role: validation
   uid: /c/time/if/clock-realtime
 - role: validation
   uid: /c/time/if/clock-settime
+- role: validation
+  uid: /c/time/if/clock-thread-cputime-id
 - role: validation
   uid: /c/if/clockid_t
 - role: validation
