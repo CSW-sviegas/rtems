@@ -6,7 +6,8 @@
  * @ingroup RTEMSTestSuitesValidation
  *
  * @brief This source file contains the definition of SetGetTimecountHandler(),
- *   GetTimecountCounter(), and SetTimecountCounter().
+ *   GetTimecountCounter(), SetTimecountCounter(), SetTimecounterFrequency(),
+ *   and TimecounterTick().
  */
 
 /*
@@ -110,6 +111,42 @@ static void InstallTimecounter( void )
   rtems_timecounter_install( &self->base );
 }
 
+static uint32_t GetTimecountPlaceholder( struct timecounter *tc )
+{
+  (void) tc;
+  return 0;
+}
+
+static struct timecounter FrequencyChangePlaceholder = {
+  .tc_get_timecount = GetTimecountPlaceholder,
+  .tc_counter_mask = 0xffffffff,
+  .tc_frequency = SOFTWARE_TIMECOUNTER_FREQUENCY
+};
+
+uint64_t SetTimecounterFrequency( uint64_t frequency )
+{
+  TimecounterControl *self;
+  uint64_t            previous;
+
+  self = &TimecounterInstance;
+  previous = self->base.tc_frequency;
+
+  /*
+   * _Timecounter_Install() calculates the scaling factor only if the active
+   * timecounter changes.  The placeholder of the higher quality becomes the
+   * active timecounter.  With the lower quality of the placeholder, the
+   * software timecounter becomes the active timecounter again.
+   */
+  FrequencyChangePlaceholder.tc_quality = self->base.tc_quality + 1;
+  rtems_timecounter_install( &FrequencyChangePlaceholder );
+
+  FrequencyChangePlaceholder.tc_quality = self->base.tc_quality - 1;
+  self->base.tc_frequency = frequency;
+  rtems_timecounter_install( &self->base );
+
+  return previous;
+}
+
 RTEMS_SYSINIT_ITEM(
   InstallTimecounter,
   RTEMS_SYSINIT_DEVICE_DRIVERS,
@@ -128,7 +165,7 @@ void TimecounterTick( void )
   Per_CPU_Control *cpu_self;
   bool             success;
 
-  counter_ticks_per_clock_tick = SOFTWARE_TIMECOUNTER_FREQUENCY /
+  counter_ticks_per_clock_tick = TimecounterInstance.base.tc_frequency /
                                  rtems_clock_get_ticks_per_second();
   cpu_self = _Thread_Dispatch_disable();
 

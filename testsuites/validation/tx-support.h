@@ -28,8 +28,8 @@
  * - Mutexes: CreateMutex(), ObtainMutex(), ReleaseMutex(), and DeleteMutex().
  *
  * - Time: ClockTick(), TimecounterTick(), SetTimecountCounter(),
- *   SetGetTimecountHandler(), UnsetClock(), GetTaskTimerInfo(), and
- *   DaysFromCivil().
+ *   SetTimecounterFrequency(), SetGetTimecountHandler(), UnsetClock(),
+ *   GetTaskTimerInfo(), and DaysFromCivil().
  *
  * - Memory: MemoryAllocationFailWhen(), MemorySave(), and MemoryRestore().
  *

@@ -28,8 +28,8 @@
  * - Mutexes: CreateMutex(), ObtainMutex(), ReleaseMutex(), and DeleteMutex().
  *
  * - Time: ClockTick(), TimecounterTick(), SetTimecountCounter(),
- *   SetGetTimecountHandler(), UnsetClock(), GetTaskTimerInfo(), and
- *   DaysFromCivil().
+ *   SetTimecounterFrequency(), SetGetTimecountHandler(), UnsetClock(),
+ *   GetTaskTimerInfo(), and DaysFromCivil().
  *
  * - Memory: MemoryAllocationFailWhen(), MemorySave(), and MemoryRestore().
  *
@@ -1210,6 +1210,19 @@ uint32_t GetTimecountCounter( void );
  * @return Returns the previous software timecounter counter value.
  */
 uint32_t SetTimecountCounter( uint32_t counter );
+
+/**
+ * @brief Sets and gets the software timecounter frequency.
+ *
+ * The function installs the software timecounter with the new frequency.
+ * TimecounterTick() advances the software timecounter counter value by the
+ * frequency divided by the clock ticks per second.
+ *
+ * @param frequency is the new software timecounter frequency in Hz.
+ *
+ * @return Returns the previous software timecounter frequency in Hz.
+ */
+uint64_t SetTimecounterFrequency( uint64_t frequency );
 
 /**
  * @brief Return the task id of the timer server task
