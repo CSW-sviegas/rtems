@@ -1,0 +1,269 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/clock-getres
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/clock-getres:/name} shall be
+      equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/clock-getres:/name} shall be
+      equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the directive call.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( errno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be equal to ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ResObj
+  states:
+  - name: Period
+    test-code: |
+      uint64_t ns;
+
+      ns = UINT64_C( 1000000000 ) / ctx->timecounter_frequency;
+      T_eq_i64( ctx->res_obj.tv_sec, (int64_t) ( ns / 1000000000 ) );
+      T_eq_long( ctx->res_obj.tv_nsec, (long) ( ns % 1000000000 ) );
+    text: |
+      The object referenced by the ${../if/clock-getres:/params[1]/name} parameter
+      shall be set to a time in nanoseconds of 1000000000 divided by the frequency in
+      Hz of the currently installed timecounter at some time point during the
+      directive call, rounded down to an integer.
+  - name: OneNanosecond
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, 0 );
+      T_eq_long( ctx->res_obj.tv_nsec, 1 );
+    text: |
+      The object referenced by the ${../if/clock-getres:/params[1]/name} parameter
+      shall be set to a time of one nanosecond.
+  - name: Unchanged
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, -1 );
+      T_eq_long( ctx->res_obj.tv_nsec, -1 );
+    text: |
+      The object referenced by the ${../if/clock-getres:/params[1]/name} parameter
+      shall not be changed by the directive call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: ClockId
+  states:
+  - name: Monotonic
+    test-code: |
+      ctx->clock_id = CLOCK_MONOTONIC;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-monotonic:/name}.
+  - name: Realtime
+    test-code: |
+      ctx->clock_id = CLOCK_REALTIME;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-realtime:/name}.
+  - name: ProcessCPUTimeId
+    test-code: |
+      ctx->clock_id = CLOCK_PROCESS_CPUTIME_ID;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-process-cputime-id:/name}.
+  - name: ThreadCPUTimeId
+    test-code: |
+      ctx->clock_id = CLOCK_THREAD_CPUTIME_ID;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-thread-cputime-id:/name}.
+  - name: Other
+    test-code: |
+      ctx->clock_id = CLOCK_TAI;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is not equal to
+      ${../if/clock-monotonic:/name}, ${../if/clock-realtime:/name},
+      ${../if/clock-process-cputime-id:/name}, or
+      ${../if/clock-thread-cputime-id:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Res
+  states:
+  - name: Valid
+    test-code: |
+      ctx->res = &ctx->res_obj;
+    text: |
+      While the ${../if/clock-getres:/params[1]/name} parameter references an object
+      of type ${/c/if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->res = NULL;
+    text: |
+      While the ${../if/clock-getres:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: TimecounterFreq
+  states:
+  - name: OneHz
+    test-code: |
+      ctx->timecounter_frequency = 1;
+      ctx->frequency = SetTimecounterFrequency( ctx->timecounter_frequency );
+    text: |
+      While the frequency of the currently installed timecounter is equal to 1 Hz.
+  - name: Low
+    test-code: |
+      ctx->timecounter_frequency = UINT64_C( 1500000 );
+      ctx->frequency = SetTimecounterFrequency( ctx->timecounter_frequency );
+    text: |
+      While the frequency of the currently installed timecounter is greater than 1 Hz
+      and at most 1000000000 Hz.
+  - name: High
+    test-code: |
+      ctx->timecounter_frequency = UINT64_C( 2000000000 );
+      ctx->frequency = SetTimecounterFrequency( ctx->timecounter_frequency );
+    text: |
+      While the frequency of the currently installed timecounter is greater than
+      1000000000 Hz.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension ClockId covers the identifier of the clock, 5 states. The directive
+  supports four clocks. State Other covers every other identifier.
+
+  Dimension Res covers the pointer to the time object, 2 states. The directive
+  checks the pointer against ${/c/if/null:/name} alone, so the domain splits into
+  the null pointer and a pointer to an object.
+
+  Dimension TimecounterFreq covers the frequency of the timecounter, 3 states. At
+  1 Hz, the period is one second. Above 1000000000 Hz, the integer division of
+  1000000000 by the frequency in Hz gives zero. State Low uses 1500000 Hz. The
+  exact period at this frequency is 666.67 ns. Rounding down gives 666 ns, and
+  rounding up or to nearest gives 667 ns.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = clock_getres( ctx->clock_id, ctx->res );
+test-brief: null
+test-cleanup: |
+  if ( ctx->frequency != 0 ) {
+    (void) SetTimecounterFrequency( ctx->frequency );
+  }
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/clock-getres:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member specifies the ${../if/clock-getres:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    clockid_t clock_id
+- brief: |
+    This member specifies the ${../if/clock-getres:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    struct timespec *res
+- brief: |
+    This member provides the object referenced by the
+    ${../if/clock-getres:/params[1]/name} parameter.
+  description: null
+  member: |
+    struct timespec res_obj
+- brief: |
+    If this member is not zero, then the cleanup sets the timecounter frequency to
+    its value.
+  description: null
+  member: |
+    uint64_t frequency
+- brief: |
+    This member contains the timecounter frequency in Hz during the
+    ${../if/clock-getres:/name} call.
+  description: null
+  member: |
+    uint64_t timecounter_frequency
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  errno = -1;
+  ctx->status = -1;
+  ctx->res_obj.tv_sec = -1;
+  ctx->res_obj.tv_nsec = -1;
+  ctx->frequency = 0;
+  ctx->timecounter_frequency = 0;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-time-clock-getres.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          ClockId: Other
+      then: MinusOne
+    - else: Zero
+    Errno:
+    - if:
+        pre-conditions:
+          ClockId: Other
+      then: EINVAL
+    - else: Unchanged
+    ResObj:
+    - if:
+        pre-conditions:
+          Res: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          ClockId: Other
+      then: Unchanged
+    - if:
+        pre-conditions:
+          TimecounterFreq: High
+      then: OneNanosecond
+    - else: Period
+  pre-conditions:
+    ClockId: all
+    Res: all
+    TimecounterFreq:
+      applicable:
+        pre-conditions:
+          ClockId:
+          - Monotonic
+          - Realtime
+          - ProcessCPUTimeId
+          - ThreadCPUTimeId
+          Res: Valid
+type: requirement

@@ -1,0 +1,59 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the resolution of the clock specified by ${.:/params[0]/name} and store it
+  in the object referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/clockid_t:/name} ${.:/params[0]/name}
+    - ${/c/if/timespec:/name} *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+- role: constraint
+  uid: /constraint/directive-no-preempt
+- role: constraint
+  uid: /constraint/clock-driver
+- description: |
+    The ${/rtems/timer/glossary/clock:/term} specified by ${.:/params[0]/name} is
+    not supported.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/clock-getres
+name: clock_getres
+notes: |
+  See ${/ref/std/posix-2024/clock-getres:/name}.
+params:
+- description: |
+    is the clock identifier.
+  dir: null
+  name: clock_id
+- description: |
+    is the pointer to the timespec object to store the resolution.
+  dir: out
+  name: res
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
