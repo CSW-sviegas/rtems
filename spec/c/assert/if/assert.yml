@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Terminate the system if the scalar expression specified by ${.:/params[0]/name}
+  is false.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: _ImplementationDefined
+    params:
+    - ${.:/params[0]/name}
+    return: null
+  variants: []
+description: |
+  Where ${/user/if/ndebug:/name} is defined as a macro name at the point in the
+  source file where ${header:/path} is included, the macro does not evaluate the
+  expression and has no effect.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/assert-h
+- role: reference
+  uid: /ref/std/c23/assert
+name: assert
+notes: |
+  Newlib provides the macro. It deviates from ${/ref/std/c23/assert-h:/name} and
+  ${/ref/std/c23/assert:/name} as follows:
+
+  - The macro takes exactly one parameter. The standard specifies an ellipsis
+    parameter. The preprocessor rejects an expression with a comma outside of
+    parentheses, for example a compound literal with two initializers.
+
+  - The header does not define the macro `__STDC_VERSION_ASSERT_H__`.
+
+  - The macro outputs the message with ${/rtems/io/if/printk:/name}. The standard
+    specifies the standard error stream.
+
+  - The macro terminates the system with the fatal source
+    ${/score/interr/if/source-assert:/name}. The standard specifies a call to
+    `abort()`.
+params:
+- description: |
+    is the scalar expression to evaluate.
+  dir: null
+  name: expression
+return:
+  return: null
+  return-values: []
+type: interface

@@ -114,6 +114,8 @@ links:
 - role: validation
   uid: /score/interr/if/source
 - role: validation
+  uid: /score/interr/if/source-assert
+- role: validation
   uid: /score/interr/if/source-bsp
 - role: validation
   uid: /score/interr/if/source-exception

@@ -1,0 +1,534 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/assert
+- role: reference
+  uid: /ref/std/c23/assert-h
+- role: reference
+  uid: /ref/std/c23/assert
+- role: reference
+  uid: /ref/std/c23/mandatory-macros
+- role: reference
+  uid: /ref/std/c23/predefined-identifiers
+- role: reference
+  uid: /ref/std/c23/reserved-identifiers
+- role: reference
+  uid: /ref/newlib/source
+- role: reference
+  uid: /ref/rtems/c-user/fatal-error-sources
+post-conditions:
+- name: Evaluation
+  states:
+  - name: Once
+    test-code: |
+      T_eq_sz( ctx->invocation.evaluations, 1 );
+    text: |
+      The ${../if/assert:/params[0]/name} parameter shall be evaluated exactly once.
+  - name: None
+    test-code: |
+      T_eq_sz( ctx->invocation.evaluations, 0 );
+    text: |
+      The ${../if/assert:/params[0]/name} parameter shall not be evaluated.
+  test-epilogue: null
+  test-prologue: null
+- name: Result
+  states:
+  - name: Return
+    test-code: |
+      T_true( ctx->returned );
+      T_false( ctx->fatal );
+    text: |
+      The ${../if/assert:/name} macro expansion shall return to the caller.
+  - name: Fatal
+    test-code: |
+      T_false( ctx->returned );
+      T_true( ctx->fatal );
+      T_eq_int( ctx->source, RTEMS_FATAL_SOURCE_ASSERT );
+    text: |
+      The ${../if/assert:/name} macro expansion shall terminate the system with the
+      fatal source ${/score/interr/if/source-assert:/name} and a fatal code which
+      references an object of type ${/rtems/fatal/if/assert-context:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: File
+  states:
+  - name: Name
+    test-code: |
+      T_assert_not_null( ctx->assert_context.file );
+      T_eq_str( ctx->assert_context.file, ctx->invocation.file );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[0]/default/name} of the object
+      referenced by the fatal code shall reference the presumed name of the source
+      file of the ${../if/assert:/name} invocation.
+  test-epilogue: null
+  test-prologue: null
+- name: Line
+  states:
+  - name: Number
+    test-code: |
+      T_eq_int( ctx->assert_context.line, ctx->invocation.line );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[1]/default/name} of the object
+      referenced by the fatal code shall be the presumed line number of the
+      ${../if/assert:/name} invocation.
+  test-epilogue: null
+  test-prologue: null
+- name: Function
+  states:
+  - name: Name
+    test-code: |
+      T_assert_not_null( ctx->assert_context.function );
+      T_eq_str( ctx->assert_context.function, "Assert" );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[2]/default/name} of the object
+      referenced by the fatal code shall reference the name of the function which
+      encloses the ${../if/assert:/name} invocation.
+  - name: PrettyFunction
+    test-code: |
+      T_assert_not_null( ctx->assert_context.function );
+      T_eq_str( ctx->assert_context.function, "void Assert(AssertInvocation*)" );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[2]/default/name} of the object
+      referenced by the fatal code shall reference the string to which
+      ${/compiler/if/pretty-function:/name} expands in the function which encloses
+      the ${../if/assert:/name} invocation.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->assert_context.function );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[2]/default/name} of the object
+      referenced by the fatal code shall be ${/c/if/null:/name}.
+  - name: String
+    test-code: |
+      T_eq_ptr( ctx->assert_context.function, AssertFuncString );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[2]/default/name} of the object
+      referenced by the fatal code shall be the value of ${../if/assert-func:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Expression
+  states:
+  - name: Text
+    test-code: |
+      T_assert_not_null( ctx->assert_context.failed_expression );
+      T_eq_str(
+        ctx->assert_context.failed_expression,
+        ctx->invocation.expression
+      );
+    text: |
+      The value of the member
+      ${/rtems/fatal/if/assert-context:/definition[3]/default/name} of the object
+      referenced by the fatal code shall reference the text of the
+      ${../if/assert:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Output
+  states:
+  - name: Function
+    test-code: |
+      CheckOutput( ctx, true );
+    text: |
+      Before the system terminates, the ${../if/assert:/name} macro expansion shall
+      output with ${/rtems/io/if/printk:/name} the characters `assertion "`, the text
+      of the ${../if/assert:/params[0]/name} parameter, the characters
+      `" failed: file "`, the presumed name of the source file of the
+      ${../if/assert:/name} invocation, the characters `", line `, the presumed line
+      number of the ${../if/assert:/name} invocation in decimal notation, the
+      characters `, function: `, the string referenced by the member
+      ${/rtems/fatal/if/assert-context:/definition[2]/default/name} of the object
+      referenced by the fatal code, and a `NL` character in this order.
+  - name: NoFunction
+    test-code: |
+      CheckOutput( ctx, false );
+    text: |
+      Before the system terminates, the ${../if/assert:/name} macro expansion shall
+      output with ${/rtems/io/if/printk:/name} the characters `assertion "`, the text
+      of the ${../if/assert:/params[0]/name} parameter, the characters
+      `" failed: file "`, the presumed name of the source file of the
+      ${../if/assert:/name} invocation, the characters `", line `, the presumed line
+      number of the ${../if/assert:/name} invocation in decimal notation, and a `NL`
+      character in this order.
+  - name: None
+    test-code: |
+      T_eq_sz( ctx->output_count, 0 );
+    text: |
+      The ${../if/assert:/name} macro expansion shall not output a character.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Language
+  states:
+  - name: C
+    test-code: |
+      if ( AssertLanguageOfInvocation != ASSERT_LANGUAGE_C ) {
+        ${.:skip}
+      }
+    text: |
+      Where the programming language of the translation unit which contains the
+      ${../if/assert:/name} invocation is ${/glossary/c:/term}.
+  - name: CXX
+    test-code: |
+      if ( AssertLanguageOfInvocation != ASSERT_LANGUAGE_CXX ) {
+        ${.:skip}
+      }
+    text: |
+      Where the programming language of the translation unit which contains the
+      ${../if/assert:/name} invocation is C++.
+  test-epilogue: null
+  test-prologue: null
+- name: NDEBUG
+  states:
+  - name: Defined
+    test-code: |
+      ctx->ndebug = true;
+    text: |
+      Where ${/user/if/ndebug:/name} is defined as a macro name at the point in the
+      source file where ${../if/header:/path} is included.
+  - name: Undefined
+    test-code: |
+      ctx->ndebug = false;
+    text: |
+      Where ${/user/if/ndebug:/name} is not defined as a macro name at the point in
+      the source file where ${../if/header:/path} is included.
+  test-epilogue: null
+  test-prologue: null
+- name: AssertFunc
+  states:
+  - name: Default
+    test-code: |
+      ctx->assert_func = ASSERT_FUNC_DEFAULT;
+    text: |
+      Where ${../if/assert-func:/name} has the default definition of
+      ${../if/header:/path} at the point in the source file of the
+      ${../if/assert:/name} invocation.
+  - name: 'Null'
+    test-code: |
+      ctx->assert_func = ASSERT_FUNC_NULL;
+    text: |
+      Where ${../if/assert-func:/name} is defined as a null pointer constant at the
+      point in the source file of the ${../if/assert:/name} invocation.
+  - name: String
+    test-code: |
+      ctx->assert_func = ASSERT_FUNC_STRING;
+    text: |
+      Where ${../if/assert-func:/name} is defined as an expression which references a
+      string at the point in the source file of the ${../if/assert:/name} invocation.
+  test-epilogue: null
+  test-prologue: null
+- name: Expression
+  states:
+  - name: 'True'
+    test-code: |
+      ctx->invocation.value = 1;
+    text: |
+      While the ${../if/assert:/params[0]/name} parameter compares unequal to 0.
+  - name: 'False'
+    test-code: |
+      ctx->invocation.value = 0;
+    text: |
+      While the ${../if/assert:/params[0]/name} parameter compares equal to 0.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Language covers the programming language of the translation unit
+  which contains the invocation, 2 states. The ${../if/header:/path} header of
+  Newlib selects the default definition of ${../if/assert-func:/name} by the
+  programming language.
+
+  Dimension NDEBUG covers the definition of ${/user/if/ndebug:/name} where
+  ${../if/header:/path} is included, 2 states. According to
+  ${/ref/std/c23/assert-h:/name}, the header redefines the macro according to
+  this definition each time that it is included.
+
+  Dimension AssertFunc covers the definition of ${../if/assert-func:/name} at the
+  ${../if/assert:/name} invocation, 3 states. The macro of the
+  ${../if/header:/path} header of Newlib passes ${../if/assert-func:/name} as the
+  function name, so the preprocessor replaces it at the invocation. Where
+  ${../if/assert-func:/name} and ${/user/if/ndebug:/name} are not defined at the
+  inclusion, the header defines ${../if/assert-func:/name} as
+  ${/compiler/if/func:/name} for ${/glossary/c:/term} and as
+  ${/compiler/if/pretty-function:/name} for C++ with ${/glossary/gcc:/term}. This
+  is the default definition. ${/ref/std/c23/reserved-identifiers:/name} reserves
+  each identifier which begins with two underscores, so the standard does not
+  specify a definition of ${../if/assert-func:/name} by the application. It is an
+  extension of Newlib, see ${/ref/newlib/source:/cite-long}.
+
+  Where ${/user/if/ndebug:/name} is defined at the inclusion, the header does not
+  provide the default definition and the macro does not expand
+  ${../if/assert-func:/name}. The dimension does not apply to this case.
+
+  Dimension Expression covers the value of the scalar expression, 2 states.
+  ${/ref/std/c23/assert:/name} defines false as a value which compares equal to
+  0\.
+
+  ${/ref/std/c23/assert-h:/name} states that the macro acts as a function with
+  one parameter where ${/user/if/ndebug:/name} is not defined. The macro
+  therefore evaluates the expression exactly once.
+
+  ${/ref/std/c23/assert:/name} lists the information which the macro writes. The
+  presumed name of the source file and the presumed line number are the values of
+  `__FILE__` and `__LINE__` of ${/ref/std/c23/mandatory-macros:/name}. In
+  ${/glossary/c:/term}, the name of the enclosing function is the value of
+  ${/compiler/if/func:/name} of ${/ref/std/c23/predefined-identifiers:/name}. In
+  C++, ${/compiler/if/pretty-function:/name} adds the return type and the
+  parameter types to the name. The standard leaves the format of the message to
+  the implementation.
+
+  The section ${/ref/rtems/c-user/fatal-error-sources:/name} of the RTEMS Classic
+  API Guide states the fatal source and the fatal code which terminate the
+  system.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->invocation.evaluations = 0;
+  ctx->invocation.file = NULL;
+  ctx->invocation.line = 0;
+  ctx->invocation.expression = NULL;
+  ctx->returned = false;
+  ctx->fatal = false;
+  ctx->source = 0;
+  ctx->output_count = 0;
+  ctx->output[ 0 ] = '\0';
+  memset( &ctx->assert_context, 0, sizeof( ctx->assert_context ) );
+  SetFatalHandler( Fatal, ctx );
+  ctx->output_char = BSP_output_char;
+  BSP_output_char = OutputChar;
+
+  if ( setjmp( ctx->before_fatal ) == 0 ) {
+    AssertInvoke( ctx->ndebug, ctx->assert_func, &ctx->invocation );
+    BSP_output_char = ctx->output_char;
+    SetFatalHandler( NULL, NULL );
+    ctx->returned = true;
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member is true, if ${/user/if/ndebug:/name} shall be defined.
+  description: null
+  member: |
+    bool ndebug
+- brief: |
+    This member specifies the definition of ${../if/assert-func:/name} at the
+    invocation. The action does not use it, if ${/user/if/ndebug:/name} shall be
+    defined.
+  description: null
+  member: |
+    AssertFunc assert_func
+- brief: |
+    This member contains the input and the output of the ${../if/assert:/name}
+    invocation.
+  description: null
+  member: |
+    AssertInvocation invocation
+- brief: |
+    This member is true, if the ${../if/assert:/name} macro expansion returned.
+  description: null
+  member: |
+    bool returned
+- brief: |
+    This member is true, if a fatal error occurred.
+  description: null
+  member: |
+    bool fatal
+- brief: |
+    This member contains the fatal source.
+  description: null
+  member: |
+    rtems_fatal_source source
+- brief: |
+    This member contains a copy of the object referenced by the fatal code.
+  description: null
+  member: |
+    rtems_assert_context assert_context
+- brief: |
+    This member contains the characters output by the ${../if/assert:/name} macro
+    expansion.
+  description: null
+  member: |
+    char output[ 512 ]
+- brief: |
+    This member contains the count of characters output by the
+    ${../if/assert:/name} macro expansion.
+  description: null
+  member: |
+    size_t output_count
+- brief: |
+    This member contains the kernel character output handler before the action.
+  description: null
+  member: |
+    BSP_output_char_function_type output_char
+- brief: |
+    This member provides the context to return from the fatal error.
+  description: null
+  member: |
+    jmp_buf before_fatal
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/bspIo.h
+- rtems/score/isrlevel.h
+- setjmp.h
+- string.h
+test-local-includes:
+- tx-assert.h
+- tx-support.h
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void OutputChar( char c )
+  {
+    Context *ctx;
+    size_t   index;
+
+    ctx = T_fixture_context();
+    index = ctx->output_count;
+
+    if ( index < sizeof( ctx->output ) - 1 ) {
+      ctx->output[ index ] = c;
+      ctx->output[ index + 1 ] = '\0';
+    }
+
+    ctx->output_count = index + 1;
+  }
+
+  static void Fatal(
+    rtems_fatal_source source,
+    rtems_fatal_code   code,
+    void              *arg
+  )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    BSP_output_char = ctx->output_char;
+    SetFatalHandler( NULL, NULL );
+    ctx->fatal = true;
+    ctx->source = source;
+
+    if ( source == RTEMS_FATAL_SOURCE_ASSERT ) {
+      ctx->assert_context = *(const rtems_assert_context *) code;
+    }
+
+    _ISR_Set_level( 0 );
+    longjmp( ctx->before_fatal, 1 );
+  }
+
+  static void CheckOutput( const Context *ctx, bool function )
+  {
+    char expected[ sizeof( ctx->output ) ];
+    int  n;
+
+    /* The kernel character output translates a NL into a CR and a NL */
+    if ( function ) {
+      T_assert_not_null( ctx->assert_context.function );
+      n = T_snprintf(
+        expected,
+        sizeof( expected ),
+        "assertion \"%s\" failed: file \"%s\", line %d, function: %s\r\n",
+        ctx->invocation.expression,
+        ctx->invocation.file,
+        ctx->invocation.line,
+        ctx->assert_context.function
+      );
+    } else {
+      n = T_snprintf(
+        expected,
+        sizeof( expected ),
+        "assertion \"%s\" failed: file \"%s\", line %d\r\n",
+        ctx->invocation.expression,
+        ctx->invocation.file,
+        ctx->invocation.line
+      );
+    }
+
+    T_assert_lt_int( n, (int) sizeof( expected ) );
+    T_eq_sz( ctx->output_count, (size_t) n );
+    T_eq_str( ctx->output, expected );
+  }
+test-target: testsuites/validation/tc-assert.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Evaluation: None
+    Result: Return
+    File: N/A
+    Line: N/A
+    Function: N/A
+    Expression: N/A
+    Output: None
+  pre-conditions:
+    Language: all
+    NDEBUG:
+    - Defined
+    AssertFunc: N/A
+    Expression: all
+- enabled-by: true
+  post-conditions:
+    Evaluation: Once
+    Result: Return
+    File: N/A
+    Line: N/A
+    Function: N/A
+    Expression: N/A
+    Output: None
+  pre-conditions:
+    Language: all
+    NDEBUG:
+    - Undefined
+    AssertFunc: all
+    Expression:
+    - 'True'
+- enabled-by: true
+  post-conditions:
+    Evaluation: Once
+    Result: Fatal
+    File: Name
+    Line: Number
+    Function:
+    - if:
+        pre-conditions:
+          AssertFunc: 'Null'
+      then: 'Null'
+    - if:
+        pre-conditions:
+          AssertFunc: String
+      then: String
+    - if:
+        pre-conditions:
+          Language: CXX
+      then: PrettyFunction
+    - else: Name
+    Expression: Text
+    Output:
+    - if:
+        pre-conditions:
+          AssertFunc: 'Null'
+      then: NoFunction
+    - else: Function
+  pre-conditions:
+    Language: all
+    NDEBUG:
+    - Undefined
+    AssertFunc: all
+    Expression:
+    - 'False'
+type: requirement
