@@ -1,0 +1,534 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strncasecmp
+- role: reference
+  uid: /ref/std/posix-2024/strncasecmp
+post-conditions:
+- name: Result
+  states:
+  - name: Less
+    test-code: |
+      T_lt_int( ctx->retval, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strncasecmp:/name} shall be less
+      than zero.
+  - name: Equal
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strncasecmp:/name} shall be equal
+      to zero.
+  - name: Greater
+    test-code: |
+      T_gt_int( ctx->retval, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strncasecmp:/name} shall be
+      greater than zero.
+  test-epilogue: null
+  test-prologue: null
+- name: S1
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->s1_buf, ctx->s1_before, sizeof( ctx->s1_buf ) );
+    text: |
+      The bytes of the array referenced by the ${../if/strncasecmp:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: S2
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->s2_buf, ctx->s2_before, sizeof( ctx->s2_buf ) );
+    text: |
+      The bytes of the array referenced by the ${../if/strncasecmp:/params[1]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+    text: |
+      While the ${../if/strncasecmp:/params[2]/name} parameter is equal to zero.
+  - name: One
+    test-code: |
+      ctx->n = 1;
+    text: |
+      While the ${../if/strncasecmp:/params[2]/name} parameter is equal to one.
+  - name: Between
+    test-code: |
+      ctx->n = 4;
+    text: |
+      While the ${../if/strncasecmp:/params[2]/name} parameter is greater than one,
+      while the ${../if/strncasecmp:/params[2]/name} parameter is less than
+      ${/c/if/size_max:/name}.
+  - name: Max
+    test-code: |
+      ctx->n = SIZE_MAX;
+    text: |
+      While the ${../if/strncasecmp:/params[2]/name} parameter is equal to
+      ${/c/if/size_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Index
+  states:
+  - name: Before
+    test-code: |
+      if ( ctx->n == SIZE_MAX ) {
+        ctx->stop = 3;
+      } else {
+        ctx->stop = ctx->n - 2;
+      }
+    text: |
+      While the ${../glossary/stop-index:/term} of the arrays referenced by the
+      ${../if/strncasecmp:/params[0]/name} parameter and the
+      ${../if/strncasecmp:/params[1]/name} parameter is less than the value of the
+      ${../if/strncasecmp:/params[2]/name} parameter minus one.
+  - name: Last
+    test-code: |
+      ctx->stop = ctx->n - 1;
+    text: |
+      While the ${../glossary/stop-index:/term} of the arrays referenced by the
+      ${../if/strncasecmp:/params[0]/name} parameter and the
+      ${../if/strncasecmp:/params[1]/name} parameter is equal to the value of the
+      ${../if/strncasecmp:/params[2]/name} parameter minus one.
+  - name: At
+    test-code: |
+      ctx->stop = ctx->n;
+    text: |
+      While the ${../glossary/stop-index:/term} of the arrays referenced by the
+      ${../if/strncasecmp:/params[0]/name} parameter and the
+      ${../if/strncasecmp:/params[1]/name} parameter is equal to the value of the
+      ${../if/strncasecmp:/params[2]/name} parameter.
+  - name: Next
+    test-code: |
+      ctx->stop = ctx->n + 1;
+    text: |
+      While the ${../glossary/stop-index:/term} of the arrays referenced by the
+      ${../if/strncasecmp:/params[0]/name} parameter and the
+      ${../if/strncasecmp:/params[1]/name} parameter is equal to the value of the
+      ${../if/strncasecmp:/params[2]/name} parameter plus one.
+  - name: Beyond
+    test-code: |
+      ctx->stop = ctx->n + 2;
+    text: |
+      While the ${../glossary/stop-index:/term} of the arrays referenced by the
+      ${../if/strncasecmp:/params[0]/name} parameter and the
+      ${../if/strncasecmp:/params[1]/name} parameter is greater than the value of the
+      ${../if/strncasecmp:/params[2]/name} parameter plus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Stop
+  states:
+  - name: BothEnd
+    test-code: |
+      ctx->pairs = both_end_pairs;
+    text: |
+      While both arrays hold a null byte at the ${../glossary/stop-index:/term}.
+  - name: S1Ends
+    test-code: |
+      ctx->pairs = s1_ends_pairs;
+    text: |
+      While the array referenced by the ${../if/strncasecmp:/params[0]/name}
+      parameter holds a null byte at the ${../glossary/stop-index:/term}, while the
+      array referenced by the ${../if/strncasecmp:/params[1]/name} parameter holds no
+      null byte at the ${../glossary/stop-index:/term}.
+  - name: S2Ends
+    test-code: |
+      ctx->pairs = s2_ends_pairs;
+    text: |
+      While the array referenced by the ${../if/strncasecmp:/params[0]/name}
+      parameter holds no null byte at the ${../glossary/stop-index:/term}, while the
+      array referenced by the ${../if/strncasecmp:/params[1]/name} parameter holds a
+      null byte at the ${../glossary/stop-index:/term}.
+  - name: Less
+    test-code: |
+      ctx->pairs = less_pairs;
+    text: |
+      While no array holds a null byte at the ${../glossary/stop-index:/term}, while
+      the byte of the array referenced by the ${../if/strncasecmp:/params[0]/name}
+      parameter at the ${../glossary/stop-index:/term} is less than the byte of the
+      array referenced by the ${../if/strncasecmp:/params[1]/name} parameter at the
+      ${../glossary/stop-index:/term}, after the conversion of each
+      ${/c/ctype/glossary/uppercase:/term} to the corresponding
+      ${/c/ctype/glossary/lowercase:/term}, where both bytes are interpreted as type
+      `unsigned char`.
+  - name: Greater
+    test-code: |
+      ctx->pairs = greater_pairs;
+    text: |
+      While no array holds a null byte at the ${../glossary/stop-index:/term}, while
+      the byte of the array referenced by the ${../if/strncasecmp:/params[0]/name}
+      parameter at the ${../glossary/stop-index:/term} is greater than the byte of
+      the array referenced by the ${../if/strncasecmp:/params[1]/name} parameter at
+      the ${../glossary/stop-index:/term}, after the conversion of each
+      ${/c/ctype/glossary/uppercase:/term} to the corresponding
+      ${/c/ctype/glossary/lowercase:/term}, where both bytes are interpreted as type
+      `unsigned char`.
+  test-epilogue: null
+  test-prologue: null
+- name: Letters
+  states:
+  - name: None
+    test-code: |
+      SetPair( ctx, ctx->pairs[ 0 ] );
+    text: |
+      While no byte of the arrays at the ${../glossary/stop-index:/term} is an
+      ${/c/ctype/glossary/uppercase:/term} or a ${/c/ctype/glossary/lowercase:/term}.
+  - name: One
+    test-code: |
+      SetPair( ctx, ctx->pairs[ 1 ] );
+    text: |
+      While exactly one byte of the arrays at the ${../glossary/stop-index:/term} is
+      an ${/c/ctype/glossary/uppercase:/term} or a
+      ${/c/ctype/glossary/lowercase:/term}.
+  - name: Both
+    test-code: |
+      SetPair( ctx, ctx->pairs[ 2 ] );
+    text: |
+      While each byte of the arrays at the ${../glossary/stop-index:/term} is an
+      ${/c/ctype/glossary/uppercase:/term} or a ${/c/ctype/glossary/lowercase:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: CaseDiffers
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->s1_buf[ 0 ] = 'X';
+
+      if ( ctx->stop > 1 ) {
+        ctx->s2_buf[ 1 ] = 'X';
+      }
+    text: |
+      While the arrays hold different bytes at an index less than the
+      ${../glossary/stop-index:/term}.
+  - name: 'No'
+    test-code: |
+      /* The prepared arrays hold equal bytes. */
+    text: |
+      While the arrays hold equal bytes at each index less than the
+      ${../glossary/stop-index:/term}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/strncasecmp:/name} defines no error for the function. It
+  leaves the behaviour undefined where a parameter references no array, so the
+  item states no ${/c/if/null:/name} pointer.
+
+  ${/ref/std/posix-2024/strncasecmp:/name} specifies the comparison where the
+  `LC_CTYPE` category of the locale is from the POSIX locale. The item states the
+  behaviour for this locale.
+
+  ${/ref/std/posix-2024/strncasecmp:/name} specifies a byte comparison after the
+  conversion to lowercase. It states no sign rule for this comparison. The item
+  takes the rule of ${/c/string/if/strncmp:/name}, which interprets both bytes as
+  type `unsigned char`.
+
+  Dimension N covers the value of the ${../if/strncasecmp:/params[2]/name}
+  parameter, 4 states. The implementation compares the count of the remaining
+  bytes against zero. The states Zero and One hold this boundary and the value
+  above it. The Max state holds the last value of the type.
+
+  Dimension Index covers the ${../glossary/stop-index:/term} relative to the
+  value of the ${../if/strncasecmp:/params[2]/name} parameter, 5 states. The
+  implementation stops the comparison at this bound. The states Last, At and Next
+  hold the index below the bound, at it and above it. The states Before and
+  Beyond hold the indices below and above these states. Two arrays without a
+  ${../glossary/stop-index:/term} hold equal bytes which are not null bytes at
+  each index less than the value of the ${../if/strncasecmp:/params[2]/name}
+  parameter. The Beyond state includes them, since the function examines no byte
+  at a greater index.
+
+  Dimension Stop covers the pair of bytes at the ${../glossary/stop-index:/term},
+  5 states. ${/ref/std/posix-2024/strncasecmp:/name} compares arrays which a null
+  byte may end, so the end of each array takes a state of its own.
+
+  Dimension Letters covers the number of letters in the pair of bytes at the
+  ${../glossary/stop-index:/term}, 3 states.
+  ${/ref/std/posix-2024/strncasecmp:/name} converts the letters to lowercase, so
+  the number of letters in the pair decides whether the conversion acts on the
+  pair. A byte between the ${/c/ctype/glossary/uppercase:/term} `Z` and the
+  ${/c/ctype/glossary/lowercase:/term} `a` separates the conversion to lowercase
+  from a conversion to uppercase. A pair of letters in different case can hold
+  bytes whose order is the inverse of their order after the conversion. The bytes
+  0x80 to 0xff are no letters, and their order depends on the interpretation as
+  type `unsigned char`.
+
+  Dimension CaseDiffers covers the bytes at the indices less than the
+  ${../glossary/stop-index:/term}, 2 states. These bytes are equal after the
+  conversion, so a different byte differs in case only.
+
+  The Yes state places an ${/c/ctype/glossary/uppercase:/term} into the first
+  array at index zero. It places one into the second array at index one where the
+  ${../glossary/stop-index:/term} is greater than one. The implementation
+  converts the byte of each array on its own.
+
+  The N arrangement comes before the Index arrangement, since the Index
+  arrangement places the ${../glossary/stop-index:/term} relative to the value of
+  the ${../if/strncasecmp:/params[2]/name} parameter. The Stop and Letters
+  arrangements write the bytes at the ${../glossary/stop-index:/term}, so they
+  come after the Index arrangement.
+
+  An array of at least ${/c/if/size_max:/name} bytes does not fit into the
+  address space of the target. This limit of the target skips the states Last,
+  At, Next and Beyond for the Max state.
+
+  ${/ref/std/posix-2024/strncasecmp:/name} states that the function does not
+  change ${/c/errno/if/errno:/name} on valid input.
+references: []
+requirement-type: functional
+skip-reasons:
+  NoNegativeIndex: |
+    A ${../glossary/stop-index:/term} is not less than zero.
+  NoPrefix: |
+    No index is less than a ${../glossary/stop-index:/term} of zero.
+  NoSuchArray: |
+    The state needs arrays of at least ${/c/if/size_max:/name} bytes. No such array
+    fits into the address space of the target.
+  NullIsNoLetter: |
+    A null byte is no letter.
+test-action: |
+  memcpy( ctx->s1_before, ctx->s1_buf, sizeof( ctx->s1_buf ) );
+  memcpy( ctx->s2_before, ctx->s2_buf, sizeof( ctx->s2_buf ) );
+  errno = -1;
+  ctx->retval = strncasecmp( ctx->s1, ctx->s2, ctx->n );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/strncasecmp:/params[0]/name} parameter value.
+  description: null
+  member: |
+    const char *s1
+- brief: |
+    This member specifies the ${../if/strncasecmp:/params[1]/name} parameter value.
+  description: null
+  member: |
+    const char *s2
+- brief: |
+    This member specifies the ${../if/strncasecmp:/params[2]/name} parameter value.
+  description: null
+  member: |
+    size_t n
+- brief: |
+    This member contains the return value of the ${../if/strncasecmp:/name} call.
+  description: null
+  member: |
+    int retval
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/strncasecmp:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member specifies the ${../glossary/stop-index:/term} of the arrays.
+  description: null
+  member: |
+    size_t stop
+- brief: |
+    This member references the pairs of bytes at the
+    ${../glossary/stop-index:/term}, one pair for each number of letters.
+  description: null
+  member: |
+    const unsigned char ( *pairs )[ 2 ]
+- brief: |
+    This member provides the array referenced by the
+    ${../if/strncasecmp:/params[0]/name} parameter.
+  description: null
+  member: |
+    char s1_buf[ 8 ]
+- brief: |
+    This member provides the array referenced by the
+    ${../if/strncasecmp:/params[1]/name} parameter.
+  description: null
+  member: |
+    char s2_buf[ 8 ]
+- brief: |
+    This member contains the content of the array referenced by the
+    ${../if/strncasecmp:/params[0]/name} parameter before the
+    ${../if/strncasecmp:/name} call.
+  description: null
+  member: |
+    char s1_before[ 8 ]
+- brief: |
+    This member contains the content of the array referenced by the
+    ${../if/strncasecmp:/params[1]/name} parameter before the
+    ${../if/strncasecmp:/name} call.
+  description: null
+  member: |
+    char s2_before[ 8 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdint.h
+- string.h
+- strings.h
+test-local-includes: []
+test-prepare: |
+  memset( ctx->s1_buf, 'x', sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 'x', sizeof( ctx->s2_buf ) );
+  ctx->s1 = ctx->s1_buf;
+  ctx->s2 = ctx->s2_buf;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef CStringsReqStrncasecmp_Context Context;
+
+  static const unsigned char both_end_pairs[ 3 ][ 2 ] =
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } };
+
+  static const unsigned char s1_ends_pairs[ 3 ][ 2 ] =
+    { { '\0', 0xff }, { '\0', 'a' }, { '\0', '\0' } };
+
+  static const unsigned char s2_ends_pairs[ 3 ][ 2 ] =
+    { { 0xff, '\0' }, { 'a', '\0' }, { '\0', '\0' } };
+
+  static const unsigned char less_pairs[ 3 ][ 2 ] =
+    { { '!', 0x80 }, { '_', 'A' }, { 'a', 'B' } };
+
+  static const unsigned char greater_pairs[ 3 ][ 2 ] =
+    { { 0x80, '!' }, { 'A', '_' }, { 'B', 'a' } };
+
+  static void SetPair( Context *ctx, const unsigned char *pair )
+  {
+    memcpy( &ctx->s1_buf[ ctx->stop ], &pair[ 0 ], 1 );
+    memcpy( &ctx->s2_buf[ ctx->stop ], &pair[ 1 ], 1 );
+    ctx->s1_buf[ ctx->stop + 1 ] = '\0';
+    ctx->s2_buf[ ctx->stop + 1 ] = '\0';
+  }
+test-target: testsuites/validation/tc-strings-strncasecmp.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Index:
+          - At
+          - Next
+          - Beyond
+      then: Equal
+    - if:
+        pre-conditions:
+          Stop: BothEnd
+      then: Equal
+    - if:
+        pre-conditions:
+          Stop:
+          - S1Ends
+          - Less
+      then: Less
+    - else: Greater
+    S1: Nop
+    S2: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    Index: all
+    Stop: all
+    Letters: all
+    CaseDiffers: all
+- enabled-by: true
+  post-conditions: NoNegativeIndex
+  pre-conditions:
+    N:
+    - Zero
+    Index:
+    - Before
+    - Last
+    Stop: all
+    Letters: all
+    CaseDiffers: all
+- enabled-by: true
+  post-conditions: NoNegativeIndex
+  pre-conditions:
+    N:
+    - One
+    Index:
+    - Before
+    Stop: all
+    Letters: all
+    CaseDiffers: all
+- enabled-by: true
+  post-conditions: NoSuchArray
+  pre-conditions:
+    N:
+    - Max
+    Index:
+    - Last
+    - At
+    - Next
+    - Beyond
+    Stop: all
+    Letters: all
+    CaseDiffers: all
+- enabled-by: true
+  post-conditions: NoPrefix
+  pre-conditions:
+    N:
+    - Zero
+    Index:
+    - At
+    Stop: all
+    Letters: all
+    CaseDiffers:
+    - 'Yes'
+- enabled-by: true
+  post-conditions: NoPrefix
+  pre-conditions:
+    N:
+    - One
+    Index:
+    - Last
+    Stop: all
+    Letters: all
+    CaseDiffers:
+    - 'Yes'
+- enabled-by: true
+  post-conditions: NullIsNoLetter
+  pre-conditions:
+    N: all
+    Index: all
+    Stop:
+    - BothEnd
+    Letters:
+    - One
+    - Both
+    CaseDiffers: all
+- enabled-by: true
+  post-conditions: NullIsNoLetter
+  pre-conditions:
+    N: all
+    Index: all
+    Stop:
+    - S1Ends
+    - S2Ends
+    Letters:
+    - Both
+    CaseDiffers: all
+type: requirement

@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: stop index
+text: |
+  The stop index of two arrays is the first index at which the arrays hold bytes
+  which differ after the conversion of each ${/c/ctype/glossary/uppercase:/term}
+  to the corresponding ${/c/ctype/glossary/lowercase:/term}, or at which both
+  arrays hold a null byte.
+type: glossary
