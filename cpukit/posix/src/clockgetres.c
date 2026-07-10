@@ -38,11 +38,11 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <time.h>
 #include <errno.h>
 
-#include <rtems/score/todimpl.h>
-#include <rtems/config.h>
+#include <rtems/score/timecounter.h>
 #include <rtems/seterr.h>
 
 /*
@@ -64,9 +64,14 @@ int clock_getres( clockid_t clock_id, struct timespec *res )
     case CLOCK_PROCESS_CPUTIME_ID:
     case CLOCK_THREAD_CPUTIME_ID:
       if ( res ) {
-        res->tv_sec = rtems_configuration_get_microseconds_per_tick() /
-                      TOD_MICROSECONDS_PER_SECOND;
-        res->tv_nsec = rtems_configuration_get_nanoseconds_per_tick();
+        uint64_t freq = _Timecounter_Get_frequency();
+
+        res->tv_sec = 0;
+        res->tv_nsec = (uint32_t) ( UINT64_C( 1000000000 ) / freq );
+
+        if ( res->tv_nsec == 0 ) {
+          res->tv_nsec = 1;
+        }
       }
       break;
 

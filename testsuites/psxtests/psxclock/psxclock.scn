@@ -7,7 +7,7 @@ Init: clock_settime - before 1988 EINVAL
 Init: clock_getres - EINVAL (invalid clockid)
 Init: clock_getres - EINVAL (NULL resolution)
 Init: clock_getres - SUCCESSFUL
-Init: resolution = sec (0), nsec (10000000)
+Init: resolution is valid
 
 Fri May 24 11:05:00 1996
 Init: clock_settime - SUCCESSFUL

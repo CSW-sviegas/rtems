@@ -383,12 +383,11 @@ static rtems_task Init( rtems_task_argument argument )
 
   puts( "Init: clock_getres - SUCCESSFUL" );
   sc = clock_getres( CLOCK_REALTIME, &tv );
-  printf(
-    "Init: resolution = sec (%" PRIdtime_t "), nsec (%ld)\n",
-    tv.tv_sec,
-    tv.tv_nsec
-  );
   rtems_test_assert( !sc );
+  rtems_test_assert( tv.tv_sec >= 0 );
+  rtems_test_assert( tv.tv_nsec >= 0 && tv.tv_nsec < 1000000000 );
+  rtems_test_assert( tv.tv_sec > 0 || tv.tv_nsec > 0 );
+  puts( "Init: resolution is valid" );
 
   /* set the time of day, and print our buffer in multiple ways */
 
