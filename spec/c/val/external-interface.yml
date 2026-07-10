@@ -27,6 +27,8 @@ links:
 - role: validation
   uid: /c/time/if/clock-settime
 - role: validation
+  uid: /c/if/clockid_t
+- role: validation
   uid: /c/if/cpu_set_t
 - role: validation
   uid: /c/pthread/if/create-detached
