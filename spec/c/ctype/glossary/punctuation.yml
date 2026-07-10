@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: punctuation character
+text: |
+  A punctuation character is one of the 32 characters with a value from `0x21`
+  through `0x2F`, from `0x3A` through `0x40`, from `0x5B` through `0x60`, or from
+  `0x7B` through `0x7E`.
+type: glossary

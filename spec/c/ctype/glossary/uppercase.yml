@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: uppercase letter
+text: |
+  An uppercase letter is one of the 26 characters from `A` through `Z`. An
+  uppercase letter corresponds to the ${lowercase:/term} at the same position of
+  the alphabet.
+type: glossary

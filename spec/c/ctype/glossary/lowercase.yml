@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: lowercase letter
+text: |
+  A lowercase letter is one of the 26 characters from `a` through `z`. A
+  lowercase letter corresponds to the ${uppercase:/term} at the same position of
+  the alphabet.
+type: glossary

@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+index-entries: []
+interface-type: unspecified-define
+links:
+- role: interface-placement
+  uid: stdio
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/stdio-introduction
+name: EOF
+type: interface

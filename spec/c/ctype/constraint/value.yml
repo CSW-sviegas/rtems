@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+- role: reference
+  uid: /ref/std/c23/ctype-general
+rationale: |
+  ${/ref/std/c23/ctype-general:/name} states that the behaviour is undefined for
+  any other value.
+text: |
+  The value of the argument shall be representable as the type `unsigned char` or
+  shall be equal to ${/c/if/eof:/name}.
+type: constraint
