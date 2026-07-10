@@ -56,10 +56,10 @@ pre-conditions:
   test-epilogue: null
   test-prologue: null
 rationale: |
-  The implementation of the pre-qualified library calls ${/c/if/memset:/name}
-  with the value zero. An empty assembler statement with a memory clobber follows
-  the call, so the compiler cannot remove the write. Dimension Length selects
-  whether the call writes a byte.
+  The implementation of the pre-qualified library calls
+  ${/c/string/if/memset:/name} with the value zero. An empty assembler statement
+  with a memory clobber follows the call, so the compiler cannot remove the
+  write. Dimension Length selects whether the call writes a byte.
 references: []
 requirement-type: functional
 skip-reasons: {}
