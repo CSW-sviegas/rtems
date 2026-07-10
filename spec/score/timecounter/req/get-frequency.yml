@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2022 embedded brains GmbH (http://www.embedded-brains.de)
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/get-frequency
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/get-frequency:/name} directive shall return the frequency of the
+  currently installed timecounter at some time point during the directive call.
+type: requirement

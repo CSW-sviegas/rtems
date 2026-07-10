@@ -1,0 +1,32 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the frequency in Hz of the currently installed timecounter.
+copyrights:
+- Copyright (C) 2022 embedded brains GmbH (http://www.embedded-brains.de)
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: ${/c/if/uint64_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: sys-timetc
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+name: tc_getfrequency
+notes: null
+params: []
+return:
+  return: |
+    Returns the frequency in Hz of the currently installed timecounter at some time
+    point during the directive call.
+  return-values: []
+type: interface
