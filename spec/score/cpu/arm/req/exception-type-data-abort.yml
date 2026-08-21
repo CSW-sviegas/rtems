@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: exception-init-data-abort
+- location: B1.8.1
+  role: reference
+  uid: /ref/arch/arm/ddi0406c-d
+rationale: |
+  The index of a vector is its offset in the exception vector table divided by
+  four. The index of the data abort vector is four, which is the value of
+  ARM_EXCEPTION_DATA_ABORT.
+references: []
+requirement-type: functional
+text: |
+  When a data abort exception occurs, the default exception handler shall set the
+  vector member of the exception frame to the index of the data abort vector in
+  the exception vector table.
+type: requirement

@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+date: '2021-02-16'
+enabled-by: true
+links: []
+month: February
+organization: Arm
+reference-type: manual
+title: Armv7-M Architecture Reference Manual, ARM DDI 0403E.e
+type: reference
+work-hash: dlABdtIPiX6vBe6ttaYgLO9kHjMgc7EHkFyImODuB0c=
+work-url: https://documentation-service.arm.com/static/606dc36485368c4c2b1bf62f
+year: '2021'

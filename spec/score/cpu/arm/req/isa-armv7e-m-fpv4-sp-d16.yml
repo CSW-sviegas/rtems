@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+- arm/lpc40xx_ea_ram
+- arm/lpc40xx_ea_rom_int
+- arm/stm32f4
+- arm/stm32f446ze
+- arm/stm32h747i-disco-m4
+- arm/stm32h757i-eval-m4
+- bsps/arm/efm32gg11
+links:
+- role: requirement-refinement
+  uid: ../../if/group
+- role: reference
+  uid: /ref/arch/arm/ddi0403e-e
+non-functional-type: design-property
+rationale: |
+  The Cortex-M4 processor with a floating-point unit implements this
+  architecture. The floating-point extension provides single-precision operations
+  only.
+requirement-type: non-functional
+text: |
+  The ${/glossary/target-arch:/term} shall be Armv7E-M with the floating-point
+  extension FPv4-SP-D16.
+type: requirement

@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024, 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+functional-type: function
+links:
+- role: design-property
+  uid: isa-armv7-a
+- role: design-property
+  uid: isa-armv7-a-vfpv3-d32-neon
+- role: design-property
+  uid: isa-armv7-r-vfpv3-d16
+- role: design-property
+  uid: isa-armv8-r-fp-neon
+- role: requirement-refinement
+  uid: ../../req/exception-terminate
+rationale: |
+  The exception vector table is static data of the start code. The handlers of
+  the reset and the IRQ exception serve the system start and the interrupt
+  processing. The refinements state the initialization value of the other
+  handlers.
+references: []
+requirement-type: functional
+text: |
+  The exception vector table shall provide an initialization value for the
+  handler of each exception.
+type: requirement

@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+functional-type: function
+links:
+- role: design-property
+  uid: isa-armv7-m
+- role: design-property
+  uid: isa-armv7e-m-fpv4-sp-d16
+- role: design-property
+  uid: isa-armv7e-m-fpv5-d16
+- role: requirement-refinement
+  uid: ../../req/registers
+rationale: |
+  A fault which stays active escalates the next fault to a lockup.
+references: []
+requirement-type: functional
+text: |
+  The exception resume shall end the active state of the exception which the
+  default exception handler serves.
+type: requirement

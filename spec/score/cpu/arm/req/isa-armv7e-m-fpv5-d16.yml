@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+- arm/nucleo-h743zi
+- arm/nucleo-h753zi
+- arm/nucleo-h755zi
+- arm/stm32h7
+- arm/stm32h747i-disco
+- arm/stm32h750b-dk
+- arm/stm32h757i-eval
+- arm/stm32h7b3i-dk
+- bsps/arm/atsam
+- bsps/arm/imxrt
+links:
+- role: requirement-refinement
+  uid: ../../if/group
+- role: reference
+  uid: /ref/arch/arm/ddi0403e-e
+non-functional-type: design-property
+rationale: |
+  The Cortex-M7 processor with a double-precision floating-point unit implements
+  this architecture.
+requirement-type: non-functional
+text: |
+  The ${/glossary/target-arch:/term} shall be Armv7E-M with the floating-point
+  extension FPv5-D16.
+type: requirement

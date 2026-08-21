@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: exception-init-hard-fault
+- location: B1.5.2
+  role: reference
+  uid: /ref/arch/arm/ddi0403e-e
+rationale: |
+  The exception number of the HardFault exception is three, which is the value of
+  ARMV7M_VECTOR_HARD_FAULT.
+references: []
+requirement-type: functional
+text: |
+  When a HardFault exception occurs, the default exception handler shall set the
+  vector member of the exception frame to the exception number of the HardFault
+  exception.
+type: requirement

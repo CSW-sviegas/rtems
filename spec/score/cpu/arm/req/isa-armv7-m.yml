@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+- arm/lpc17xx_ea_ram
+- arm/lpc17xx_ea_rom_int
+- arm/lpc17xx_plx800_ram
+- arm/lpc17xx_plx800_rom_int
+- arm/stm32f105rc
+- bsps/arm/lm3s69xx
+- bsps/arm/lpc176x
+links:
+- role: requirement-refinement
+  uid: ../../if/group
+- role: reference
+  uid: /ref/arch/arm/ddi0403e-e
+non-functional-type: design-property
+rationale: |
+  The Cortex-M3 processor implements this architecture.
+requirement-type: non-functional
+text: |
+  The ${/glossary/target-arch:/term} shall be Armv7-M without a floating-point
+  extension.
+type: requirement

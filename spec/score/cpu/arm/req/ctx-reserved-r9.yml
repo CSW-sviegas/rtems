@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../../req/ctx-call-saved
+rationale: |
+  The aapcs32 leaves the role of r9 to a platform. The context switch stores the
+  contiguous range r4 to r11, which covers r9.
+references: []
+requirement-type: functional
+text: |
+  The context switch shall preserve r9.
+type: requirement

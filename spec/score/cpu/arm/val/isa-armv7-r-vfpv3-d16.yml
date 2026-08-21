@@ -1,0 +1,58 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+links:
+- role: design-property
+  uid: ../req/isa-armv7-r-vfpv3-d16
+test-actions:
+- action-brief: |
+    Read the predefined macros of the compiler which describe the target
+    architecture.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the compiler generates code for Armv7-R with the floating-point
+      extension VFPv3-D16.
+    code: |
+      T_step_eq_int( ${.:/step}, __ARM_ARCH, 7 );
+      T_step_eq_int( ${.:/step}, __ARM_ARCH_PROFILE, 'R' );
+      T_step_eq_int( ${.:/step}, ARCH_DSP, 1 );
+      T_step_eq_int( ${.:/step}, ARCH_FP, 0xc );
+      T_step_eq_int( ${.:/step}, ARCH_NEON, 0 );
+    links:
+    - role: validation
+      uid: ../req/isa-armv7-r-vfpv3-d16
+  links: []
+test-brief: |
+  Tests the target architecture.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes: []
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+  #if defined(__ARM_FEATURE_DSP)
+  #define ARCH_DSP __ARM_FEATURE_DSP
+  #else
+  #define ARCH_DSP 0
+  #endif
+
+  #if defined(__ARM_FP)
+  #define ARCH_FP __ARM_FP
+  #else
+  #define ARCH_FP 0x0
+  #endif
+
+  #if defined(__ARM_NEON)
+  #define ARCH_NEON __ARM_NEON
+  #else
+  #define ARCH_NEON 0
+  #endif
+test-target: testsuites/validation/bsps/tc-arm-isa-armv7-r-vfpv3-d16.c
+test-teardown: null
+type: test-case

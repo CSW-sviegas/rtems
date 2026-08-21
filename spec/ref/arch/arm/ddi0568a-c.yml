@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+date: '2020-11-06'
+enabled-by: true
+links: []
+month: November
+organization: Arm
+reference-type: manual
+title: Arm Architecture Reference Manual Supplement, Armv8, for the Armv8-R AArch32
+  architecture profile, ARM DDI 0568A.c
+type: reference
+work-hash: 9_H19E3Nq0EVrpgM6uJL8rF0M_Dm7MjxC7TOVEwmG4k=
+work-url: null
+year: '2020'

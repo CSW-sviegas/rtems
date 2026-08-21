@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+functional-type: function
+links:
+- role: design-property
+  uid: isa-armv7-m
+- role: design-property
+  uid: isa-armv7e-m-fpv4-sp-d16
+- role: design-property
+  uid: isa-armv7e-m-fpv5-d16
+- role: requirement-refinement
+  uid: ../../req/exc-status
+rationale: |
+  The hardware stacks no BASEPRI. The stacked xPSR does not tell a Thread mode
+  context on MSP from one on PSP.
+references: []
+requirement-type: functional
+text: |
+  The default exception handler shall save BASEPRI and the EXC_RETURN value of
+  the exception to the exception frame.
+type: requirement

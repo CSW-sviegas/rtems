@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+- arm/raspberrypi2
+- bsps/arm/altera-cyclone-v
+- bsps/arm/imx
+- bsps/arm/realview-pbx-a9
+- bsps/arm/xen
+- bsps/arm/xilinx-zynq
+- bsps/arm/xilinx-zynqmp
+links:
+- role: requirement-refinement
+  uid: ../../if/group
+- role: reference
+  uid: /ref/arch/arm/ddi0406c-d
+non-functional-type: design-property
+rationale: |
+  The Cortex-A7 and the Cortex-A9 processor implement this architecture. A BSP
+  which runs code for it on an Armv8-A processor in AArch32 state also has this
+  target architecture.
+requirement-type: non-functional
+text: |
+  The ${/glossary/target-arch:/term} shall be Armv7-A with the floating-point
+  extension VFPv3-D32 and the Advanced SIMD extension.
+type: requirement

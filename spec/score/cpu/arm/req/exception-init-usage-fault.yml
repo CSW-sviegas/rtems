@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: exception-armv7m
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The initialization value of the handler of the UsageFault exception shall be
+  the default exception handler.
+type: requirement

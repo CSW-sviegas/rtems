@@ -1,0 +1,104 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure represents the interrupt frame of the ARM CPU port for ARMv4
+  without a VFP.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member contains r0.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r0
+  variants: []
+- default:
+    brief: |
+      This member contains r1.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r1
+  variants: []
+- default:
+    brief: |
+      This member contains r2.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r2
+  variants: []
+- default:
+    brief: |
+      This member contains r3.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r3
+  variants: []
+- default:
+    brief: |
+      This member contains r7.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r7
+  variants: []
+- default:
+    brief: |
+      This member contains r9.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r9
+  variants: []
+- default:
+    brief: |
+      This member contains r12.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: r12
+  variants: []
+- default:
+    brief: |
+      This member contains lr.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: lr
+  variants: []
+- default:
+    brief: |
+      This member contains the return address of the interrupt.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: return_pc
+  variants: []
+- default:
+    brief: |
+      This member contains the CPSR of the interrupted context.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: return_cpsr
+  variants: []
+definition-kind: typedef-only
+description: null
+enabled-by: arm
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: proxy-member
+  uid: /score/cpu/if/interrupt-frame
+- role: design-property
+  uid: ../req/isa-armv7-a
+name: CPU_Interrupt_frame
+notes: null
+type: interface

@@ -1,0 +1,25 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: arm
+functional-type: function
+links:
+- role: design-property
+  uid: isa-armv7-m
+- role: design-property
+  uid: isa-armv7e-m-fpv4-sp-d16
+- role: design-property
+  uid: isa-armv7e-m-fpv5-d16
+- role: requirement-refinement
+  uid: ../../req/exception-terminate
+rationale: |
+  The exception vector table is static data of the start code. The SVC and the
+  PendSV exception serve the thread dispatch. The start code enables no debug
+  monitor exception. The refinements state the initialization value of the other
+  handlers.
+references: []
+requirement-type: functional
+text: |
+  The exception vector table shall provide an initialization value for the
+  handler of each exception.
+type: requirement
