@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2023, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2023, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -141,12 +141,9 @@ static void Fatal(
   void              *arg
 )
 {
-  (void) code;
-
   if ( source == RTEMS_FATAL_SOURCE_EXCEPTION && do_longjmp ) {
     do_longjmp = false;
-    _ISR_Set_level( 0 );
-    longjmp( arg, 1 );
+    ExceptionLongJump( code, arg );
   }
 }
 
