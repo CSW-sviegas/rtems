@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags:
+- -fomit-frame-pointer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- arm/lpc17xx_ea_ram
+- arm/lpc17xx_ea_rom_int
+- arm/lpc17xx_plx800_ram
+- arm/lpc17xx_plx800_rom_int
+- arm/lpc40xx_ea_ram
+- arm/lpc40xx_ea_rom_int
+- bsps/arm/atsam
+- bsps/arm/efm32gg11
+- bsps/arm/imxrt
+- bsps/arm/lm3s69xx
+- bsps/arm/lpc176x
+- bsps/arm/stm32f4
+- bsps/arm/stm32h7
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-exception-armv7m.c
+type: build

@@ -1,0 +1,54 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags:
+- -fomit-frame-pointer
+copyrights:
+- Copyright (C) 2024, 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- arm/lpc17xx_ea_ram
+- arm/lpc17xx_ea_rom_int
+- arm/lpc17xx_plx800_ram
+- arm/lpc17xx_plx800_rom_int
+- arm/lpc40xx_ea_ram
+- arm/lpc40xx_ea_rom_int
+- arm/nucleo-h743zi
+- arm/nucleo-h753zi
+- arm/nucleo-h755zi
+- arm/raspberrypi2
+- arm/stm32f105rc
+- arm/stm32f4
+- arm/stm32f446ze
+- arm/stm32h7
+- arm/stm32h747i-disco
+- arm/stm32h747i-disco-m4
+- arm/stm32h750b-dk
+- arm/stm32h757i-eval
+- arm/stm32h757i-eval-m4
+- arm/stm32h7b3i-dk
+- bsps/arm/altera-cyclone-v
+- bsps/arm/atsam
+- bsps/arm/beagle
+- bsps/arm/efm32gg11
+- bsps/arm/fvp
+- bsps/arm/imx
+- bsps/arm/imxrt
+- bsps/arm/lm3s69xx
+- bsps/arm/lpc176x
+- bsps/arm/realview-pbx-a9
+- bsps/arm/tms570
+- bsps/arm/xen
+- bsps/arm/xilinx-versal-rpu
+- bsps/arm/xilinx-zynq
+- bsps/arm/xilinx-zynqmp
+- bsps/arm/xilinx-zynqmp-rpu
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-context.c
+- testsuites/validation/bsps/tc-arm-exception-frame.c
+- testsuites/validation/bsps/tc-arm-interrupt.c
+- testsuites/validation/bsps/tc-arm-resume.c
+type: build

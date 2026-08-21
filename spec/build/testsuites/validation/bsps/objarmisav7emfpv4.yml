@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- arm/lpc40xx_ea_ram
+- arm/lpc40xx_ea_rom_int
+- arm/stm32f4
+- arm/stm32f446ze
+- arm/stm32h747i-disco-m4
+- arm/stm32h757i-eval-m4
+- bsps/arm/efm32gg11
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-isa-armv7e-m-fpv4-sp-d16.c
+type: build

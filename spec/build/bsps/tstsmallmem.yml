@@ -27,6 +27,7 @@ actions:
     - validation-1
     - validation-acfg-0
     - validation-acfg-1
+    - validation-bsp-no-clock-0
     - validation-cache
     - validation-cxx-0
     - validation-intr
@@ -147,7 +148,7 @@ actions:
 - append-test-cppflags: tmtimer01
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

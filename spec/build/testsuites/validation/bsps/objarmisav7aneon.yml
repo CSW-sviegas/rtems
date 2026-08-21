@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- arm/raspberrypi2
+- bsps/arm/altera-cyclone-v
+- bsps/arm/imx
+- bsps/arm/realview-pbx-a9
+- bsps/arm/xen
+- bsps/arm/xilinx-zynq
+- bsps/arm/xilinx-zynqmp
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-isa-armv7-a-vfpv3-d32-neon.c
+type: build

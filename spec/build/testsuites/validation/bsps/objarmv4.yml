@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags:
+- -fomit-frame-pointer
+copyrights:
+- Copyright (C) 2024, 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- arm/raspberrypi2
+- bsps/arm/altera-cyclone-v
+- bsps/arm/beagle
+- bsps/arm/fvp
+- bsps/arm/imx
+- bsps/arm/realview-pbx-a9
+- bsps/arm/xen
+- bsps/arm/xilinx-zynq
+- bsps/arm/xilinx-zynqmp
+- bsps/arm/tms570
+- bsps/arm/xilinx-versal-rpu
+- bsps/arm/xilinx-zynqmp-rpu
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-exception.c
+type: build

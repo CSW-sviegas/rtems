@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags:
+- -fomit-frame-pointer
+copyrights:
+- Copyright (C) 2024, 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+- bsps/arm/altera-cyclone-v
+- bsps/arm/xilinx-zynq
+- bsps/arm/xilinx-zynqmp-rpu
+includes: []
+install: []
+links: []
+source:
+- testsuites/validation/bsps/tc-arm-exception-fiq.c
+type: build
