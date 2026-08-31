@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
@@ -11,57 +12,137 @@ post-conditions:
   states:
   - name: Ok
     test-code: |
-      /* TODOD */
+      T_rsc_success( ctx->retval );
     text: |
-      TODO
+      The return status of ${../if/attr-setstackaddr:/name} shall be zero.
+  - name: Einval
+    test-code: |
+      T_rsc( ctx->retval, EINVAL );
+    text: |
+      The return status of ${../if/attr-setstackaddr:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: AttrObj
+  states:
+  - name: Set
+    test-code: |
+      void *stackaddr;
+      int   eno;
+
+      eno = pthread_attr_getstackaddr( &ctx->attr_obj, &stackaddr );
+      T_eno_success( eno );
+      T_eq_ptr( stackaddr, STACK_ADDR_VALUE );
+    text: |
+      The value of the ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setstackaddr:/params[0]/name} parameter shall be set to the
+      address specified by the ${../if/attr-setstackaddr:/params[1]/name}
+      parameter.
+  - name: Nop
+    test-code: |
+      T_eq_ptr( ctx->attr_obj.stackaddr, STALE_STACK_ADDR );
+    text: |
+      The ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setstackaddr:/params[0]/name} parameter shall not be
+      modified.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Attr
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      ctx->attr_obj.stackaddr = STALE_STACK_ADDR;
     text: |
-      TODO
+      While the ${../if/attr-setstackaddr:/params[0]/name} parameter references
+      an initialized ${../glossary/thread:/term} attributes object.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/attr-setstackaddr:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.stackaddr = STALE_STACK_ADDR;
+    text: |
+      While the ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setstackaddr:/params[0]/name} parameter is not initialized.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_attr_setstackaddr( ctx->attr, ctx->stackaddr );
+test-action: |
+  ctx->retval = pthread_attr_setstackaddr( ctx->attr, ctx->stackaddr );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/attr-setstackaddr:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/attr-setstackaddr:/params[0]/name}
+    parameter value.
   description: null
   member: pthread_attr_t *attr
-- brief: This member specifies the ${../if/attr-setstackaddr:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/attr-setstackaddr:/params[1]/name}
+    parameter value.
   description: null
   member: void *stackaddr
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
+- string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  ctx->stackaddr = STACK_ADDR_VALUE;
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define STACK_ADDR_VALUE ( (void *) 0x1000 )
+
+  #define STALE_STACK_ADDR ( (void *) 0x2000 )
 test-target: testsuites/validation/tc-pthread-attr-setstackaddr.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Attr:
+          - 'Null'
+          - Invalid
+      then: Einval
+    - else: Ok
+    AttrObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Set
+    - else: Nop
   pre-conditions:
-    Status: all
+    Attr: all
 type: requirement

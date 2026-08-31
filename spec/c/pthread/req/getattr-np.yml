@@ -1,0 +1,609 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getattr-np
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_rsc_success( ctx->retval );
+    text: |
+      The return status of ${../if/getattr-np:/name} shall be zero.
+  - name: Einval
+    test-code: |
+      T_rsc( ctx->retval, EINVAL );
+    text: |
+      The return status of ${../if/getattr-np:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  - name: Esrch
+    test-code: |
+      T_rsc( ctx->retval, ESRCH );
+    text: |
+      The return status of ${../if/getattr-np:/name} shall be
+      ${/c/errno/if/esrch:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: FixedFieldsObj
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->attr_obj.is_initialized, false );
+      T_eq_int( ctx->attr_obj.contentionscope, 0 );
+      T_eq_sz( ctx->attr_obj.guardsize, 0 );
+      T_eq_int( ctx->attr_obj.cputime_clock_allowed, 0 );
+      T_eq_ptr( ctx->attr_obj.affinityset, NULL );
+      T_eq_sz( ctx->attr_obj.affinitysetsize, 0 );
+    text: |
+      The ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be cleared to zero.
+  - name: Set
+    test-code: |
+      T_eq_int( ctx->attr_obj.is_initialized, true );
+      T_eq_int( ctx->attr_obj.contentionscope, PTHREAD_SCOPE_PROCESS );
+      T_eq_sz( ctx->attr_obj.guardsize, 0 );
+      T_eq_int( ctx->attr_obj.cputime_clock_allowed, 1 );
+      T_eq_ptr(
+        ctx->attr_obj.affinityset,
+        &ctx->attr_obj.affinitysetpreallocated
+      );
+      T_eq_sz(
+        ctx->attr_obj.affinitysetsize,
+        sizeof( ctx->attr_obj.affinitysetpreallocated )
+      );
+      T_true( CPU_ISSET( 0, &ctx->attr_obj.affinitysetpreallocated ) );
+    text: |
+      The is_initialized member of the ${../glossary/thread:/term} attributes object
+      referenced by the ${../if/getattr-np:/params[1]/name} parameter shall be true.
+
+      The contention scope of the attributes object shall be
+      ${../if/scope-process:/name}.
+
+      The ${../glossary/thread-guard-size:/term} of the attributes object shall be
+      zero, regardless of the actual ${../glossary/thread-guard-size:/term} of the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter, since ${../if/getattr-np:/name}
+      does not set this member.
+
+      The cputime_clock_allowed member of the attributes object shall be one.
+
+      The affinity set pointer of the attributes object shall reference the
+      preallocated affinity set embedded in the attributes object itself, with the
+      size of the affinity set of the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter, and with processor 0 marked as
+      eligible.
+  test-epilogue: null
+  test-prologue: null
+- name: WorkerConfigObj
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_ptr( ctx->attr_obj.stackaddr, NULL );
+      T_eq_sz( ctx->attr_obj.stacksize, 0 );
+      T_eq_int( ctx->attr_obj.inheritsched, 0 );
+      T_eq_int( ctx->attr_obj.detachstate, 0 );
+    text: |
+      The ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be cleared to zero.
+  - name: SetExplicit
+    test-code: |
+      void   *stackaddr;
+      size_t  stacksize;
+      int     detachstate;
+      int     eno;
+
+      eno = pthread_attr_getstackaddr( &ctx->attr_obj, &stackaddr );
+      T_eno_success( eno );
+      T_eq_ptr( stackaddr, Worker_stack );
+
+      eno = pthread_attr_getstacksize( &ctx->attr_obj, &stacksize );
+      T_eno_success( eno );
+      T_true( stacksize > 0 );
+      T_true( stacksize <= (size_t) sizeof( Worker_stack ) );
+
+      /*
+       * There is no accessor for the inherit-scheduler attribute in scope
+       * of this action, so it is checked directly.
+       */
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_EXPLICIT_SCHED );
+
+      eno = pthread_attr_getdetachstate( &ctx->attr_obj, &detachstate );
+      T_eno_success( eno );
+      T_eq_int( detachstate, PTHREAD_CREATE_JOINABLE );
+    text: |
+      The value of the ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be set to the stack address
+      of the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter.
+
+      The value of the ${../glossary/thread-stack-size:/term} of the attributes
+      object shall be greater than zero and shall not exceed the size of the stack
+      area of the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter.
+
+      The inherit-scheduler attribute of the attributes object shall be
+      ${../if/explicit-sched:/name}, since the ${../glossary/thread:/term} associated
+      with the ${../if/getattr-np:/params[0]/name} parameter was created with this
+      inherit-scheduler attribute.
+
+      The detach state of the attributes object shall be
+      ${../if/create-joinable:/name}, since the ${../glossary/thread:/term}
+      associated with the ${../if/getattr-np:/params[0]/name} parameter was created
+      with this detach state.
+  - name: SetInherited
+    test-code: |
+      void   *stackaddr;
+      size_t  stacksize;
+      int     detachstate;
+      int     eno;
+
+      eno = pthread_attr_getstackaddr( &ctx->attr_obj, &stackaddr );
+      T_eno_success( eno );
+      T_eq_ptr( stackaddr, Worker2_stack );
+
+      eno = pthread_attr_getstacksize( &ctx->attr_obj, &stacksize );
+      T_eno_success( eno );
+      T_true( stacksize > 0 );
+      T_true( stacksize <= (int) sizeof( Worker2_stack ) );
+
+      /*
+       * There is no accessor for the inherit-scheduler attribute in scope
+       * of this action, so it is checked directly.
+       */
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_INHERIT_SCHED );
+
+      eno = pthread_attr_getdetachstate( &ctx->attr_obj, &detachstate );
+      T_eno_success( eno );
+      T_eq_int( detachstate, PTHREAD_CREATE_DETACHED );
+    text: |
+      The value of the ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be set to the stack address
+      of the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter.
+
+      The value of the ${../glossary/thread-stack-size:/term} of the attributes
+      object shall be greater than zero and shall not exceed the size of the stack
+      area of the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter.
+
+      The inherit-scheduler attribute of the attributes object shall be
+      ${../if/inherit-sched:/name}, since the ${../glossary/thread:/term} associated
+      with the ${../if/getattr-np:/params[0]/name} parameter was created with this
+      inherit-scheduler attribute.
+
+      The detach state of the attributes object shall be
+      ${../if/create-detached:/name}, since the ${../glossary/thread:/term}
+      associated with the ${../if/getattr-np:/params[0]/name} parameter was created
+      with this detach state.
+  test-epilogue: null
+  test-prologue: null
+- name: SchedulingObj
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, 0 );
+      T_eq_int( ctx->attr_obj.schedparam.sched_priority, 0 );
+    text: |
+      The ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be cleared to zero.
+  - name: SetInitial
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_RR );
+      T_eq_int(
+        ctx->attr_obj.schedparam.sched_priority,
+        sched_get_priority_min( SCHED_RR ) + 2
+      );
+    text: |
+      The scheduling policy and scheduling parameters of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be set to the scheduling
+      policy and scheduling parameters specified for the ${../glossary/thread:/term}
+      associated with the ${../if/getattr-np:/params[0]/name} parameter at
+      ${../glossary/thread:/term} creation, since they have not been changed since.
+  - name: SetModified
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_FIFO );
+      T_eq_int(
+        ctx->attr_obj.schedparam.sched_priority,
+        sched_get_priority_max( SCHED_FIFO )
+      );
+    text: |
+      The scheduling policy and scheduling parameters of the attributes object shall
+      be set to the scheduling policy and scheduling parameters last set for the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter after ${../glossary/thread:/term}
+      creation, and not to the scheduling policy and scheduling parameters specified
+      at ${../glossary/thread:/term} creation.
+  - name: SetInherited
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, ctx->worker2_schedpolicy );
+      T_eq_int( ctx->attr_obj.schedparam.sched_priority, ctx->worker2_priority );
+    text: |
+      The scheduling policy and scheduling parameters of the attributes object shall
+      be set to the scheduling policy and scheduling parameters that were in effect
+      for the calling ${../glossary/thread:/term} at the time the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter was created, since that
+      ${../glossary/thread:/term} was created with the ${../if/inherit-sched:/name}
+      inherit-scheduler attribute.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Valid
+    test-code: |
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.is_initialized = false;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../if/getattr-np:/params[1]/name} parameter references a
+      ${../glossary/thread:/term} attributes object.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/getattr-np:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Thread
+  states:
+  - name: Valid
+    test-code: |
+      /* Set by the WorkerConfig pre-condition. */
+    text: |
+      While the ${../if/getattr-np:/params[0]/name} parameter is associated with a
+      ${../glossary/thread:/term}.
+  - name: NoObj
+    test-code: |
+      ctx->thread = INVALID_THREAD_ID;
+    text: |
+      While the ${../if/getattr-np:/params[0]/name} parameter is not associated with
+      a ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: WorkerConfig
+  states:
+  - name: Explicit
+    test-code: |
+      ctx->thread = ctx->worker_id;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter was created with the
+      ${../if/explicit-sched:/name} inherit-scheduler attribute and the
+      ${../if/create-joinable:/name} detach state.
+  - name: Inherited
+    test-code: |
+      ctx->thread = ctx->worker_id2;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter was created with the
+      ${../if/inherit-sched:/name} inherit-scheduler attribute and the
+      ${../if/create-detached:/name} detach state.
+  test-epilogue: null
+  test-prologue: null
+- name: WorkerState
+  states:
+  - name: Initial
+    test-code: |
+      /* Already established at ${../glossary/thread:/term} creation. */
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter has the scheduling policy and
+      scheduling parameters specified at ${../glossary/thread:/term} creation.
+  - name: Modified
+    test-code: |
+      param.sched_priority = sched_get_priority_max( SCHED_FIFO );
+      eno = pthread_setschedparam( ctx->worker_id, SCHED_FIFO, &param );
+      T_eno_success( eno );
+    text: |
+      While the scheduling policy and scheduling parameters of the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter have been changed after
+      ${../glossary/thread:/term} creation.
+  test-epilogue: null
+  test-prologue: |
+    int                eno;
+    struct sched_param param;
+rationale: |
+  This action does not exercise the sched_ss_* members of the
+  ${../glossary/thread:/term} attributes object, since
+  ${../if/getattr-np:/name} only populates them for a
+  ${../glossary/thread:/term} using the SCHED_SPORADIC scheduling policy,
+  and this policy is only available if RTEMS is built with the
+  RTEMS_POSIX_API configuration option enabled, which is not the case for
+  this action's test suite build.
+
+  This action does not exercise a scenario in which the reported scheduling
+  parameters differ from the effective scheduling parameters of the
+  ${../glossary/thread:/term}, for example due to priority inheritance,
+  since ${../if/getattr-np:/name} reports the base priority
+  (Real_priority) of the ${../glossary/thread:/term} by design, and setting
+  up such a scenario would require a dedicated priority inheritance mutex
+  protocol test which is out of scope for this action.
+
+  This action does not add a post-condition for a non-zero return status
+  from the internal call to _Scheduler_Get_affinity(), since that call can
+  only fail if the affinity set of the ${../glossary/thread:/term} does
+  not fit into the fixed-size buffer used by ${../if/getattr-np:/name},
+  which cannot happen for a non-SMP build, since the affinity set of every
+  ${../glossary/thread:/term} is the single available processor in this
+  case.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = pthread_getattr_np( ctx->thread, ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the barrier used to keep the explicit-scheduled
+    worker ${../glossary/thread:/term} alive for the duration of the test
+    case.
+  description: null
+  member: pthread_barrier_t barrier
+- brief: |
+    This member provides the barrier used to keep the inherit-scheduled
+    worker ${../glossary/thread:/term} alive for the duration of the test
+    case.
+  description: null
+  member: pthread_barrier_t barrier2
+- brief: |
+    This member provides the explicit-scheduled, joinable worker
+    ${../glossary/thread:/term}.
+  description: null
+  member: pthread_t worker_id
+- brief: |
+    This member provides the inherit-scheduled, detached worker
+    ${../glossary/thread:/term}.
+  description: null
+  member: pthread_t worker_id2
+- brief: |
+    This member contains the scheduling policy inherited by the worker
+    referenced by the worker_id2 member at ${../glossary/thread:/term}
+    creation.
+  description: null
+  member: int worker2_schedpolicy
+- brief: |
+    This member contains the priority inherited by the worker referenced
+    by the worker_id2 member at ${../glossary/thread:/term} creation.
+  description: null
+  member: int worker2_priority
+- brief: |
+    This member specifies the ${../if/getattr-np:/params[0]/name}
+    parameter value.
+  description: null
+  member: pthread_t thread
+- brief: |
+    This member specifies the ${../if/getattr-np:/params[1]/name}
+    parameter value.
+  description: null
+  member: pthread_attr_t *attr
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes
+    object.
+  description: null
+  member: pthread_attr_t attr_obj
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- sched.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    pthread_attr_t     worker_attr;
+    struct sched_param param;
+    int                policy;
+    int                eno;
+
+    eno = pthread_barrier_init( &ctx->barrier, NULL, 2 );
+    T_eno_success( eno );
+
+    eno = pthread_barrier_init( &ctx->barrier2, NULL, 2 );
+    T_eno_success( eno );
+
+    eno = pthread_attr_init( &worker_attr );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setstack(
+      &worker_attr,
+      Worker_stack,
+      sizeof( Worker_stack )
+    );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setguardsize( &worker_attr, WORKER_GUARD_SIZE );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setinheritsched( &worker_attr, PTHREAD_EXPLICIT_SCHED );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setschedpolicy( &worker_attr, SCHED_RR );
+    T_eno_success( eno );
+
+    param.sched_priority = sched_get_priority_min( SCHED_RR ) + 2;
+    eno = pthread_attr_setschedparam( &worker_attr, &param );
+    T_eno_success( eno );
+
+    eno = pthread_create( &ctx->worker_id, &worker_attr, Worker, &ctx->barrier );
+    T_eno_success( eno );
+
+    eno = pthread_attr_destroy( &worker_attr );
+    T_eno_success( eno );
+
+    eno = pthread_getschedparam( pthread_self(), &policy, &param );
+    T_eno_success( eno );
+    ctx->worker2_schedpolicy = policy;
+    ctx->worker2_priority = param.sched_priority;
+
+    eno = pthread_attr_init( &worker_attr );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setstack(
+      &worker_attr,
+      Worker2_stack,
+      sizeof( Worker2_stack )
+    );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setguardsize( &worker_attr, WORKER_GUARD_SIZE );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setinheritsched( &worker_attr, PTHREAD_INHERIT_SCHED );
+    T_eno_success( eno );
+
+    eno = pthread_attr_setdetachstate( &worker_attr, PTHREAD_CREATE_DETACHED );
+    T_eno_success( eno );
+
+    eno = pthread_create(
+      &ctx->worker_id2,
+      &worker_attr,
+      WorkerDetached,
+      &ctx->barrier2
+    );
+    T_eno_success( eno );
+
+    eno = pthread_attr_destroy( &worker_attr );
+    T_eno_success( eno );
+  description: null
+test-stop: null
+test-support: |
+  #define WORKER_GUARD_SIZE ( (size_t) 4096 )
+
+  #define INVALID_THREAD_ID ( (pthread_t) 0xffffffff )
+
+  static char Worker_stack[ 64 * 1024 ] __attribute__(( aligned( 16 ) ));
+
+  static char Worker2_stack[ 64 * 1024 ] __attribute__(( aligned( 16 ) ));
+
+  static void *Worker( void *arg )
+  {
+    pthread_barrier_t *barrier;
+
+    barrier = (pthread_barrier_t *) arg;
+    pthread_barrier_wait( barrier );
+
+    return NULL;
+  }
+
+  static void *WorkerDetached( void *arg )
+  {
+    pthread_barrier_t *barrier;
+
+    barrier = (pthread_barrier_t *) arg;
+    pthread_barrier_wait( barrier );
+    pthread_barrier_wait( barrier );
+
+    return NULL;
+  }
+test-target: testsuites/validation/tc-pthread-getattr-np.c
+test-teardown:
+  brief: null
+  code: |
+    int eno;
+
+    eno = pthread_barrier_wait( &ctx->barrier );
+    T_true( eno == 0 || eno == PTHREAD_BARRIER_SERIAL_THREAD );
+
+    eno = pthread_join( ctx->worker_id, NULL );
+    T_eno_success( eno );
+
+    eno = pthread_barrier_destroy( &ctx->barrier );
+    T_eno_success( eno );
+
+    eno = pthread_barrier_wait( &ctx->barrier2 );
+    T_true( eno == 0 || eno == PTHREAD_BARRIER_SERIAL_THREAD );
+
+    eno = pthread_barrier_wait( &ctx->barrier2 );
+    T_true( eno == 0 || eno == PTHREAD_BARRIER_SERIAL_THREAD );
+
+    eno = pthread_barrier_destroy( &ctx->barrier2 );
+    T_eno_success( eno );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Einval
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: Esrch
+    - else: Ok
+    FixedFieldsObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: Zero
+    - else: Set
+    WorkerConfigObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: Zero
+    - if:
+        pre-conditions:
+          WorkerConfig: Inherited
+      then: SetInherited
+    - else: SetExplicit
+    SchedulingObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: Zero
+    - if:
+        pre-conditions:
+          WorkerConfig: Inherited
+      then: SetInherited
+    - if:
+        pre-conditions:
+          WorkerState: Initial
+      then: SetInitial
+    - else: SetModified
+  pre-conditions:
+    Attr: all
+    Thread: all
+    WorkerConfig:
+      applicable:
+        pre-conditions:
+          Thread: Valid
+    WorkerState:
+      applicable:
+        pre-conditions:
+          Thread: Valid
+          WorkerConfig: Explicit
+type: requirement

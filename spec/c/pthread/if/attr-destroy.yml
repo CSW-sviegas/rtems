@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -21,6 +22,14 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter is not initialized.
+  role: errno
+  uid: /c/errno/if/einval
 name: pthread_attr_destroy
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_attr_destroy()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_destroy.html).
@@ -32,5 +41,12 @@ params:
 return:
   return: |
     Returns zero on success.
-  return-values: []
+  return-values:
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The ${../glossary/thread:/term} attributes object referenced by the
+        ${.:/params[0]/name} parameter is not initialized.
+    value: ${/c/errno/if/einval:/name}
 type: interface

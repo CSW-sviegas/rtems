@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
@@ -11,57 +12,155 @@ post-conditions:
   states:
   - name: Ok
     test-code: |
-      /* TODOD */
+      T_rsc_success( ctx->retval );
     text: |
-      TODO
+      The return status of ${../if/attr-getstacksize:/name} shall be zero.
+  - name: Einval
+    test-code: |
+      T_rsc( ctx->retval, EINVAL );
+    text: |
+      The return status of ${../if/attr-getstacksize:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: StackSizeObj
+  states:
+  - name: Set
+    test-code: |
+      T_eq_sz( ctx->stacksize_value, STACK_SIZE_VALUE );
+    text: |
+      The value of the object referenced by the
+      ${../if/attr-getstacksize:/params[1]/name} parameter shall be set to the
+      ${../glossary/thread-stack-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the
+      ${../if/attr-getstacksize:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_sz( ctx->stacksize_value, STALE_STACK_SIZE );
+    text: |
+      The object referenced by the ${../if/attr-getstacksize:/params[1]/name}
+      parameter shall not be modified.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Attr
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      pthread_attr_setstacksize( &ctx->attr_obj, STACK_SIZE_VALUE );
     text: |
-      TODO
+      While the ${../if/attr-getstacksize:/params[0]/name} parameter references
+      an initialized ${../glossary/thread:/term} attributes object.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/attr-getstacksize:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+    text: |
+      While the ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-getstacksize:/params[0]/name} parameter is not initialized.
+  test-epilogue: null
+  test-prologue: null
+- name: Stacksize
+  states:
+  - name: Valid
+    test-code: |
+      ctx->stacksize_value = STALE_STACK_SIZE;
+      ctx->stacksize = &ctx->stacksize_value;
+    text: |
+      While the ${../if/attr-getstacksize:/params[1]/name} parameter references
+      an object of type ${/c/if/size_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->stacksize = NULL;
+    text: |
+      While the ${../if/attr-getstacksize:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_attr_getstacksize( ctx->attr, ctx->stacksize );
+test-action: |
+  ctx->retval = pthread_attr_getstacksize( ctx->attr, ctx->stacksize );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/attr-getstacksize:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/attr-getstacksize:/params[0]/name}
+    parameter value.
   description: null
   member: const pthread_attr_t *attr
-- brief: This member specifies the ${../if/attr-getstacksize:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/attr-getstacksize:/params[1]/name}
+    parameter value.
   description: null
   member: size_t *stacksize
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
+- brief: |
+    This member contains the stack size output object.
+  description: null
+  member: size_t stacksize_value
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
+- string.h
 test-local-includes: []
 test-prepare: null
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define STACK_SIZE_VALUE ( (size_t) 65536 )
+
+  #define STALE_STACK_SIZE ( (size_t) -1 )
 test-target: testsuites/validation/tc-pthread-attr-getstacksize.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Attr:
+          - 'Null'
+          - Invalid
+      then: Einval
+    - if:
+        pre-conditions:
+          Stacksize: 'Null'
+      then: Einval
+    - else: Ok
+    StackSizeObj:
+    - if:
+        pre-conditions:
+          Stacksize: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Set
+    - else: Nop
   pre-conditions:
-    Status: all
+    Attr: all
+    Stacksize: all
 type: requirement

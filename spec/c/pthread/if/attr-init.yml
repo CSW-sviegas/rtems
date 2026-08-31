@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -22,9 +23,9 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    There is not enough memory to initialize the thread attributes object.
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
   role: errno
-  uid: /c/errno/if/enomem
+  uid: /c/errno/if/einval
 name: pthread_attr_init
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_attr_init()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_init.html).
@@ -38,6 +39,6 @@ return:
     Returns zero on success.
   return-values:
   - description: |
-      Insufficient memory exists to initialize the thread attributes object.
-    value: ${/c/errno/if/enomem:/name}
+      The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
 type: interface

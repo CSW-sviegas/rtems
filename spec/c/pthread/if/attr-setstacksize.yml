@@ -5,6 +5,7 @@ brief: |
   ${.:/params[0]/name} to the size specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -26,8 +27,9 @@ links:
 - description: |
     This error number indicates the following error conditions:
 
-    - The ${.:/params[1]/name} is less than PTHREAD_STACK_MIN bytes.
-    - The ${.:/params[1]/name} is not a multiple of the system page size.
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter is not initialized.
   role: errno
   uid: /c/errno/if/einval
 name: pthread_attr_setstacksize
@@ -43,15 +45,14 @@ params:
   dir: null
   name: stacksize
 return:
-  return: null
+  return: |
+    Returns zero on success.
   return-values:
-  - description: |
-      The requested operation was successful.
-    value: 0
   - description: |
       This error number indicates the following error conditions:
 
-      - The stack size is less than ${/c/pthread/if/stack-min:/name}.
-      - The stack size exceeds a system-imposed limit.
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The ${../glossary/thread:/term} attributes object referenced by the
+        ${.:/params[0]/name} parameter is not initialized.
     value: ${/c/errno/if/einval:/name}
 type: interface
