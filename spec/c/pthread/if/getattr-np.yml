@@ -1,0 +1,61 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the attributes of the ${../glossary/thread:/term} specified by
+  ${.:/params[0]/name} and store them in the ${../glossary/thread:/term}
+  attributes object referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - ${/c/if/pthread_attr_t:/name} *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[1]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[0]/name} parameter does not specify a
+    ${../glossary/thread:/term}.
+  role: errno
+  uid: /c/errno/if/esrch
+name: pthread_getattr_np
+notes: |
+  See [FreeBSD Manual Pages, pthread_attr_get_np()](https://man.freebsd.org/cgi/man.cgi?query=pthread_attr_get_np&sektion=3).
+params:
+- description: |
+    is the thread to get the attributes of.
+  dir: null
+  name: thread
+- description: |
+    is the pointer to the ${../glossary/thread:/term} attributes object where the
+    attributes of the thread specified by ${.:/params[0]/name} will be stored.
+  dir: out
+  name: attr
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: ${../../status/if/successful:/name}
+  - description: |
+      The value of ${.:/params[1]/name} was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The value of ${.:/params[0]/name} did not specify a
+      ${../glossary/thread:/term}.
+    value: ${/c/errno/if/esrch:/name}
+type: interface
