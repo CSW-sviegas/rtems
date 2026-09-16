@@ -6,6 +6,7 @@ brief: |
   ${.:/params[2]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -28,17 +29,11 @@ links:
 - description: |
     This error number indicates the following error conditions:
 
-    - The value specified by ${.:/params[2]/name} is less than
-      ${/c/pthread/if/stack-min:/name}.
-    - The stack area described by ${.:/params[1]/name} and ${.:/params[2]/name} is
-      not suitably aligned.
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter is not initialized.
   role: errno
   uid: /c/errno/if/einval
-- description: |
-    The stack area described by ${.:/params[1]/name} and ${.:/params[2]/name} is
-    not both readable and writable by the caller.
-  role: errno
-  uid: /c/errno/if/eacces
 name: pthread_attr_setstack
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_attr_setstack()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setstack.html).
@@ -62,8 +57,8 @@ return:
   - description: |
       This error number indicates the following error conditions:
 
-      - The value of ${.:/params[2]/name} is less than
-        ${/c/pthread/if/stack-min:/name}.
-      - The value of ${.:/params[2]/name} exceeds an implementation-defined limit.
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The ${../glossary/thread:/term} attributes object referenced by the
+        ${.:/params[0]/name} parameter is not initialized.
     value: ${/c/errno/if/einval:/name}
 type: interface
