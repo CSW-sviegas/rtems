@@ -5,6 +5,7 @@ brief: |
   ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -24,11 +25,16 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    The value specified by ${.:/params[1]/name} is invalid.
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter is not initialized.
   role: errno
   uid: /c/errno/if/einval
 - description: |
-    An attempt was made to set the attribute to an unsupported value.
+    The value specified by ${.:/params[1]/name} is not a valid
+    ${/c/sched/glossary/policy:/term}.
   role: errno
   uid: /c/errno/if/enotsup
 name: pthread_attr_setschedpolicy
@@ -48,9 +54,14 @@ return:
     Returns zero on success.
   return-values:
   - description: |
-      The value of ${.:/params[1]/name} was not valid.
+      This error number indicates the following error conditions:
+
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The ${../glossary/thread:/term} attributes object referenced by the
+        ${.:/params[0]/name} parameter is not initialized.
     value: ${/c/errno/if/einval:/name}
   - description: |
-      An attempt was made to set the attribute to an unsupported value.
+      The value specified by ${.:/params[1]/name} is not a valid
+      ${/c/sched/glossary/policy:/term}.
     value: ${/c/errno/if/enotsup:/name}
 type: interface
