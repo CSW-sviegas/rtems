@@ -290,6 +290,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/memchr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memchr()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/memcmp.c
  *
  * @ingroup libcsupport
@@ -303,6 +312,15 @@
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/memmove.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memmove()
+ *   function.
  */
 
 /**
