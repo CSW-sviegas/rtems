@@ -383,6 +383,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strncasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncasecmp()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/strnlen.c
  *
  * @ingroup libcsupport
