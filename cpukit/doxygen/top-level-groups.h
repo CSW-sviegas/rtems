@@ -123,6 +123,14 @@
  */
 
 /**
+ * @file cpukit/libc/ctype/ctype_.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the character class table.
+ */
+
+/**
  * @file cpukit/libc/search/qsort.c
  *
  * @ingroup libcsupport
