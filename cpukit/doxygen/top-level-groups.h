@@ -359,6 +359,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strcasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcasecmp()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/strchr.c
  *
  * @ingroup libcsupport
