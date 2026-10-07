@@ -382,6 +382,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strstr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strstr()
+ *   function.
+ */
+
+/**
  * @defgroup RTEMSImplCompilerBuiltins Compiler Builtins
  *
  * @ingroup RTEMSImpl
