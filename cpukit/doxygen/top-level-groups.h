@@ -364,6 +364,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strspn.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strspn()
+ *   function.
+ */
+
+/**
  * @defgroup RTEMSImplCompilerBuiltins Compiler Builtins
  *
  * @ingroup RTEMSImpl
