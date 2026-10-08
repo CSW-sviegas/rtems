@@ -62,18 +62,17 @@ int clock_getres( clockid_t clock_id, struct timespec *res )
 
     case CLOCK_REALTIME:
     case CLOCK_PROCESS_CPUTIME_ID:
-    case CLOCK_THREAD_CPUTIME_ID:
-      if ( res ) {
-        uint64_t freq = _Timecounter_Get_frequency();
+    case CLOCK_THREAD_CPUTIME_ID: {
+      uint64_t freq = _Timecounter_Get_frequency();
 
-        res->tv_sec = 0;
-        res->tv_nsec = (uint32_t) ( UINT64_C( 1000000000 ) / freq );
+      res->tv_sec = 0;
+      res->tv_nsec = (uint32_t) ( UINT64_C( 1000000000 ) / freq );
 
-        if ( res->tv_nsec == 0 ) {
-          res->tv_nsec = 1;
-        }
+      if ( res->tv_nsec == 0 ) {
+        res->tv_nsec = 1;
       }
       break;
+    }
 
     default:
       rtems_set_errno_and_return_minus_one( EINVAL );
