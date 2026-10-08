@@ -40,6 +40,7 @@ source:
 - cpukit/libc/string/memmove.c
 - cpukit/libc/string/memrchr.c
 - cpukit/libc/string/memset.c
+- cpukit/libc/string/strcasecmp.c
 - cpukit/libc/string/strchr.c
 - cpukit/libc/string/strchrnul.c
 - cpukit/libc/string/strcmp.c
