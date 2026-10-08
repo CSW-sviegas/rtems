@@ -346,6 +346,7 @@ source:
 - cpukit/libmisc/cpuuse/cpuusagedata.c
 - cpukit/libmisc/cpuuse/cpuusagereset.c
 - cpukit/posix/src/cancel.c
+- cpukit/posix/src/clockgetres.c
 - cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocknanosleep.c
 - cpukit/posix/src/pthreadattrdefault.c
