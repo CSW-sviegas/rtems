@@ -46,5 +46,6 @@ source:
 - cpukit/libc/string/strnlen.c
 - cpukit/libc/string/strrchr.c
 - cpukit/libc/string/strspn.c
+- cpukit/libc/string/strstr.c
 - cpukit/libcsupport/src/alloconly.c
 type: build
