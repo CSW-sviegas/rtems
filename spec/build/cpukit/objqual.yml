@@ -44,5 +44,6 @@ source:
 - cpukit/libc/string/strlen.c
 - cpukit/libc/string/strncmp.c
 - cpukit/libc/string/strrchr.c
+- cpukit/libc/string/strspn.c
 - cpukit/libcsupport/src/alloconly.c
 type: build
