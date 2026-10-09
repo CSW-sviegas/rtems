@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Calculate the number of bytes which precede the first null byte in the array
+  referenced by ${.:/params[0]/name}, with ${.:/params[1]/name} as the upper
+  bound.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: ${/c/if/size_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/strnlen
+name: strnlen
+notes: |
+  See ${/ref/std/posix-2024/strnlen:/name}.
+params:
+- description: |
+    is the pointer to the array.
+  dir: in
+  name: s
+- description: |
+    is the maximum number of bytes to examine.
+  dir: null
+  name: maxlen
+return:
+  return: |
+    Returns the number of bytes which precede the first null byte in the array
+    referenced by the ${.:/params[0]/name} parameter, if the first
+    ${.:/params[1]/name} bytes of the array contain a null byte. Returns the value
+    of the ${.:/params[1]/name} parameter otherwise.
+  return-values: []
+type: interface

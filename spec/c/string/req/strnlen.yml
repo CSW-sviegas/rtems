@@ -1,0 +1,273 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strnlen
+- role: reference
+  uid: /ref/std/posix-2024/strnlen
+post-conditions:
+- name: Result
+  states:
+  - name: Length
+    test-code: |
+      T_eq_sz( ctx->retval, ctx->length );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strnlen:/name} shall be equal to
+      the number of bytes which precede the first null byte of the array referenced
+      by the ${../if/strnlen:/params[0]/name} parameter.
+  - name: Maxlen
+    test-code: |
+      T_eq_sz( ctx->retval, ctx->maxlen );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/strnlen:/name} shall be equal to
+      the value of the ${../if/strnlen:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Array
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->buf, ctx->buf_before, sizeof( ctx->buf ) );
+    text: |
+      The bytes of the array referenced by the ${../if/strnlen:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Maxlen
+  states:
+  - name: Zero
+    test-code: |
+      ctx->maxlen = 0;
+    text: |
+      While the ${../if/strnlen:/params[1]/name} parameter is equal to zero.
+  - name: One
+    test-code: |
+      ctx->maxlen = 1;
+    text: |
+      While the ${../if/strnlen:/params[1]/name} parameter is equal to one.
+  - name: Between
+    test-code: |
+      ctx->maxlen = 4;
+    text: |
+      While the ${../if/strnlen:/params[1]/name} parameter is greater than one, while
+      the ${../if/strnlen:/params[1]/name} parameter is less than
+      ${/c/if/size_max:/name}.
+  - name: Max
+    test-code: |
+      ctx->maxlen = SIZE_MAX;
+    text: |
+      While the ${../if/strnlen:/params[1]/name} parameter is equal to
+      ${/c/if/size_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Nul
+  states:
+  - name: Before
+    test-code: |
+      if ( ctx->maxlen == SIZE_MAX ) {
+        ctx->length = 3;
+      } else {
+        ctx->length = ctx->maxlen - 2;
+      }
+
+      ctx->buf[ ctx->length ] = '\0';
+    text: |
+      While the first null byte of the array referenced by the
+      ${../if/strnlen:/params[0]/name} parameter has an index less than the value of
+      the ${../if/strnlen:/params[1]/name} parameter minus one.
+  - name: Last
+    test-code: |
+      ctx->length = ctx->maxlen - 1;
+      ctx->buf[ ctx->length ] = '\0';
+    text: |
+      While the first null byte of the array referenced by the
+      ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
+      the ${../if/strnlen:/params[1]/name} parameter minus one.
+  - name: At
+    test-code: |
+      ctx->buf[ ctx->maxlen ] = '\0';
+    text: |
+      While the first null byte of the array referenced by the
+      ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
+      the ${../if/strnlen:/params[1]/name} parameter.
+  - name: Next
+    test-code: |
+      ctx->buf[ ctx->maxlen + 1 ] = '\0';
+    text: |
+      While the first null byte of the array referenced by the
+      ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
+      the ${../if/strnlen:/params[1]/name} parameter plus one.
+  - name: Beyond
+    test-code: |
+      ctx->buf[ ctx->maxlen + 2 ] = '\0';
+    text: |
+      While the array referenced by the ${../if/strnlen:/params[0]/name} parameter
+      contains no null byte at an index less than or equal to the value of the
+      ${../if/strnlen:/params[1]/name} parameter plus one.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/strnlen:/name} defines no error for the function. It
+  leaves the behaviour undefined where the ${../if/strnlen:/params[0]/name}
+  parameter references no array, so the item states no ${/c/if/null:/name}
+  pointer.
+
+  Dimension Maxlen covers the value of the ${../if/strnlen:/params[1]/name}
+  parameter, 4 states. The implementation passes this value as the size to
+  ${../if/memchr:/name}, which compares the count of examined bytes against it.
+  The states Zero and One hold the boundary zero and the value above it. The Max
+  state holds the last value of the type.
+
+  Dimension Nul covers the index of the first null byte of the array relative to
+  the value of the ${../if/strnlen:/params[1]/name} parameter, 5 states.
+  ${/ref/std/posix-2024/strnlen:/name} separates a null byte within the first
+  ${../if/strnlen:/params[1]/name} bytes from every other array. The
+  implementation stops at this bound. The states Last, At and Next hold the index
+  below the bound, at it and above it. The states Before and Beyond hold the
+  indices below and above these states. The Beyond state includes an array of
+  exactly the number of bytes which the ${../if/strnlen:/params[1]/name}
+  parameter specifies. A shorter array without a null byte is no array which the
+  function may examine, so the dimension excludes it.
+
+  An array of ${/c/if/size_max:/name} bytes does not fit into the address space
+  of the target. This limit of the target skips the states Last, At, Next and
+  Beyond for the Max state.
+
+  The Maxlen arrangement comes before the Nul arrangement, since the Nul
+  arrangement places the null byte relative to the value of the
+  ${../if/strnlen:/params[1]/name} parameter.
+
+  ${/ref/std/posix-2024/strnlen:/name} states that the function examines no more
+  than the number of bytes which the ${../if/strnlen:/params[1]/name} parameter
+  specifies. An examination of a byte leaves no state which a post-condition can
+  observe.
+
+  ${/ref/std/posix-2024/strnlen:/name} states that the function does not change
+  ${/c/errno/if/errno:/name} on valid input.
+references: []
+requirement-type: functional
+skip-reasons:
+  NoNegativeIndex: |
+    An array has no byte at an index less than zero.
+  NoSuchArray: |
+    The state needs an array of at least ${/c/if/size_max:/name} bytes. No such
+    array fits into the address space of the target.
+test-action: |
+  memcpy( ctx->buf_before, ctx->buf, sizeof( ctx->buf ) );
+  errno = -1;
+  ctx->retval = strnlen( ctx->s, ctx->maxlen );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/strnlen:/params[0]/name} parameter value.
+  description: null
+  member: |
+    const char *s
+- brief: |
+    This member specifies the ${../if/strnlen:/params[1]/name} parameter value.
+  description: null
+  member: |
+    size_t maxlen
+- brief: |
+    This member contains the return value of the ${../if/strnlen:/name} call.
+  description: null
+  member: |
+    size_t retval
+- brief: |
+    This member contains the index of the first null byte of the array.
+  description: null
+  member: |
+    size_t length
+- brief: |
+    This member provides the array referenced by the
+    ${../if/strnlen:/params[0]/name} parameter.
+  description: null
+  member: |
+    char buf[ 8 ]
+- brief: |
+    This member contains the content of the array before the ${../if/strnlen:/name}
+    call.
+  description: null
+  member: |
+    char buf_before[ 8 ]
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/strnlen:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdint.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  memset( ctx->buf, 'x', sizeof( ctx->buf ) );
+  ctx->s = ctx->buf;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-string-strnlen.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Nul:
+          - Before
+          - Last
+      then: Length
+    - else: Maxlen
+    Array: Nop
+    Errno: Nop
+  pre-conditions:
+    Maxlen: all
+    Nul: all
+- enabled-by: true
+  post-conditions: NoNegativeIndex
+  pre-conditions:
+    Maxlen:
+    - Zero
+    Nul:
+    - Before
+    - Last
+- enabled-by: true
+  post-conditions: NoNegativeIndex
+  pre-conditions:
+    Maxlen:
+    - One
+    Nul:
+    - Before
+- enabled-by: true
+  post-conditions: NoSuchArray
+  pre-conditions:
+    Maxlen:
+    - Max
+    Nul:
+    - Last
+    - At
+    - Next
+    - Beyond
+type: requirement
