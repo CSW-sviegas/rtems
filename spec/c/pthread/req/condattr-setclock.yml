@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
@@ -11,19 +12,80 @@ post-conditions:
   states:
   - name: Ok
     test-code: |
-      /* TODOD */
+      T_rsc_success( ctx->retval );
     text: |
-      TODO
+      The return status of ${../if/condattr-setclock:/name} shall be zero.
+  - name: Einval
+    test-code: |
+      T_rsc( ctx->retval, EINVAL );
+    text: |
+      The return status of ${../if/condattr-setclock:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: AttrObj
+  states:
+  - name: Set
+    test-code: |
+      clockid_t clock_id;
+      int       eno;
+
+      eno = pthread_condattr_getclock( &ctx->attr_obj, &clock_id );
+      T_eno_success( eno );
+      T_eq_int( clock_id, ctx->clock_id );
+    text: |
+      The ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-setclock:/params[0]/name} parameter shall be set to the clock
+      specified by the ${../if/condattr-setclock:/params[1]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->attr_obj.clock, -1 );
+    text: |
+      The ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-setclock:/params[0]/name} parameter shall not be modified.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Attr
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_condattr_init( &ctx->attr_obj );
+      ctx->attr_obj.clock = -1;
     text: |
-      TODO
+      While the ${../if/condattr-setclock:/params[0]/name} parameter references an
+      initialized ${../glossary/condition-variable:/term} attributes object.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/condattr-setclock:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      ctx->clock_id = CLOCK_REALTIME;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      ctx->clock_id = CLOCK_MONOTONIC;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-monotonic:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->clock_id = CLOCK_PROCESS_CPUTIME_ID;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is neither
+      ${../../time/if/clock-realtime:/name} nor
+      ${../../time/if/clock-monotonic:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -45,11 +107,18 @@ test-context:
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the ${../glossary/condition-variable:/term}
+    attributes object.
+  description: null
+  member: pthread_condattr_t attr_obj
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
+- time.h
 test-local-includes: []
 test-prepare: null
 test-setup: null
@@ -57,11 +126,32 @@ test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-pthread-condattr-setclock.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Einval
+    - if:
+        pre-conditions:
+          Clock: Invalid
+      then: Einval
+    - else: Ok
+    AttrObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Set
+    - else: Nop
   pre-conditions:
-    Status: all
+    Attr: all
+    Clock: all
 type: requirement
