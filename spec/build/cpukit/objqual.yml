@@ -43,6 +43,7 @@ source:
 - cpukit/libc/string/strlcpy.c
 - cpukit/libc/string/strlen.c
 - cpukit/libc/string/strncmp.c
+- cpukit/libc/string/strnlen.c
 - cpukit/libc/string/strrchr.c
 - cpukit/libc/string/strspn.c
 - cpukit/libcsupport/src/alloconly.c
