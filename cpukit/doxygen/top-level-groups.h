@@ -356,6 +356,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strnlen.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strnlen()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/strrchr.c
  *
  * @ingroup libcsupport
