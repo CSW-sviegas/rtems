@@ -39,7 +39,9 @@
 
 #include <rtems/record.h>
 
+#if !defined(RTEMS_QUAL)
 #include <zlib.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,6 +86,8 @@ void rtems_record_dump( rtems_record_dump_chunk chunk, void *arg );
  */
 void rtems_record_dump_base64( void ( *put_char )( int, void * ), void *arg );
 
+#if !defined(RTEMS_QUAL)
+
 /**
  * @brief The context for record dumps with zlib compression and base64
  * encoding.
@@ -114,6 +118,8 @@ void rtems_record_dump_zlib_base64(
   void ( *put_char )( int, void * ),
   void *arg
 );
+
+#endif /* !RTEMS_QUAL */
 
 /** @} */
 
