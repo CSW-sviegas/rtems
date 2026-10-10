@@ -63,13 +63,24 @@ static char *twoway_strstr(const unsigned char *h, const unsigned char *n)
 	size_t shift[256];
 
 	/* Computing length of needle and fill shift table */
+#ifndef __rtems__
 	for (l=0; n[l] && h[l]; l++)
 		BITOP(byteset, n[l], |=), shift[n[l]] = l+1;
+#else /* __rtems__ */
+	l = 0;
+	do
+		BITOP(byteset, n[l], |=), shift[n[l]] = l+1;
+	while (n[++l] && h[l]);
+#endif /* __rtems__ */
 	if (n[l]) return 0; /* hit the end of h */
 
 	/* Compute maximal suffix */
 	ip = -1; jp = 0; k = p = 1;
+#ifndef __rtems__
 	while (jp+k<l) {
+#else /* __rtems__ */
+	do {
+#endif /* __rtems__ */
 		if (n[ip+k] == n[jp+k]) {
 			if (k == p) {
 				jp += p;
@@ -83,13 +94,21 @@ static char *twoway_strstr(const unsigned char *h, const unsigned char *n)
 			ip = jp++;
 			k = p = 1;
 		}
+#ifndef __rtems__
 	}
+#else /* __rtems__ */
+	} while (jp+k<l);
+#endif /* __rtems__ */
 	ms = ip;
 	p0 = p;
 
 	/* And with the opposite comparison */
 	ip = -1; jp = 0; k = p = 1;
+#ifndef __rtems__
 	while (jp+k<l) {
+#else /* __rtems__ */
+	do {
+#endif /* __rtems__ */
 		if (n[ip+k] == n[jp+k]) {
 			if (k == p) {
 				jp += p;
@@ -103,7 +122,11 @@ static char *twoway_strstr(const unsigned char *h, const unsigned char *n)
 			ip = jp++;
 			k = p = 1;
 		}
+#ifndef __rtems__
 	}
+#else /* __rtems__ */
+	} while (jp+k<l);
+#endif /* __rtems__ */
 	if (ip+1 > ms+1) ms = ip;
 	else p = p0;
 
