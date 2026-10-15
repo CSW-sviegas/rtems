@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+author: Frontgrade Gaisler
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+organization: Frontgrade Gaisler AB
+reference-type: manual
+title: 'GRLIB-TN-0023, FTMCTRL: Memory corruption from accesses to SDRAM and 8-bit
+  SRAM with EDAC, Issue 1.0'
+type: reference
+work-hash: oJuEG9XhXTGt-fEvrGYnC_Fl8rV4_0eCpsHsrnnlOoo=
+work-url: https://www.gaisler.com/doc/antn/GRLIB-TN-0023.pdf

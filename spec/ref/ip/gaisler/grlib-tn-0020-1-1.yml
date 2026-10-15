@@ -1,0 +1,12 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+author: Frontgrade Gaisler
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+organization: Frontgrade Gaisler AB
+reference-type: manual
+title: 'GRLIB-TN-0020, FTMCTRL/MCTRL/SDCTRL: SDRAM Initialization Errata, Issue 1.1'
+type: reference
+work-hash: pNfGvVHHQe24iUohB1lAUZ0N_CcPNC2vGzAQKlo5eVI=
+work-url: https://www.gaisler.com/doc/antn/GRLIB-TN-0020.pdf
