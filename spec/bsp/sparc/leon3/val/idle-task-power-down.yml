@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: bsps/sparc/leon3
+links:
+- role: validation
+  uid: ../req/idle-task-power-down
+- role: validation
+  uid: ../req/idle-task-power-down-errata
+- location: bsps/sparc/leon3/start/bspidle.S
+  role: reference
+  uid: /ref/rtems/source
+method: by-inspection
+text: |
+  Inspection of the referenced ${/glossary/sourcecode:/term} file showed that the
+  `Workaround 2` is implemented. The power-down loop writes to `%asr19` and then
+  loads from address 0xfffffff0 with ASI 0x1c. An alignment to 32 bytes places
+  both instructions in one instruction cache line. Inspection showed also that an
+  infinite loop is implemented which uses a write to `%asr19` to enter the
+  power-down mode.
+
+  The errata workaround is implemented unconditionally since it is harmless.
+type: validation

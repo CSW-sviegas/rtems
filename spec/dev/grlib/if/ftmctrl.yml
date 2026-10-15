@@ -3,12 +3,17 @@ brief: |
   This structure defines the ${.:/register-block-group} register block memory
   map.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 definition:
 - default:
     count: 1
     name: MCFG1
   offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: MCFG2
+  offset: 0x4
   variants: []
 - default:
     count: 1
@@ -151,6 +156,149 @@ registers:
     Memory configuration register 1
   description: null
   name: MCFG1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: SDRF
+      properties:
+      - r
+      - w
+      start: 31
+      width: 1
+    - brief: null
+      description: null
+      name: TRP
+      properties:
+      - r
+      - w
+      start: 30
+      width: 1
+    - brief: null
+      description: null
+      name: SDRAM_TRFC
+      properties:
+      - r
+      - w
+      start: 27
+      width: 3
+    - brief: null
+      description: null
+      name: TCAS
+      properties:
+      - r
+      - w
+      start: 26
+      width: 1
+    - brief: null
+      description: null
+      name: SDRAM_BANKSZ
+      properties:
+      - r
+      - w
+      start: 23
+      width: 3
+    - brief: null
+      description: null
+      name: SDRAM_COLSZ
+      properties:
+      - r
+      - w
+      start: 21
+      width: 2
+    - brief: null
+      description: null
+      name: SDRAM_CMD
+      properties:
+      - r
+      - w
+      start: 19
+      width: 2
+    - brief: null
+      description: null
+      name: D64
+      properties:
+      - r
+      start: 18
+      width: 1
+    - brief: null
+      description: null
+      name: SDPB
+      properties:
+      - r
+      - w
+      start: 17
+      width: 1
+    - brief: null
+      description: null
+      name: SE
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: SI
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: RAM_BANK_SIZE
+      properties:
+      - r
+      - w
+      start: 9
+      width: 4
+    - brief: null
+      description: null
+      name: RBRDY
+      properties:
+      - r
+      - w
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: RMW
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RAM_WIDTH
+      properties:
+      - r
+      - w
+      start: 4
+      width: 2
+    - brief: null
+      description: null
+      name: RAM_WRITE_WS
+      properties:
+      - r
+      - w
+      start: 2
+      width: 2
+    - brief: null
+      description: null
+      name: RAM_READ_WS
+      properties:
+      - r
+      - w
+      start: 0
+      width: 2
+    variants: []
+  brief: |
+    Memory configuration register 2
+  description: null
+  name: MCFG2
   width: 32
 - bits:
   - default:

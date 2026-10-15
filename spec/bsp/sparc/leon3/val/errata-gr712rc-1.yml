@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr712rc
+links:
+- role: validation
+  uid: ../req/errata-gr712rc
+- role: errata-resolution
+  uid: /errata/gaisler/gr712rc/1
+- location: bsps/sparc/leon3/start/linkcmds.gr712rc
+  role: reference
+  uid: /ref/rtems/source
+method: by-analysis
+text: |
+  The linker command file of the software product places all sections in the
+  SRAM/SDRAM area at 0x40000000. This area is cacheable. The software product
+  does not access the on-chip memory at 0xa0000000. The erratum is therefore not
+  applicable to the software product.
+type: validation

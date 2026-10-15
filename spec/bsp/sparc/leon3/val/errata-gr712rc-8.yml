@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr712rc
+links:
+- role: validation
+  uid: ../req/errata-gr712rc
+- role: errata-resolution
+  uid: /errata/gaisler/gr712rc/8
+- location: bsps/sparc/leon3/start/bspidle.S
+  role: reference
+  uid: /ref/rtems/source
+method: by-inspection
+text: |
+  The power-down loop of the ${../if/idle-thread:/name} function implements
+  `Workaround 2` of the erratum. It writes to `%asr19` and then loads from
+  address 0xfffffff0 with ASI 0x1c. The load bypasses the cache and its result is
+  discarded. An alignment to 32 bytes places both instructions in one instruction
+  cache line.
+type: validation

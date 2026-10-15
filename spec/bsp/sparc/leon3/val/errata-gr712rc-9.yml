@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr712rc
+links:
+- role: validation
+  uid: ../req/errata-gr712rc
+- role: errata-resolution
+  uid: /errata/gaisler/gr712rc/9
+- location: bsps/include/grlib/ftmctrl-regs.h
+  role: reference
+  uid: /ref/rtems/source
+method: by-inspection
+text: |
+  No ${/glossary/sourcecode:/term} file of the software product includes the
+  FTMCTRL register definitions or accesses the FTMCTRL registers. The software
+  product does not configure the memory controller. The
+  ${../req/ftmctrl-mcfg2-trp:/spec} requirement and its test cover the workaround
+  of the erratum.
+type: validation

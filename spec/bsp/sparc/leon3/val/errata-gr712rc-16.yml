@@ -1,0 +1,37 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr712rc
+links:
+- role: validation
+  uid: ../req/errata-gr712rc
+- role: errata-resolution
+  uid: /errata/gaisler/gr712rc/16
+- location: bsps/sparc/leon3/start/bspidle.S
+  role: reference
+  uid: /ref/rtems/source
+- location: bsps/sparc/shared/start/start.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/cpu_asm.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/sparc-bad-trap.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/sparc-exception-resume.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/syscall.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/window.S
+  role: reference
+  uid: /ref/rtems/source
+method: by-inspection
+text: |
+  The ${/glossary/assemblerlanguage:/term} ${/glossary/sourcecode:/term} of the
+  software product contains no floating-point operate instruction. The compiler
+  workaround therefore covers every floating-point operate instruction of the
+  software product.
+type: validation

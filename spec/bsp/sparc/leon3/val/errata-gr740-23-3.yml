@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2023, 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr740
+links:
+- role: validation
+  uid: ../req/errata-gr740
+- role: errata-resolution
+  uid: /errata/gaisler/gr740/23-3
+- location: bsps/sparc/leon3/start/cache.c
+  role: reference
+  uid: /ref/rtems/source
+method: by-analysis
+text: |
+  The ${/rtems/cache/if/group:/name} implementation of the ${/glossary/bsp:/term}
+  does not use the L2C flush. The software product writes no L2C register. It
+  reads the L2C status register only with the `leon3_l2c_lock` acquired. It locks
+  no cache way. It writes no MTRR, so it defines no uncached memory area. It does
+  not access the L2C IO area at 0xffe00000. The bootloader requirements and their
+  tests cover the L2CERR.COMP, L2CACCC.DBPF, L2CACCC.128WF and L2CACCC.SPLIT
+  register fields.
+type: validation
