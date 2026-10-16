@@ -1634,6 +1634,34 @@ extern CallCounter AllocatorLockCounter;
  */
 void SetReleaseLabel( const char *label );
 
+/**
+ * @brief This type is a handler for an interrupt which no entry handles.
+ *
+ * @param arg is the argument of SetDefaultInterruptHandler().
+ *
+ * @param vector is the interrupt vector number.
+ */
+typedef void ( *DefaultInterruptHandler )(
+  void               *arg,
+  rtems_vector_number vector
+);
+
+/**
+ * @brief Sets the handler for an interrupt which no entry handles.
+ *
+ * The wrapper of bsp_interrupt_handler_default() calls the handler in place
+ * of the default interrupt handler.  Without a handler, the wrapper calls the
+ * default interrupt handler, which terminates the system.  The suite of the
+ * caller shall carry the link flag
+ * `-Wl,--wrap=bsp_interrupt_handler_default`.
+ *
+ * @param handler is the handler, or NULL to call the default interrupt
+ *   handler.
+ *
+ * @param arg is the argument of the handler.
+ */
+void SetDefaultInterruptHandler( DefaultInterruptHandler handler, void *arg );
+
 struct Per_CPU_Control;
 
 /**
