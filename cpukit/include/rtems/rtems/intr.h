@@ -1086,6 +1086,32 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define RTEMS_INTERRUPT_UNIQUE ( (rtems_option) 0x00000001 )
 
+/* Find related documentation with spec:/rtems/intr/if/option-enable */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief This interrupt entry and handler install option requests that an
+ *   interrupt vector is enabled when the first entry or handler is installed.
+ *
+ * This install option results in the default behaviour.
+ */
+#define RTEMS_INTERRUPT_ENABLE ( (rtems_option) 0x00000000 )
+
+/* Find related documentation with spec:/rtems/intr/if/option-no-enable */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief This interrupt entry and handler install option requests that an
+ *   interrupt vector is not enabled when the first entry or handler is
+ *   installed.
+ *
+ * The default behaviour is to enable an interrupt vector when the first entry
+ * or handler is installed. This install option alters the default behaviour.
+ */
+#define RTEMS_INTERRUPT_NO_ENABLE ( (rtems_option) 0x00000004 )
+
 /* Find related documentation with spec:/rtems/intr/if/option-replace */
 
 /**
@@ -1324,6 +1350,21 @@ static inline void rtems_interrupt_entry_initialize(
  * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handlers may be
  * installed for the interrupt vector.
  *
+ * One of the following mutually exclusive options
+ *
+ * - #RTEMS_INTERRUPT_ENABLE and
+ *
+ * - #RTEMS_INTERRUPT_NO_ENABLE
+ *
+ * may be set in the `options` parameter.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is cleared and the first entry or
+ * handler is installed, then the interrupt vector is enabled. The option
+ * #RTEMS_INTERRUPT_ENABLE has the value zero and names this default behaviour.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is set, then the interrupt vector
+ * is not enabled by the directive call.
+ *
  * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
  *
  * @retval ::RTEMS_INVALID_ADDRESS The `entry` parameter was NULL.
@@ -1342,10 +1383,10 @@ static inline void rtems_interrupt_entry_initialize(
  *   applicable.
  *
  * @retval ::RTEMS_RESOURCE_IN_USE The #RTEMS_INTERRUPT_UNIQUE option was set
- *   in `entry` and the interrupt vector was already occupied by a handler.
+ *   in `options` and the interrupt vector was already occupied by a handler.
  *
  * @retval ::RTEMS_RESOURCE_IN_USE The #RTEMS_INTERRUPT_SHARED option was set
- *   in `entry` and the interrupt vector was already occupied by a unique
+ *   in `options` and the interrupt vector was already occupied by a unique
  *   handler.
  *
  * @retval ::RTEMS_TOO_MANY The handler routine of the entry specified by
@@ -1477,6 +1518,21 @@ rtems_status_code rtems_interrupt_entry_remove(
  * second handler with the same argument for the interrupt vector will remain
  * unchanged. The new handler will inherit the unique or shared options from
  * the replaced handler.
+ *
+ * One of the following mutually exclusive options
+ *
+ * - #RTEMS_INTERRUPT_ENABLE and
+ *
+ * - #RTEMS_INTERRUPT_NO_ENABLE
+ *
+ * may be set in the `options` parameter.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is cleared and the first entry or
+ * handler is installed, then the interrupt vector is enabled. The option
+ * #RTEMS_INTERRUPT_ENABLE has the value zero and names this default behaviour.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is set, then the interrupt vector
+ * is not enabled by the directive call.
  *
  * An informative description may be provided in `info`. It may be used for
  * system debugging and diagnostic tools. The referenced string has to be

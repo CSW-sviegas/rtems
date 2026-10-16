@@ -204,11 +204,13 @@ static rtems_status_code bsp_interrupt_entry_install_first(
     index,
     RTEMS_INTERRUPT_IS_UNIQUE( options )
   );
-#if defined(bsp_interrupt_vector_install)
+#ifdef bsp_interrupt_vector_install
   bsp_interrupt_vector_install( vector );
-#else
-  bsp_interrupt_vector_enable( vector );
 #endif
+
+  if ( ( options & RTEMS_INTERRUPT_NO_ENABLE ) == 0 ) {
+    bsp_interrupt_vector_enable( vector );
+  }
 
   return RTEMS_SUCCESSFUL;
 }
