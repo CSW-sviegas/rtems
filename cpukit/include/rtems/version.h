@@ -9,8 +9,8 @@
  */
 
 /*
- *  Copyright (C) 2017.
- *  Chris Johns <chrisj@rtems.org>
+ * Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+ * Copyright (C) 2017 Chris Johns
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * The spec:/... comments allow you to identify content which is
+ * duplicated in the rtems and rtems-docs repositories.
+ */
+
+/* Find related documentation with spec:/rtems/version/if/header */
+
 #ifndef _RTEMS_VERSION_H
 #define _RTEMS_VERSION_H
 
@@ -43,129 +50,244 @@
 extern "C" {
 #endif
 
+/* Find related documentation with spec:/rtems/version/if/group */
+
 /**
  * @defgroup RTEMSAPIClassicVersion Version
  *
  * @ingroup RTEMSAPIClassic
  *
  * @brief The Version API provides functions to return the version or parts of
- * the version of RTEMS you are using.
+ *   the version of RTEMS which the application uses.
  *
- * A branch in the version control system will always fall back to a
- * NOT-RELEASED version number with a minor number of 0. Only the release
- * archives have a VERSION file with a final release number. That means for
- * example that the 5 development branch will still show a version 5.0.0 even
- * after the 5.1 release.
+ * A `VERSION` file in the top directory of the sources sets the version
+ * numbers and the release label. The release procedure of the RTEMS Project
+ * generates this file, and the repository holds none.
  *
- * The reason for that are the following:
+ * Without a `VERSION` file, the version numbers are those of the build system.
+ * Where no `VERSION` file exists or the file sets no release label, the build
+ * takes the release label from the Git commit of the sources. Sources outside
+ * a Git work tree get the release label `not-released`.
  *
- * 1. All pre-release tests are performed with a specific git hash. A committed
- * VERSION file would need to be changed and committed afterwards for releasing
- * with the required release version causing the released version to have a
- * different git hash and the test results couldn't be linked to the released
- * version.
- *
- * 2. Users deploying RTEMS would need to commit a local change to a committed
- * VERSION file and that would clash with the project changes. Deployment can
- * use the project repos directly.
- *
- * 3. The VERSION file management and generation is the responsibility of the
- * release manager and the release process.
- *
- * @{
+ * The engineering manual reserves the empty release label for the releases of
+ * the RTEMS Project. A user or a vendor who deploys modified sources sets a
+ * unique release label.
  */
 
-/**
- * @brief Returns the version string.
- *
- * @retval text The version as a string.
- */
-const char *rtems_version( void );
+/* Find related documentation with spec:/rtems/version/if/board-support-package */
 
 /**
- * @brief Returns the version's major number.
+ * @ingroup RTEMSAPIClassicVersion
  *
- * @retval int The version's major number.
+ * @brief Returns the board support package name.
+ *
+ * The name is the name of the BSP which the build configuration selects.
+ *
+ * @return The board support package name.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
  */
-int rtems_version_major( void );
+const char *rtems_board_support_package( void );
+
+/* Find related documentation with spec:/rtems/version/if/control-key */
 
 /**
- * @brief Returns the version's minor number.
+ * @ingroup RTEMSAPIClassicVersion
  *
- * @retval int The version's minor number.
- */
-int rtems_version_minor( void );
-
-/**
- * @brief Returns the version's revision number.
+ * @brief Returns the release label for the current version of code that has
+ *   been built.
  *
- * @retval int The version's revision number.
- */
-int rtems_version_revision( void );
-
-/**
- * @deprecated
+ * The directive returns the same string as rtems_version_release_label().
  *
- * @brief Returns the version control key for the current version of code that
- * has been built.
+ * @return The release label.
  *
- * The key is specific to the version control system being used and allows the
- * built version to be identified.
+ * @par Notes
+ * This directive is deprecated. Use rtems_version_release_label() instead.
  *
- * Use rtems_version_control_key_is_valid() to check if the version control key
- * is valid.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
  *
- * @return The version control key.
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
  */
 const char *rtems_version_control_key( void );
 
+/* Find related documentation with spec:/rtems/version/if/control-key-is-valid */
+
 /**
- * @deprecated
+ * @ingroup RTEMSAPIClassicVersion
  *
  * @brief Returns true, if the version control key is valid, otherwise false.
  *
+ * @param[in] key is the pointer to the version control key string to check.
+ *
+ * A version control key is valid, if it is not empty.
+ *
  * @retval true The version control key is valid.
+ *
  * @retval false Otherwise.
+ *
+ * @par Notes
+ * This directive is deprecated. Use rtems_version_release_label_is_valid()
+ * instead.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
  */
 static inline bool rtems_version_control_key_is_valid( const char *key )
 {
   return key[ 0 ] != '\0';
 }
 
+/* Find related documentation with spec:/rtems/version/if/major */
+
 /**
- * @brief Returns the revision label for the current version of code
- * that has been built.
+ * @ingroup RTEMSAPIClassicVersion
  *
- * The release label is a string of characters. Only the RTEMS project
- * released sources can have an empty release label.
+ * @brief Returns the version's major number.
  *
- * Use rtems_version_release_label_is_valid() to check if the release label
- * is valid.
+ * @return Returns the major number of the RTEMS version.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+int rtems_version_major( void );
+
+/* Find related documentation with spec:/rtems/version/if/minor */
+
+/**
+ * @ingroup RTEMSAPIClassicVersion
+ *
+ * @brief Returns the version's minor number.
+ *
+ * @return Returns the minor number of the RTEMS version.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+int rtems_version_minor( void );
+
+/* Find related documentation with spec:/rtems/version/if/release-label */
+
+/**
+ * @ingroup RTEMSAPIClassicVersion
+ *
+ * @brief Returns the release label for the current version of code that has
+ *   been built.
+ *
+ * The release label is not empty, unless a `VERSION` file sets an empty label.
  *
  * @return The release label.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
  */
 const char *rtems_version_release_label( void );
 
+/* Find related documentation with spec:/rtems/version/if/release-label-is-valid */
+
 /**
+ * @ingroup RTEMSAPIClassicVersion
+ *
  * @brief Returns true, if the release label is valid, otherwise false.
  *
+ * A release label is valid, if it is not empty.
+ *
  * @retval true The release label is valid.
+ *
  * @retval false Otherwise.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
  */
 bool rtems_version_release_label_is_valid( void );
 
-/**
- * @brief Returns the board support package name.
- *
- * @return The board support package name.
- */
-const char *rtems_board_support_package( void );
+/* Find related documentation with spec:/rtems/version/if/revision */
 
-/** @} */
+/**
+ * @ingroup RTEMSAPIClassicVersion
+ *
+ * @brief Returns the version's revision number.
+ *
+ * @return Returns the revision of the RTEMS version.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+int rtems_version_revision( void );
+
+/* Find related documentation with spec:/rtems/version/if/version */
+
+/**
+ * @ingroup RTEMSAPIClassicVersion
+ *
+ * @brief Returns the version string.
+ *
+ * The version string consists of the major version number, the minor version
+ * number and the revision in decimal digits, separated by `.` characters.
+ * Where the release label is not empty, a `.` character and the label follow.
+ *
+ * @return Returns the version string of RTEMS.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+const char *rtems_version( void );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
-/* end of include file */
+#endif /* _RTEMS_VERSION_H */
