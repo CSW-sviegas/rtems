@@ -1,0 +1,125 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/is-shared
+post-conditions:
+- name: Result
+  states:
+  - name: 'True'
+    test-code: |
+      T_eq_int( ctx->result, true );
+    text: |
+      The result of ${../if/is-shared:/name} shall be ${/c/if/true:/name}.
+  - name: 'False'
+    test-code: |
+      T_eq_int( ctx->result, false );
+    text: |
+      The result of ${../if/is-shared:/name} shall be ${/c/if/false:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sharing
+  states:
+  - name: Unique
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_UNIQUE;
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-unique:/name} option set.
+  - name: Shared
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_SHARED;
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-unique:/name} option cleared.
+  test-epilogue: null
+  test-prologue: null
+- name: Replace
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_REPLACE;
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-replace:/name} option set.
+  - name: 'No'
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-replace:/name} option cleared.
+  test-epilogue: null
+  test-prologue: null
+- name: Enable
+  states:
+  - name: Enable
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_ENABLE;
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-no-enable:/name} option cleared.
+  - name: NoEnable
+    test-code: |
+      ctx->options |= RTEMS_INTERRUPT_NO_ENABLE;
+    text: |
+      While the ${../if/is-shared:/params[0]/name} parameter has the
+      ${../if/option-no-enable:/name} option set.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The three dimensions cover the documented options of the
+  ${../if/is-shared:/params[0]/name} parameter. The options of one dimension are
+  mutually exclusive. The dimensions Replace and Enable cover the options which
+  the decision does not read.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = RTEMS_INTERRUPT_IS_SHARED( ctx->options );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/is-shared:/params[0]/name} parameter value.
+  description: null
+  member: |
+    rtems_option options
+- brief: |
+    This member contains the result of ${../if/is-shared:/name}.
+  description: null
+  member: |
+    int result
+test-context-support: null
+test-description: |
+  The test stores the result in an object of type int. A result other than zero
+  or one fails the comparison with ${/c/if/true:/name} and ${/c/if/false:/name}.
+test-header: null
+test-includes:
+- rtems.h
+test-local-includes: []
+test-prepare: |
+  ctx->options = 0;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-intr-is-shared.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Sharing: Shared
+      then: 'True'
+    - else: 'False'
+  pre-conditions:
+    Sharing: all
+    Replace: all
+    Enable: all
+type: requirement
