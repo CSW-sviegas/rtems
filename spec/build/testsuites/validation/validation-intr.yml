@@ -29,6 +29,9 @@ source:
 - testsuites/validation/tc-intr-get-attributes.c
 - testsuites/validation/tc-intr-handler-iterate.c
 - testsuites/validation/tc-intr-is-pending.c
+- testsuites/validation/tc-intr-is-replace.c
+- testsuites/validation/tc-intr-is-shared.c
+- testsuites/validation/tc-intr-is-unique.c
 - testsuites/validation/tc-intr-lock.c
 - testsuites/validation/tc-intr-raise-on.c
 - testsuites/validation/tc-intr-raise.c
