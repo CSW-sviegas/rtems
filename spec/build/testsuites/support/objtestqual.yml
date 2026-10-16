@@ -15,7 +15,6 @@ links:
 - role: build-dependency
   uid: objtestqualriscv
 source:
-- bsps/shared/rtems-version.c
 - cpukit/base64/base64-decode.c
 - cpukit/base64/base64-encode.c
 - cpukit/crc/crc24q.c
@@ -29,7 +28,6 @@ source:
 - cpukit/posix/src/pspinlock.c
 - cpukit/posix/src/pspinunlock.c
 - cpukit/sapi/src/getbuildlabel.c
-- cpukit/sapi/src/version.c
 - cpukit/score/src/hash.c
 - cpukit/score/src/objectactivecount.c
 - cpukit/score/src/objectapimaximumclass.c
