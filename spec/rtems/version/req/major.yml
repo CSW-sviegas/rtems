@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/major
+rationale: |
+  The qualified package builds the sources with a `VERSION` file which sets the
+  RTEMS version 7.0.0.
+references: []
+requirement-type: functional
+text: |
+  The ${../if/major:/name} directive shall return 7.
+type: requirement

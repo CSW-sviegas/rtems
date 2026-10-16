@@ -1,0 +1,36 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Returns the board support package name.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: const char *
+  variants: []
+description: |
+  The name is the name of the ${/glossary/bsp:/term} which the build
+  configuration selects.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+- role: constraint
+  uid: /constraint/directive-no-preempt
+name: rtems_board_support_package
+notes: null
+params: []
+return:
+  return: |
+    The board support package name.
+  return-values: []
+type: interface

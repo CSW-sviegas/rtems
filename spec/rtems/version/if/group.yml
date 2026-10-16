@@ -1,0 +1,33 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  The Version API provides functions to return the version or parts of the
+  version of RTEMS which the application uses.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+description: |
+  A `VERSION` file in the top directory of the sources sets the version numbers
+  and the ${/glossary/releaselabel:/term}. The release procedure of the RTEMS
+  Project generates this file, and the repository holds none.
+
+  Without a `VERSION` file, the version numbers are those of the build system.
+  Where no `VERSION` file exists or the file sets no release label, the build
+  takes the release label from the Git commit of the sources. Sources outside a
+  Git work tree get the release label `not-released`.
+
+  The engineering manual reserves the empty release label for the releases of the
+  RTEMS Project. A user or a vendor who deploys modified sources sets a unique
+  release label.
+enabled-by: true
+identifier: RTEMSAPIClassicVersion
+index-entries: []
+interface-type: group
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: ../../if/group
+name: Version
+text: |
+  The Classic API shall provide an interface to version and build information.
+type: interface

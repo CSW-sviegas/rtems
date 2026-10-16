@@ -1,0 +1,97 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/version
+post-conditions:
+- name: Version
+  states:
+  - name: Label
+    test-code: |
+      T_eq_str( ctx->version, "7.0.0." RTEMS_VERSION_CONTROL_KEY );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/version:/name} shall be the major
+      version number, the minor version number and the revision of the RTEMS version
+      in decimal digits, separated by `.` characters and followed by a `.` character
+      and the ${/glossary/releaselabel:/term}.
+  - name: NoLabel
+    test-code: |
+      T_eq_str( ctx->version, "7.0.0" );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/version:/name} shall be the major
+      version number, the minor version number and the revision of the RTEMS version
+      in decimal digits, separated by `.` characters.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Label
+  states:
+  - name: Empty
+    test-code: |
+      SetReleaseLabel( "" );
+    text: |
+      While the ${/glossary/releaselabel:/term} is empty.
+  - name: NonEmpty
+    test-code: |
+      SetReleaseLabel( NULL );
+    text: |
+      While the ${/glossary/releaselabel:/term} is not empty.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Label covers the length of the ${/glossary/releaselabel:/term}, 2
+  states. The states partition the length into zero and greater than zero. The
+  state NonEmpty takes the label of the build, which the guard of the test
+  support requires to be not empty. The test arranges the label through
+  `SetReleaseLabel()` of the test support, which wraps
+  ${../if/release-label:/name} by the linker option `--wrap`. Outside the action,
+  the wrapper returns the label of the build.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->version = rtems_version();
+test-brief: null
+test-cleanup: |
+  SetReleaseLabel( NULL );
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/version:/name} call.
+  description: null
+  member: |
+    const char *version
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/version.h
+- version-vc-key.h
+test-local-includes:
+- tx-support.h
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  #if !defined( RTEMS_VERSION_CONTROL_KEY )
+  #error "the release label of the build is empty"
+  #endif
+test-target: testsuites/validation/tc-version-string.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Version: NoLabel
+  pre-conditions:
+    Label:
+    - Empty
+- enabled-by: true
+  post-conditions:
+    Version: Label
+  pre-conditions:
+    Label:
+    - NonEmpty
+type: requirement

@@ -1,0 +1,38 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Returns the version string.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: const char *
+  variants: []
+description: |
+  The version string consists of the major version number, the minor version
+  number and the revision in decimal digits, separated by `.` characters. Where
+  the ${/glossary/releaselabel:/term} is not empty, a `.` character and the label
+  follow.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+- role: constraint
+  uid: /constraint/directive-no-preempt
+name: rtems_version
+notes: null
+params: []
+return:
+  return: |
+    Returns the version string of RTEMS.
+  return-values: []
+type: interface

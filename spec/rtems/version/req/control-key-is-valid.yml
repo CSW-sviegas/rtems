@@ -1,0 +1,95 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/control-key-is-valid
+post-conditions:
+- name: Result
+  states:
+  - name: 'True'
+    test-code: |
+      T_true( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/control-key-is-valid:/name} shall
+      be ${/c/if/true:/name}.
+  - name: 'False'
+    test-code: |
+      T_false( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/control-key-is-valid:/name} shall
+      be ${/c/if/false:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Key
+  states:
+  - name: Empty
+    test-code: |
+      ctx->key = "";
+    text: |
+      While the ${../if/control-key-is-valid:/params[0]/name} parameter references an
+      empty string.
+  - name: NonEmpty
+    test-code: |
+      ctx->key = "x";
+    text: |
+      While the ${../if/control-key-is-valid:/params[0]/name} parameter references a
+      string which is not empty.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Key covers the length of the string which the
+  ${../if/control-key-is-valid:/params[0]/name} parameter references, 2 states.
+  The states partition the length into zero and greater than zero. The state
+  NonEmpty arranges a string of length one, which is the bound of the partition.
+  The interface requires that the parameter references a string.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = rtems_version_control_key_is_valid( ctx->key );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the return value of the
+    ${../if/control-key-is-valid:/name} call.
+  description: null
+  member: |
+    bool result
+- brief: |
+    This member specifies the ${../if/control-key-is-valid:/params[0]/name}
+    parameter value.
+  description: null
+  member: |
+    const char *key
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/version.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-version-control-key-is-valid.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: 'False'
+  pre-conditions:
+    Key:
+    - Empty
+- enabled-by: true
+  post-conditions:
+    Result: 'True'
+  pre-conditions:
+    Key:
+    - NonEmpty
+type: requirement

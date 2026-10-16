@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Returns true, if the version control key is valid, otherwise false.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      return ${.:/params[0]/name}[ 0 ] != '\0';
+    params:
+    - const char *${.:/params[0]/name}
+    return: ${/c/if/bool:/name}
+  variants: []
+description: |
+  A version control key is valid, if it is not empty.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+- role: constraint
+  uid: /constraint/directive-no-preempt
+name: rtems_version_control_key_is_valid
+notes: |
+  This directive is deprecated. Use ${release-label-is-valid:/name} instead.
+params:
+- description: |
+    is the pointer to the version control key string to check.
+  dir: in
+  name: key
+return:
+  return: null
+  return-values:
+  - description: |
+      The version control key is valid.
+    value: 'true'
+  - description: |
+      Otherwise.
+    value: 'false'
+type: interface

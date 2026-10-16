@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This header file provides the Version API.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+enabled-by: true
+index-entries: []
+interface-type: header-file
+links:
+- role: interface-placement
+  uid: /if/domain
+- role: interface-ingroup
+  uid: group
+path: rtems/version.h
+prefix: cpukit/include
+type: interface

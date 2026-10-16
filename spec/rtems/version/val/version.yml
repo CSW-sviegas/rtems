@@ -1,0 +1,78 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Call the version directives.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that ${../if/board-support-package:/name} returns the name of the BSP of
+      the build configuration.
+    code: |
+      T_eq_str( rtems_board_support_package(), RTEMS_XSTRING( RTEMS_BSP ) );
+    links:
+    - role: validation
+      uid: ../req/board-support-package
+  - brief: |
+      Check that ${../if/control-key:/name} returns the release label of the build.
+    code: |
+      T_eq_str( rtems_version_control_key(), RELEASE_LABEL );
+    links:
+    - role: validation
+      uid: ../req/control-key
+  - brief: |
+      Check that ${../if/release-label:/name} returns the release label of the build.
+    code: |
+      T_eq_str( rtems_version_release_label(), RELEASE_LABEL );
+    links:
+    - role: validation
+      uid: ../req/release-label
+  - brief: |
+      Check that ${../if/major:/name} returns 7.
+    code: |
+      T_eq_int( rtems_version_major(), 7 );
+    links:
+    - role: validation
+      uid: ../req/major
+  - brief: |
+      Check that ${../if/minor:/name} returns 0.
+    code: |
+      T_eq_int( rtems_version_minor(), 0 );
+    links:
+    - role: validation
+      uid: ../req/minor
+  - brief: |
+      Check that ${../if/revision:/name} returns 0.
+    code: |
+      T_eq_int( rtems_version_revision(), 0 );
+    links:
+    - role: validation
+      uid: ../req/revision
+  links: []
+test-brief: |
+  Tests the RTEMS version API.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- bspopts.h
+- rtems/score/basedefs.h
+- rtems/version.h
+- version-vc-key.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+  #if !defined( RTEMS_VERSION_CONTROL_KEY )
+  #error "the release label of the build is empty"
+  #endif
+
+  #define RELEASE_LABEL RTEMS_VERSION_CONTROL_KEY
+test-target: testsuites/validation/tc-version.c
+test-teardown: null
+type: test-case

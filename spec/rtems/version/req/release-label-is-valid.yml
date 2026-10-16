@@ -1,0 +1,90 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/release-label-is-valid
+post-conditions:
+- name: Result
+  states:
+  - name: 'True'
+    test-code: |
+      T_true( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/release-label-is-valid:/name}
+      shall be ${/c/if/true:/name}.
+  - name: 'False'
+    test-code: |
+      T_false( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/release-label-is-valid:/name}
+      shall be ${/c/if/false:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Label
+  states:
+  - name: Empty
+    test-code: |
+      SetReleaseLabel( "" );
+    text: |
+      While the ${/glossary/releaselabel:/term} is empty.
+  - name: NonEmpty
+    test-code: |
+      SetReleaseLabel( "x" );
+    text: |
+      While the ${/glossary/releaselabel:/term} is not empty.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Label covers the length of the ${/glossary/releaselabel:/term}, 2
+  states. The states partition the length into zero and greater than zero. The
+  state NonEmpty arranges a label of length one, which is the bound of the
+  partition. The test arranges the label through `SetReleaseLabel()` of the test
+  support, which wraps ${../if/release-label:/name} by the linker option
+  `--wrap`. Outside the action, the wrapper returns the label of the build.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = rtems_version_release_label_is_valid();
+test-brief: null
+test-cleanup: |
+  SetReleaseLabel( NULL );
+test-context:
+- brief: |
+    This member contains the return value of the
+    ${../if/release-label-is-valid:/name} call.
+  description: null
+  member: |
+    bool result
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/version.h
+test-local-includes:
+- tx-support.h
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-version-release-label-is-valid.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: 'False'
+  pre-conditions:
+    Label:
+    - Empty
+- enabled-by: true
+  post-conditions:
+    Result: 'True'
+  pre-conditions:
+    Label:
+    - NonEmpty
+type: requirement

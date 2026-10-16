@@ -1,0 +1,36 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Returns the release label for the current version of code that has been built.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: const char *
+  variants: []
+description: |
+  The directive returns the same string as ${release-label:/name}.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-any
+- role: constraint
+  uid: /constraint/directive-no-preempt
+name: rtems_version_control_key
+notes: |
+  This directive is deprecated. Use ${release-label:/name} instead.
+params: []
+return:
+  return: |
+    The release label.
+  return-values: []
+type: interface

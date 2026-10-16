@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: release label
+text: |
+  This term refers to a string which identifies a build of the RTEMS sources
+  together with the version numbers. The text after the first `-` character of
+  the `revision` option of a `VERSION` file sets it. Where this text is absent or
+  is `not-released`, the build sets the release label to the hash of the Git
+  commit of the sources. The build appends `-modified` where a tracked file of
+  the work tree has a change. Where the sources reside in no Git work tree, the
+  build sets it to `not-released`.
+type: glossary
