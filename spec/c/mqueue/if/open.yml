@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name} and the access modes specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -85,13 +86,23 @@ params:
     is the flag that determines the access modes.
   dir: null
   name: oflag
-- description: null
+- description: |
+    is the list of optional arguments. If ${.:/params[1]/name} specifies
+    ${/c/fcntl/if/o-creat:/name} and the ${/glossary/messagequeue:/term} does not
+    exist, the first optional argument is the ${/c/if/mode_t:/name} permission
+    mode, which is ignored, and the second optional argument is a pointer to a
+    ${/c/if/mq_attr:/name} object with the ${../glossary/mqattr:/term}s of the new
+    ${/glossary/messagequeue:/term}. If this pointer is ${/c/if/null:/name}, the
+    default ${../glossary/mqattr:/term}s are used.
   dir: null
   name: '...'
 return:
   return: |
-    On success, returns a ${../glossary/mqdes:/term} for use by other message queue
-    functions. On error, returns `(${/c/if/mqd_t:/name}) -1`, with
-    ${/c/errno/if/errno:/name} set to indicate the error.
-  return-values: []
+    On success, returns a ${../glossary/mqdes:/term} for use by other
+    ${/glossary/messagequeue:/term} functions.
+  return-values:
+  - description: |
+      An error occurred. The value is returned cast to ${/c/if/mqd_t:/name}. The
+      ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
 type: interface
