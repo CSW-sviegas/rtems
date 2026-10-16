@@ -11,6 +11,7 @@ features: c cprogram
 includes: []
 ldflags:
 - -Wl,--wrap=_RTEMS_Lock_allocator
+- -Wl,--wrap=rtems_version_release_label
 links:
 - role: build-dependency
   uid: objnodebug
@@ -154,6 +155,10 @@ source:
 - testsuites/validation/tc-time-clock-gettime.c
 - testsuites/validation/tc-timegm-year.c
 - testsuites/validation/tc-timegm.c
+- testsuites/validation/tc-version-control-key-is-valid.c
+- testsuites/validation/tc-version-release-label-is-valid.c
+- testsuites/validation/tc-version-string.c
+- testsuites/validation/tc-version.c
 - testsuites/validation/tr-event-constant.c
 - testsuites/validation/tr-io-kernel-printflike.c
 - testsuites/validation/tr-object-ident-local.c
