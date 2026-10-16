@@ -1,67 +1,159 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/condattr-getclock
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/condattr-getclock:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/condattr-getclock:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ClockObj
+  states:
+  - name: Set
+    test-code: |
+      T_eq_int( ctx->clock_value, ctx->clock_obj );
+    text: |
+      The value of the object referenced by the
+      ${../if/condattr-getclock:/params[1]/name} parameter shall be set to the
+      ${../glossary/cond-clock:/term} of the condition variable attributes object
+      referenced by the ${../if/condattr-getclock:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->clock_value, -1 );
+    text: |
+      The value of the object referenced by the
+      ${../if/condattr-getclock:/params[1]/name} parameter shall not be modified.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Attr
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      T_eq_int( pthread_condattr_setclock( &ctx->attr_obj, ctx->clock_obj ), 0 );
     text: |
-      TODO
+      While the condition variable attributes object referenced by
+      ${../if/condattr-getclock:/params[0]/name} is valid.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/condattr-getclock:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ClockId
+  states:
+  - name: Valid
+    test-code: |
+      ctx->clock_value = -1;
+      ctx->clock_id = &ctx->clock_value;
+    text: |
+      While the ${../if/condattr-getclock:/params[1]/name} parameter references an
+      object of type ${/c/if/clockid_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->clock_id = NULL;
+    text: |
+      While the ${../if/condattr-getclock:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_condattr_getclock( ctx->attr, ctx->clock_id );
+test-action: |
+  ctx->retval = pthread_condattr_getclock( ctx->attr, ctx->clock_id );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/condattr-getclock:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/condattr-getclock:/params[0]/name}
+    parameter value.
   description: null
   member: const pthread_condattr_t *attr
-- brief: This member specifies the ${../if/condattr-getclock:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/condattr-getclock:/params[1]/name}
+    parameter value.
   description: null
   member: clockid_t *clock_id
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the attribute object.
+  description: null
+  member: pthread_condattr_t attr_obj
+- brief: |
+    This member contains the clock value.
+  description: null
+  member: clockid_t clock_obj
+- brief: |
+    This member contains the clock output object.
+  description: null
+  member: clockid_t clock_value
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
+- time.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  ctx->clock_obj = CLOCK_MONOTONIC;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-pthread-condattr-getclock.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          ClockId: 'Null'
+      then: EINVAL
+    - else: Zero
+    ClockObj:
+    - if:
+        pre-conditions:
+          ClockId: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Nop
+    - else: Set
   pre-conditions:
-    Status: all
+    Attr: all
+    ClockId: all
 type: requirement

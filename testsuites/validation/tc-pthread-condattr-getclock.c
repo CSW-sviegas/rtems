@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <time.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,35 @@
  */
 
 typedef enum {
-  CPthreadReqCondattrGetclock_Pre_Status_Ok,
-  CPthreadReqCondattrGetclock_Pre_Status_NA
-} CPthreadReqCondattrGetclock_Pre_Status;
+  CPthreadReqCondattrGetclock_Pre_Attr_Valid,
+  CPthreadReqCondattrGetclock_Pre_Attr_Null,
+  CPthreadReqCondattrGetclock_Pre_Attr_NA
+} CPthreadReqCondattrGetclock_Pre_Attr;
 
 typedef enum {
-  CPthreadReqCondattrGetclock_Post_Status_Ok,
+  CPthreadReqCondattrGetclock_Pre_ClockId_Valid,
+  CPthreadReqCondattrGetclock_Pre_ClockId_Null,
+  CPthreadReqCondattrGetclock_Pre_ClockId_NA
+} CPthreadReqCondattrGetclock_Pre_ClockId;
+
+typedef enum {
+  CPthreadReqCondattrGetclock_Post_Status_Zero,
+  CPthreadReqCondattrGetclock_Post_Status_EINVAL,
   CPthreadReqCondattrGetclock_Post_Status_NA
 } CPthreadReqCondattrGetclock_Post_Status;
 
+typedef enum {
+  CPthreadReqCondattrGetclock_Post_ClockObj_Set,
+  CPthreadReqCondattrGetclock_Post_ClockObj_Nop,
+  CPthreadReqCondattrGetclock_Post_ClockObj_NA
+} CPthreadReqCondattrGetclock_Post_ClockObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_ClockId_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_ClockObj : 2;
 } CPthreadReqCondattrGetclock_Entry;
 
 /**
@@ -97,11 +116,26 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the attribute object.
+   */
+  pthread_condattr_t attr_obj;
+
+  /**
+   * @brief This member contains the clock value.
+   */
+  clockid_t clock_obj;
+
+  /**
+   * @brief This member contains the clock output object.
+   */
+  clockid_t clock_value;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,50 +163,146 @@ typedef struct {
 static CPthreadReqCondattrGetclock_Context
   CPthreadReqCondattrGetclock_Instance;
 
-static const char * const CPthreadReqCondattrGetclock_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondattrGetclock_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "NA"
+};
+
+static const char * const CPthreadReqCondattrGetclock_PreDesc_ClockId[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondattrGetclock_PreDesc[] = {
-  CPthreadReqCondattrGetclock_PreDesc_Status,
+  CPthreadReqCondattrGetclock_PreDesc_Attr,
+  CPthreadReqCondattrGetclock_PreDesc_ClockId,
   NULL
 };
 
-static void CPthreadReqCondattrGetclock_Pre_Status_Prepare(
-  CPthreadReqCondattrGetclock_Pre_Status state
+static void CPthreadReqCondattrGetclock_Pre_Attr_Prepare(
+  CPthreadReqCondattrGetclock_Context *ctx,
+  CPthreadReqCondattrGetclock_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrGetclock_Pre_Status_Ok: {
+    case CPthreadReqCondattrGetclock_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the condition variable attributes object referenced by `attr` is
+       * valid.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      T_eq_int( pthread_condattr_setclock( &ctx->attr_obj, ctx->clock_obj ), 0 );
       break;
     }
 
-    case CPthreadReqCondattrGetclock_Pre_Status_NA:
+    case CPthreadReqCondattrGetclock_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondattrGetclock_Pre_ClockId_Prepare(
+  CPthreadReqCondattrGetclock_Context    *ctx,
+  CPthreadReqCondattrGetclock_Pre_ClockId state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondattrGetclock_Pre_ClockId_Valid: {
+      /*
+       * While the `clock_id` parameter references an object of type clockid_t.
+       */
+      ctx->clock_value = -1;
+      ctx->clock_id = &ctx->clock_value;
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Pre_ClockId_Null: {
+      /*
+       * While the `clock_id` parameter is NULL.
+       */
+      ctx->clock_id = NULL;
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Pre_ClockId_NA:
       break;
   }
 }
 
 static void CPthreadReqCondattrGetclock_Post_Status_Check(
+  CPthreadReqCondattrGetclock_Context    *ctx,
   CPthreadReqCondattrGetclock_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrGetclock_Post_Status_Ok: {
+    case CPthreadReqCondattrGetclock_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_condattr_getclock() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_condattr_getclock() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqCondattrGetclock_Post_Status_NA:
       break;
   }
+}
+
+static void CPthreadReqCondattrGetclock_Post_ClockObj_Check(
+  CPthreadReqCondattrGetclock_Context      *ctx,
+  CPthreadReqCondattrGetclock_Post_ClockObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondattrGetclock_Post_ClockObj_Set: {
+      /*
+       * The value of the object referenced by the `clock_id` parameter shall
+       * be set to the condition variable clock attribute of the condition
+       * variable attributes object referenced by the `attr` parameter.
+       */
+      T_eq_int( ctx->clock_value, ctx->clock_obj );
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Post_ClockObj_Nop: {
+      /*
+       * The value of the object referenced by the `clock_id` parameter shall
+       * not be modified.
+       */
+      T_eq_int( ctx->clock_value, -1 );
+      break;
+    }
+
+    case CPthreadReqCondattrGetclock_Post_ClockObj_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondattrGetclock_Prepare(
+  CPthreadReqCondattrGetclock_Context *ctx
+)
+{
+  ctx->clock_obj = CLOCK_MONOTONIC;
 }
 
 static void CPthreadReqCondattrGetclock_Action(
@@ -184,12 +314,17 @@ static void CPthreadReqCondattrGetclock_Action(
 
 static const CPthreadReqCondattrGetclock_Entry
 CPthreadReqCondattrGetclock_Entries[] = {
-  { 0, 0, CPthreadReqCondattrGetclock_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqCondattrGetclock_Post_Status_EINVAL,
+    CPthreadReqCondattrGetclock_Post_ClockObj_NA },
+  { 0, 0, 0, CPthreadReqCondattrGetclock_Post_Status_Zero,
+    CPthreadReqCondattrGetclock_Post_ClockObj_Set },
+  { 0, 0, 0, CPthreadReqCondattrGetclock_Post_Status_EINVAL,
+    CPthreadReqCondattrGetclock_Post_ClockObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqCondattrGetclock_Map[] = {
-  0
+  1, 0, 2, 0
 };
 
 static size_t CPthreadReqCondattrGetclock_Scope(
@@ -240,9 +375,17 @@ static void CPthreadReqCondattrGetclock_TestVariant(
   CPthreadReqCondattrGetclock_Context *ctx
 )
 {
-  CPthreadReqCondattrGetclock_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrGetclock_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrGetclock_Pre_ClockId_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqCondattrGetclock_Action( ctx );
-  CPthreadReqCondattrGetclock_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqCondattrGetclock_Post_Status_Check(
+    ctx,
+    ctx->Map.entry.Post_Status
+  );
+  CPthreadReqCondattrGetclock_Post_ClockObj_Check(
+    ctx,
+    ctx->Map.entry.Post_ClockObj
+  );
 }
 
 /**
@@ -260,12 +403,19 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrGetclock_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrGetclock_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrGetclock_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrGetclock_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqCondattrGetclock_PopEntry( ctx );
-    CPthreadReqCondattrGetclock_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqCondattrGetclock_Pre_ClockId_Valid;
+      ctx->Map.pcs[ 1 ] < CPthreadReqCondattrGetclock_Pre_ClockId_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqCondattrGetclock_PopEntry( ctx );
+      CPthreadReqCondattrGetclock_Prepare( ctx );
+      CPthreadReqCondattrGetclock_TestVariant( ctx );
+    }
   }
 }
 
