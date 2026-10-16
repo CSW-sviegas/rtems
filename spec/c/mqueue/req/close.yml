@@ -1,29 +1,100 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/close
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/close:/name} shall be equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/close:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the ${../if/close:/name}
+      call.
+  - name: EBADF
+    test-code: |
+      T_eq_int( errno, EBADF );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/ebadf:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Access
+  states:
+  - name: Granted
+    test-code: |
+      T_eq_int( mq_getattr( ctx->mqdes, &ctx->attr ), 0 );
+    text: |
+      The ${../glossary/mqdes:/term} specified by ${../if/close:/params[0]/name}
+      shall still grant access to the ${/glossary/messagequeue:/term} after the
+      ${../if/close:/name} call.
+  - name: Denied
+    test-code: |
+      T_eq_int( mq_getattr( ctx->mqdes, &ctx->attr ), -1 );
+      T_eq_int( errno, EBADF );
+    text: |
+      The ${../glossary/mqdes:/term} specified by ${../if/close:/params[0]/name}
+      shall not grant access to the ${/glossary/messagequeue:/term} after the
+      ${../if/close:/name} call.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Mqdes
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->mqdes = ctx->mq;
     text: |
-      TODO
+      While the ${../if/close:/params[0]/name} parameter is a
+      ${../glossary/mqdes:/term} which is open.
+  - name: Closed
+    test-code: |
+      T_eq_int( mq_close( ctx->mq ), 0 );
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/close:/params[0]/name} parameter is a
+      ${../glossary/mqdes:/term} which was already closed.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = 0;
+    text: |
+      While the ${../if/close:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Opens
+  states:
+  - name: One
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open once.
+  - name: Several
+    test-code: |
+      ctx->mq_other = mq_open( MQ_NAME, O_RDWR );
+      T_ne_u32( ctx->mq_other, MQ_FAILED );
+    text: |
+      While the ${/glossary/messagequeue:/term} is open more than once.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -32,31 +103,89 @@ requirement-type: functional
 skip-reasons: {}
 test-action: ctx->retval = mq_close( ctx->mqdes );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  /* Remove the name and drop all remaining opens of the message queue */
+  (void) mq_unlink( MQ_NAME );
+
+  while ( mq_close( ctx->mq ) == 0 ) {
+    /* Do nothing */
+  }
 test-context:
-- brief: This member specifies the ${../if/close:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/close:/params[0]/name} parameter value.
   description: null
   member: mqd_t mqdes
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: int retval
-test-context-support: null
+- brief: |
+    This member contains the descriptor returned by the first
+    ${../if/open:/name} call.
+  description: null
+  member: mqd_t mq
+- brief: |
+    This member contains the descriptor returned by the second
+    ${../if/open:/name} call.
+  description: null
+  member: mqd_t mq_other
+- brief: |
+    This member provides the object used to query the attributes.
+  description: null
+  member: struct mq_attr attr
+test-context-support: |
+  #define MQ_NAME "/mqclose"
+
+  #define MQ_FAILED ( ( mqd_t ) - 1 )
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- fcntl.h
 - mqueue.h
+- sys/stat.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  errno = -1;
+  ctx->retval = -1;
+  ctx->mq = mq_open( MQ_NAME, O_CREAT | O_RDWR, S_IRWXU, NULL );
+  T_ne_u32( ctx->mq, MQ_FAILED );
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-posix-mq-close.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Mqdes: Valid
+      then: Zero
+    - else: MinusOne
+    Errno:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Unchanged
+    - else: EBADF
+    Access:
+    - if:
+        pre-conditions:
+          Mqdes: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          Opens: Several
+      then: Granted
+    - else: Denied
   pre-conditions:
-    Status: all
+    Mqdes: all
+    Opens:
+      applicable:
+        pre-conditions:
+          Mqdes: Valid
 type: requirement
