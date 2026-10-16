@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,11 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
+
+#include "tx-support.h"
 
 #include <rtems/test.h>
 
@@ -63,25 +68,59 @@
  */
 
 typedef enum {
-  CPthreadReqCondDestroy_Pre_Status_Ok,
-  CPthreadReqCondDestroy_Pre_Status_NA
-} CPthreadReqCondDestroy_Pre_Status;
+  CPthreadReqCondDestroy_Pre_Cond_Null,
+  CPthreadReqCondDestroy_Pre_Cond_Invalid,
+  CPthreadReqCondDestroy_Pre_Cond_Zeroed,
+  CPthreadReqCondDestroy_Pre_Cond_Valid,
+  CPthreadReqCondDestroy_Pre_Cond_NA
+} CPthreadReqCondDestroy_Pre_Cond;
 
 typedef enum {
-  CPthreadReqCondDestroy_Post_Status_Ok,
+  CPthreadReqCondDestroy_Pre_Waiters_No,
+  CPthreadReqCondDestroy_Pre_Waiters_Yes,
+  CPthreadReqCondDestroy_Pre_Waiters_NA
+} CPthreadReqCondDestroy_Pre_Waiters;
+
+typedef enum {
+  CPthreadReqCondDestroy_Post_Status_Zero,
+  CPthreadReqCondDestroy_Post_Status_EBUSY,
+  CPthreadReqCondDestroy_Post_Status_EINVAL,
   CPthreadReqCondDestroy_Post_Status_NA
 } CPthreadReqCondDestroy_Post_Status;
 
+typedef enum {
+  CPthreadReqCondDestroy_Post_Object_Destroyed,
+  CPthreadReqCondDestroy_Post_Object_Valid,
+  CPthreadReqCondDestroy_Post_Object_NA
+} CPthreadReqCondDestroy_Post_Object;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Cond_NA : 1;
+  uint8_t Pre_Waiters_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_Object : 2;
 } CPthreadReqCondDestroy_Entry;
 
 /**
  * @brief Test context for spec:/c/pthread/req/cond-destroy test case.
  */
 typedef struct {
+  /**
+   * @brief This member provides the condition variable object.
+   */
+  pthread_cond_t cond_obj;
+
+  /**
+   * @brief This member provides the mutex used by the waiting worker.
+   */
+  pthread_mutex_t mutex;
+
+  /**
+   * @brief This member contains the identifier of the worker task.
+   */
+  rtems_id worker_id;
+
   /**
    * @brief This member specifies the `cond` parameter value.
    */
@@ -94,9 +133,15 @@ typedef struct {
 
   struct {
     /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
+    /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -124,50 +169,224 @@ typedef struct {
 static CPthreadReqCondDestroy_Context
   CPthreadReqCondDestroy_Instance;
 
-static const char * const CPthreadReqCondDestroy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondDestroy_PreDesc_Cond[] = {
+  "Null",
+  "Invalid",
+  "Zeroed",
+  "Valid",
+  "NA"
+};
+
+static const char * const CPthreadReqCondDestroy_PreDesc_Waiters[] = {
+  "No",
+  "Yes",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondDestroy_PreDesc[] = {
-  CPthreadReqCondDestroy_PreDesc_Status,
+  CPthreadReqCondDestroy_PreDesc_Cond,
+  CPthreadReqCondDestroy_PreDesc_Waiters,
   NULL
 };
 
-static void CPthreadReqCondDestroy_Pre_Status_Prepare(
-  CPthreadReqCondDestroy_Pre_Status state
+typedef CPthreadReqCondDestroy_Context Context;
+
+static void Worker( rtems_task_argument arg )
+{
+  Context *ctx;
+  int      eno;
+
+  ctx = (Context *) arg;
+
+  eno = pthread_mutex_lock( &ctx->mutex );
+  T_eq_int( eno, 0 );
+
+  eno = pthread_cond_wait( &ctx->cond_obj, &ctx->mutex );
+  T_eq_int( eno, 0 );
+
+  eno = pthread_mutex_unlock( &ctx->mutex );
+  T_eq_int( eno, 0 );
+
+  SuspendSelf();
+}
+
+static void CPthreadReqCondDestroy_Pre_Cond_Prepare(
+  CPthreadReqCondDestroy_Context *ctx,
+  CPthreadReqCondDestroy_Pre_Cond state
 )
 {
+  int eno;
+
   switch ( state ) {
-    case CPthreadReqCondDestroy_Pre_Status_Ok: {
+    case CPthreadReqCondDestroy_Pre_Cond_Null: {
       /*
-       * TODO
+       * While the `cond` parameter is NULL.
        */
-      /* TODOD */
+      ctx->cond = NULL;
       break;
     }
 
-    case CPthreadReqCondDestroy_Pre_Status_NA:
+    case CPthreadReqCondDestroy_Pre_Cond_Invalid: {
+      /*
+       * While the `cond` parameter references an object which is neither
+       * initialized nor filled with zero bytes.
+       */
+      memset( &ctx->cond_obj, 0xff, sizeof( ctx->cond_obj ) );
+      ctx->cond = &ctx->cond_obj;
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Pre_Cond_Zeroed: {
+      /*
+       * While the `cond` parameter references an object filled with zero
+       * bytes.
+       */
+      memset( &ctx->cond_obj, 0, sizeof( ctx->cond_obj ) );
+      ctx->cond = &ctx->cond_obj;
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Pre_Cond_Valid: {
+      /*
+       * While the `cond` parameter references an initialized condition
+       * variable object.
+       */
+      eno = pthread_cond_init( &ctx->cond_obj, NULL );
+      T_eq_int( eno, 0 );
+      ctx->cond = &ctx->cond_obj;
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Pre_Cond_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondDestroy_Pre_Waiters_Prepare(
+  CPthreadReqCondDestroy_Context    *ctx,
+  CPthreadReqCondDestroy_Pre_Waiters state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondDestroy_Pre_Waiters_No: {
+      /*
+       * While no thread waits on the condition variable object.
+       */
+      /* Nothing to prepare */
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Pre_Waiters_Yes: {
+      /*
+       * While at least one thread waits on the condition variable object.
+       */
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id, Worker, ctx );
+      WaitForExecutionStop( ctx->worker_id );
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Pre_Waiters_NA:
       break;
   }
 }
 
 static void CPthreadReqCondDestroy_Post_Status_Check(
+  CPthreadReqCondDestroy_Context    *ctx,
   CPthreadReqCondDestroy_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondDestroy_Post_Status_Ok: {
+    case CPthreadReqCondDestroy_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_cond_destroy() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Post_Status_EBUSY: {
+      /*
+       * The return value of pthread_cond_destroy() shall be equal to EBUSY.
+       */
+      T_eq_int( ctx->retval, EBUSY );
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_cond_destroy() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqCondDestroy_Post_Status_NA:
       break;
   }
+}
+
+static void CPthreadReqCondDestroy_Post_Object_Check(
+  CPthreadReqCondDestroy_Context    *ctx,
+  CPthreadReqCondDestroy_Post_Object state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondDestroy_Post_Object_Destroyed: {
+      /*
+       * The condition variable object shall be destroyed.
+       */
+      T_eq_int( pthread_cond_destroy( &ctx->cond_obj ), EINVAL );
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Post_Object_Valid: {
+      /*
+       * The condition variable object shall remain initialized.
+       */
+      T_eq_int( pthread_cond_destroy( &ctx->cond_obj ), EBUSY );
+      break;
+    }
+
+    case CPthreadReqCondDestroy_Post_Object_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondDestroy_Setup( CPthreadReqCondDestroy_Context *ctx )
+{
+  int eno;
+
+  memset( ctx, 0, sizeof( *ctx ) );
+  SetSelfPriority( PRIO_NORMAL );
+  eno = pthread_mutex_init( &ctx->mutex, NULL );
+  T_eq_int( eno, 0 );
+}
+
+static void CPthreadReqCondDestroy_Setup_Wrap( void *arg )
+{
+  CPthreadReqCondDestroy_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  CPthreadReqCondDestroy_Setup( ctx );
+}
+
+static void CPthreadReqCondDestroy_Teardown(
+  CPthreadReqCondDestroy_Context *ctx
+)
+{
+  (void) pthread_mutex_destroy( &ctx->mutex );
+  RestoreRunnerPriority();
+}
+
+static void CPthreadReqCondDestroy_Teardown_Wrap( void *arg )
+{
+  CPthreadReqCondDestroy_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  CPthreadReqCondDestroy_Teardown( ctx );
 }
 
 static void CPthreadReqCondDestroy_Action(
@@ -177,14 +396,31 @@ static void CPthreadReqCondDestroy_Action(
   ctx->retval = pthread_cond_destroy( ctx->cond );
 }
 
+static void CPthreadReqCondDestroy_Cleanup(
+  CPthreadReqCondDestroy_Context *ctx
+)
+{
+  if ( ctx->worker_id != 0 ) {
+    DeleteTask( ctx->worker_id );
+    ctx->worker_id = 0;
+  }
+}
+
 static const CPthreadReqCondDestroy_Entry
 CPthreadReqCondDestroy_Entries[] = {
-  { 0, 0, CPthreadReqCondDestroy_Post_Status_Ok }
+  { 0, 0, 1, CPthreadReqCondDestroy_Post_Status_EINVAL,
+    CPthreadReqCondDestroy_Post_Object_NA },
+  { 0, 0, 1, CPthreadReqCondDestroy_Post_Status_Zero,
+    CPthreadReqCondDestroy_Post_Object_Destroyed },
+  { 0, 0, 0, CPthreadReqCondDestroy_Post_Status_Zero,
+    CPthreadReqCondDestroy_Post_Object_Destroyed },
+  { 0, 0, 0, CPthreadReqCondDestroy_Post_Status_EBUSY,
+    CPthreadReqCondDestroy_Post_Object_Valid }
 };
 
 static const uint8_t
 CPthreadReqCondDestroy_Map[] = {
-  0
+  0, 0, 0, 0, 1, 1, 2, 3
 };
 
 static size_t CPthreadReqCondDestroy_Scope( void *arg, char *buf, size_t n )
@@ -201,9 +437,9 @@ static size_t CPthreadReqCondDestroy_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture CPthreadReqCondDestroy_Fixture = {
-  .setup = NULL,
+  .setup = CPthreadReqCondDestroy_Setup_Wrap,
   .stop = NULL,
-  .teardown = NULL,
+  .teardown = CPthreadReqCondDestroy_Teardown_Wrap,
   .scope = CPthreadReqCondDestroy_Scope,
   .initial_context = &CPthreadReqCondDestroy_Instance
 };
@@ -221,13 +457,28 @@ static inline CPthreadReqCondDestroy_Entry CPthreadReqCondDestroy_PopEntry(
   ];
 }
 
+static void CPthreadReqCondDestroy_SetPreConditionStates(
+  CPthreadReqCondDestroy_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Waiters_NA ) {
+    ctx->Map.pcs[ 1 ] = CPthreadReqCondDestroy_Pre_Waiters_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CPthreadReqCondDestroy_TestVariant(
   CPthreadReqCondDestroy_Context *ctx
 )
 {
-  CPthreadReqCondDestroy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondDestroy_Pre_Cond_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondDestroy_Pre_Waiters_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqCondDestroy_Action( ctx );
-  CPthreadReqCondDestroy_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqCondDestroy_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqCondDestroy_Post_Object_Check( ctx, ctx->Map.entry.Post_Object );
 }
 
 /**
@@ -242,12 +493,20 @@ T_TEST_CASE_FIXTURE( CPthreadReqCondDestroy, &CPthreadReqCondDestroy_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondDestroy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondDestroy_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CPthreadReqCondDestroy_Pre_Cond_Null;
+    ctx->Map.pci[ 0 ] < CPthreadReqCondDestroy_Pre_Cond_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqCondDestroy_PopEntry( ctx );
-    CPthreadReqCondDestroy_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CPthreadReqCondDestroy_Pre_Waiters_No;
+      ctx->Map.pci[ 1 ] < CPthreadReqCondDestroy_Pre_Waiters_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqCondDestroy_PopEntry( ctx );
+      CPthreadReqCondDestroy_SetPreConditionStates( ctx );
+      CPthreadReqCondDestroy_TestVariant( ctx );
+      CPthreadReqCondDestroy_Cleanup( ctx );
+    }
   }
 }
 
