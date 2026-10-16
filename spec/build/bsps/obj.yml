@@ -25,6 +25,7 @@ links:
 - role: build-dependency
   uid: optclkfastidle
 source:
+- bsps/shared/rtems-version.c
 - bsps/shared/start/bootcard.c
 - bsps/shared/start/bspfatal-default.c
 type: build

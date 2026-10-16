@@ -537,6 +537,8 @@ source:
 - cpukit/sapi/src/extensiondelete.c
 - cpukit/sapi/src/extensionident.c
 - cpukit/sapi/src/getconfigmax.c
+- cpukit/sapi/src/version.c
+- cpukit/sapi/src/versionlabel.c
 - cpukit/score/src/allocatormutex.c
 - cpukit/score/src/apimutexisowner.c
 - cpukit/score/src/apimutexlock.c

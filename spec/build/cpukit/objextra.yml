@@ -908,8 +908,6 @@ source:
 - cpukit/sapi/src/sapirbtreeinsert.c
 - cpukit/sapi/src/sysinitverbose.c
 - cpukit/sapi/src/tcsimpleinstall.c
-- cpukit/sapi/src/version.c
-- cpukit/sapi/src/versionlabel.c
 - cpukit/score/src/chainnodecount.c
 - cpukit/score/src/configstackspacesize.c
 - cpukit/score/src/contrib/kern_ntptime.c
