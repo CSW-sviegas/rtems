@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,11 +57,17 @@ typedef enum {
 } RtemsIntrReqEntryInstall_Pre_Vector;
 
 typedef enum {
-  RtemsIntrReqEntryInstall_Pre_Options_Unique,
-  RtemsIntrReqEntryInstall_Pre_Options_Shared,
-  RtemsIntrReqEntryInstall_Pre_Options_Replace,
-  RtemsIntrReqEntryInstall_Pre_Options_NA
-} RtemsIntrReqEntryInstall_Pre_Options;
+  RtemsIntrReqEntryInstall_Pre_InstallOptions_Unique,
+  RtemsIntrReqEntryInstall_Pre_InstallOptions_Shared,
+  RtemsIntrReqEntryInstall_Pre_InstallOptions_Replace,
+  RtemsIntrReqEntryInstall_Pre_InstallOptions_NA
+} RtemsIntrReqEntryInstall_Pre_InstallOptions;
+
+typedef enum {
+  RtemsIntrReqEntryInstall_Pre_Enable_Yes,
+  RtemsIntrReqEntryInstall_Pre_Enable_No,
+  RtemsIntrReqEntryInstall_Pre_Enable_NA
+} RtemsIntrReqEntryInstall_Pre_Enable;
 
 typedef enum {
   RtemsIntrReqEntryInstall_Pre_Entry_Obj,
@@ -133,7 +139,8 @@ typedef enum {
 typedef struct {
   uint32_t Skip : 1;
   uint32_t Pre_Vector_NA : 1;
-  uint32_t Pre_Options_NA : 1;
+  uint32_t Pre_InstallOptions_NA : 1;
+  uint32_t Pre_Enable_NA : 1;
   uint32_t Pre_Entry_NA : 1;
   uint32_t Pre_Routine_NA : 1;
   uint32_t Pre_Init_NA : 1;
@@ -268,12 +275,12 @@ typedef struct {
      * @brief This member defines the pre-condition indices for the next
      *   action.
      */
-    size_t pci[ 8 ];
+    size_t pci[ 9 ];
 
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 8 ];
+    size_t pcs[ 9 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -303,8 +310,11 @@ static RtemsIntrReqEntryInstall_Context RtemsIntrReqEntryInstall_Instance;
 static const char *const RtemsIntrReqEntryInstall_PreDesc_Vector[] =
   { "Valid", "Invalid", "NA" };
 
-static const char *const RtemsIntrReqEntryInstall_PreDesc_Options[] =
+static const char *const RtemsIntrReqEntryInstall_PreDesc_InstallOptions[] =
   { "Unique", "Shared", "Replace", "NA" };
+
+static const char *const RtemsIntrReqEntryInstall_PreDesc_Enable[] =
+  { "Yes", "No", "NA" };
 
 static const char *const RtemsIntrReqEntryInstall_PreDesc_Entry[] =
   { "Obj", "Null", "NA" };
@@ -326,7 +336,8 @@ static const char *const RtemsIntrReqEntryInstall_PreDesc_Installed[] =
 
 static const char *const *const RtemsIntrReqEntryInstall_PreDesc[] = {
   RtemsIntrReqEntryInstall_PreDesc_Vector,
-  RtemsIntrReqEntryInstall_PreDesc_Options,
+  RtemsIntrReqEntryInstall_PreDesc_InstallOptions,
+  RtemsIntrReqEntryInstall_PreDesc_Enable,
   RtemsIntrReqEntryInstall_PreDesc_Entry,
   RtemsIntrReqEntryInstall_PreDesc_Routine,
   RtemsIntrReqEntryInstall_PreDesc_Init,
@@ -514,7 +525,7 @@ static void VisitInstalled(
 
   if ( visited_entries == 0 && ctx->other_installed ) {
     T_eq_ptr( info, other_info );
-    T_eq_u32( options, ctx->other_options );
+    T_eq_u32( options, ctx->other_options & RTEMS_INTERRUPT_UNIQUE );
     T_eq_ptr( handler_routine, ctx->other_entry.handler );
     T_eq_ptr( handler_arg, ctx->other_entry.arg );
   } else if ( visited_entries == 1 && ctx->third_installed ) {
@@ -524,7 +535,7 @@ static void VisitInstalled(
     T_eq_ptr( handler_arg, &third_arg );
   } else {
     T_eq_ptr( info, entry_info );
-    T_eq_u32( options, ctx->options );
+    T_eq_u32( options, ctx->options & RTEMS_INTERRUPT_UNIQUE );
     T_eq_ptr( handler_routine, ctx->entry_obj.handler );
     T_eq_ptr( handler_arg, ctx->entry_obj.arg );
   }
@@ -560,38 +571,67 @@ static void RtemsIntrReqEntryInstall_Pre_Vector_Prepare(
   }
 }
 
-static void RtemsIntrReqEntryInstall_Pre_Options_Prepare(
-  RtemsIntrReqEntryInstall_Context    *ctx,
-  RtemsIntrReqEntryInstall_Pre_Options state
+static void RtemsIntrReqEntryInstall_Pre_InstallOptions_Prepare(
+  RtemsIntrReqEntryInstall_Context           *ctx,
+  RtemsIntrReqEntryInstall_Pre_InstallOptions state
 )
 {
   switch ( state ) {
-    case RtemsIntrReqEntryInstall_Pre_Options_Unique: {
+    case RtemsIntrReqEntryInstall_Pre_InstallOptions_Unique: {
       /*
-       * While the `options` indicates that an unique entry shall be installed.
+       * While the `options` indicate that an unique entry shall be installed.
        */
       ctx->options = RTEMS_INTERRUPT_UNIQUE;
       break;
     }
 
-    case RtemsIntrReqEntryInstall_Pre_Options_Shared: {
+    case RtemsIntrReqEntryInstall_Pre_InstallOptions_Shared: {
       /*
-       * While the `options` indicates that a shared entry shall be installed.
+       * While the `options` indicate that a shared entry shall be installed.
        */
       ctx->options = RTEMS_INTERRUPT_SHARED;
       break;
     }
 
-    case RtemsIntrReqEntryInstall_Pre_Options_Replace: {
+    case RtemsIntrReqEntryInstall_Pre_InstallOptions_Replace: {
       /*
-       * While the `options` indicates that the entry handler routine shall be
+       * While the `options` indicate that the entry handler routine shall be
        * replaced.
        */
       ctx->options = RTEMS_INTERRUPT_REPLACE;
       break;
     }
 
-    case RtemsIntrReqEntryInstall_Pre_Options_NA:
+    case RtemsIntrReqEntryInstall_Pre_InstallOptions_NA:
+      break;
+  }
+}
+
+static void RtemsIntrReqEntryInstall_Pre_Enable_Prepare(
+  RtemsIntrReqEntryInstall_Context   *ctx,
+  RtemsIntrReqEntryInstall_Pre_Enable state
+)
+{
+  switch ( state ) {
+    case RtemsIntrReqEntryInstall_Pre_Enable_Yes: {
+      /*
+       * While the `options` indicate that the interrupt vector shall be
+       * enabled.
+       */
+      ctx->options |= RTEMS_INTERRUPT_ENABLE;
+      break;
+    }
+
+    case RtemsIntrReqEntryInstall_Pre_Enable_No: {
+      /*
+       * While the `options` indicate that the interrupt vector shall be not
+       * enabled.
+       */
+      ctx->options |= RTEMS_INTERRUPT_NO_ENABLE;
+      break;
+    }
+
+    case RtemsIntrReqEntryInstall_Pre_Enable_NA:
       break;
   }
 }
@@ -1006,21 +1046,27 @@ static void RtemsIntrReqEntryInstall_Post_Installed_Check(
   T_rsc_success( sc );
 
   if ( ctx->status == RTEMS_SUCCESSFUL ) {
-    uint32_t counter;
+    if ( ctx->enabled_after ) {
+      uint32_t counter;
 
-    counter = 1;
+      counter = 1;
 
-    if ( ctx->other_installed ) {
-      T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
-      ++counter;
+      if ( ctx->other_installed ) {
+        T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
+        ++counter;
+      }
+
+      if ( ctx->third_installed ) {
+        T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
+        ++counter;
+      }
+
+      T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
+    } else {
+      T_eq_u32( ctx->counter_by_entry[ 0 ], 0 );
+      T_eq_u32( ctx->counter_by_entry[ 1 ], 0 );
+      T_eq_u32( ctx->counter_by_entry[ 2 ], 0 );
     }
-
-    if ( ctx->third_installed ) {
-      T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
-      ++counter;
-    }
-
-    T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
   }
 
   switch ( state ) {
@@ -1156,58 +1202,63 @@ static void RtemsIntrReqEntryInstall_Cleanup(
 
 static const RtemsIntrReqEntryInstall_Entry
 RtemsIntrReqEntryInstall_Entries[] = {
-  { 1, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_NA,
+  { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_NA,
     RtemsIntrReqEntryInstall_Post_Enable_NA,
     RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_IncStat,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_IncStat,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No },
-  { 0, 0, 0, 0, 1, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
+  { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     RtemsIntrReqEntryInstall_Post_Status_CalledFromISR,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InUse,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InUse,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvNum,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_InvNum,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No },
-  { 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_IncStat,
-    RtemsIntrReqEntryInstall_Post_Enable_NA,
-    RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 1, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
-    RtemsIntrReqEntryInstall_Post_Enable_NA,
-    RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvId,
-    RtemsIntrReqEntryInstall_Post_Enable_NA,
-    RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
-    RtemsIntrReqEntryInstall_Post_Enable_NA,
-    RtemsIntrReqEntryInstall_Post_Installed_NA },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_Ok,
-    RtemsIntrReqEntryInstall_Post_Enable_Yes,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_Ok,
+    RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_Last },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_Ok,
-    RtemsIntrReqEntryInstall_Post_Enable_Maybe,
-    RtemsIntrReqEntryInstall_Post_Installed_Last },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_Ok,
-    RtemsIntrReqEntryInstall_Post_Enable_No,
-    RtemsIntrReqEntryInstall_Post_Installed_Last },
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_TooMany,
+  { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_IncStat,
+    RtemsIntrReqEntryInstall_Post_Enable_NA,
+    RtemsIntrReqEntryInstall_Post_Installed_NA },
+  { 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
+    RtemsIntrReqEntryInstall_Post_Enable_NA,
+    RtemsIntrReqEntryInstall_Post_Installed_NA },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvId,
+    RtemsIntrReqEntryInstall_Post_Enable_NA,
+    RtemsIntrReqEntryInstall_Post_Installed_NA },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, RtemsIntrReqEntryInstall_Post_Status_InvAddr,
+    RtemsIntrReqEntryInstall_Post_Enable_NA,
+    RtemsIntrReqEntryInstall_Post_Installed_NA },
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, RtemsIntrReqEntryInstall_Post_Status_TooMany,
     RtemsIntrReqEntryInstall_Post_Enable_Nop,
     RtemsIntrReqEntryInstall_Post_Installed_No }
 };
 
 static const uint8_t
 RtemsIntrReqEntryInstall_Map[] = {
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 11, 5, 5, 5, 5, 5, 12,
-  5, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 5, 5, 5, 5, 5, 7, 5,
+  5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 5, 5, 5, 5, 5,
+  7, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3,
   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
   3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -1217,8 +1268,30 @@ RtemsIntrReqEntryInstall_Map[] = {
   2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 11, 5, 11,
-  11, 11, 14, 12, 5, 12, 12, 12, 14, 13, 5, 13, 13, 13, 14, 1, 1, 1, 1, 1, 1,
+  0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7, 5, 7, 7,
+  7, 12, 7, 5, 7, 7, 7, 12, 7, 5, 7, 7, 7, 12, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 7,
+  5, 7, 7, 7, 12, 7, 5, 7, 7, 7, 12, 7, 5, 7, 7, 7, 12, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+  4, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -1239,40 +1312,74 @@ RtemsIntrReqEntryInstall_Map[] = {
   2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
 /* clang-format on */
@@ -1322,26 +1429,27 @@ static void RtemsIntrReqEntryInstall_SetPreConditionStates(
   ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
   ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
   ctx->Map.pcs[ 2 ] = ctx->Map.pci[ 2 ];
+  ctx->Map.pcs[ 3 ] = ctx->Map.pci[ 3 ];
 
   if ( ctx->Map.entry.Pre_Routine_NA ) {
-    ctx->Map.pcs[ 3 ] = RtemsIntrReqEntryInstall_Pre_Routine_NA;
+    ctx->Map.pcs[ 4 ] = RtemsIntrReqEntryInstall_Pre_Routine_NA;
   } else {
-    ctx->Map.pcs[ 3 ] = ctx->Map.pci[ 3 ];
+    ctx->Map.pcs[ 4 ] = ctx->Map.pci[ 4 ];
   }
 
-  ctx->Map.pcs[ 4 ] = ctx->Map.pci[ 4 ];
   ctx->Map.pcs[ 5 ] = ctx->Map.pci[ 5 ];
+  ctx->Map.pcs[ 6 ] = ctx->Map.pci[ 6 ];
 
   if ( ctx->Map.entry.Pre_CanEnable_NA ) {
-    ctx->Map.pcs[ 6 ] = RtemsIntrReqEntryInstall_Pre_CanEnable_NA;
+    ctx->Map.pcs[ 7 ] = RtemsIntrReqEntryInstall_Pre_CanEnable_NA;
   } else {
-    ctx->Map.pcs[ 6 ] = ctx->Map.pci[ 6 ];
+    ctx->Map.pcs[ 7 ] = ctx->Map.pci[ 7 ];
   }
 
   if ( ctx->Map.entry.Pre_Installed_NA ) {
-    ctx->Map.pcs[ 7 ] = RtemsIntrReqEntryInstall_Pre_Installed_NA;
+    ctx->Map.pcs[ 8 ] = RtemsIntrReqEntryInstall_Pre_Installed_NA;
   } else {
-    ctx->Map.pcs[ 7 ] = ctx->Map.pci[ 7 ];
+    ctx->Map.pcs[ 8 ] = ctx->Map.pci[ 8 ];
   }
 }
 
@@ -1350,13 +1458,17 @@ static void RtemsIntrReqEntryInstall_TestVariant(
 )
 {
   RtemsIntrReqEntryInstall_Pre_Vector_Prepare( ctx, ctx->Map.pcs[ 0 ] );
-  RtemsIntrReqEntryInstall_Pre_Options_Prepare( ctx, ctx->Map.pcs[ 1 ] );
-  RtemsIntrReqEntryInstall_Pre_Entry_Prepare( ctx, ctx->Map.pcs[ 2 ] );
-  RtemsIntrReqEntryInstall_Pre_Routine_Prepare( ctx, ctx->Map.pcs[ 3 ] );
-  RtemsIntrReqEntryInstall_Pre_Init_Prepare( ctx, ctx->Map.pcs[ 4 ] );
-  RtemsIntrReqEntryInstall_Pre_ISR_Prepare( ctx, ctx->Map.pcs[ 5 ] );
-  RtemsIntrReqEntryInstall_Pre_CanEnable_Prepare( ctx->Map.pcs[ 6 ] );
-  RtemsIntrReqEntryInstall_Pre_Installed_Prepare( ctx, ctx->Map.pcs[ 7 ] );
+  RtemsIntrReqEntryInstall_Pre_InstallOptions_Prepare(
+    ctx,
+    ctx->Map.pcs[ 1 ]
+  );
+  RtemsIntrReqEntryInstall_Pre_Enable_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  RtemsIntrReqEntryInstall_Pre_Entry_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+  RtemsIntrReqEntryInstall_Pre_Routine_Prepare( ctx, ctx->Map.pcs[ 4 ] );
+  RtemsIntrReqEntryInstall_Pre_Init_Prepare( ctx, ctx->Map.pcs[ 5 ] );
+  RtemsIntrReqEntryInstall_Pre_ISR_Prepare( ctx, ctx->Map.pcs[ 6 ] );
+  RtemsIntrReqEntryInstall_Pre_CanEnable_Prepare( ctx->Map.pcs[ 7 ] );
+  RtemsIntrReqEntryInstall_Pre_Installed_Prepare( ctx, ctx->Map.pcs[ 8 ] );
   RtemsIntrReqEntryInstall_Action( ctx );
   RtemsIntrReqEntryInstall_Post_Status_Check(
     ctx,
@@ -1392,52 +1504,60 @@ T_TEST_CASE_FIXTURE(
     ++ctx->Map.pci[ 0 ]
   ) {
     for (
-      ctx->Map.pci[ 1 ] = RtemsIntrReqEntryInstall_Pre_Options_Unique;
-      ctx->Map.pci[ 1 ] < RtemsIntrReqEntryInstall_Pre_Options_NA;
+      ctx->Map.pci[ 1 ] = RtemsIntrReqEntryInstall_Pre_InstallOptions_Unique;
+      ctx->Map.pci[ 1 ] < RtemsIntrReqEntryInstall_Pre_InstallOptions_NA;
       ++ctx->Map.pci[ 1 ]
     ) {
       for (
-        ctx->Map.pci[ 2 ] = RtemsIntrReqEntryInstall_Pre_Entry_Obj;
-        ctx->Map.pci[ 2 ] < RtemsIntrReqEntryInstall_Pre_Entry_NA;
+        ctx->Map.pci[ 2 ] = RtemsIntrReqEntryInstall_Pre_Enable_Yes;
+        ctx->Map.pci[ 2 ] < RtemsIntrReqEntryInstall_Pre_Enable_NA;
         ++ctx->Map.pci[ 2 ]
       ) {
         for (
-          ctx->Map.pci[ 3 ] = RtemsIntrReqEntryInstall_Pre_Routine_Valid;
-          ctx->Map.pci[ 3 ] < RtemsIntrReqEntryInstall_Pre_Routine_NA;
+          ctx->Map.pci[ 3 ] = RtemsIntrReqEntryInstall_Pre_Entry_Obj;
+          ctx->Map.pci[ 3 ] < RtemsIntrReqEntryInstall_Pre_Entry_NA;
           ++ctx->Map.pci[ 3 ]
         ) {
           for (
-            ctx->Map.pci[ 4 ] = RtemsIntrReqEntryInstall_Pre_Init_Yes;
-            ctx->Map.pci[ 4 ] < RtemsIntrReqEntryInstall_Pre_Init_NA;
+            ctx->Map.pci[ 4 ] = RtemsIntrReqEntryInstall_Pre_Routine_Valid;
+            ctx->Map.pci[ 4 ] < RtemsIntrReqEntryInstall_Pre_Routine_NA;
             ++ctx->Map.pci[ 4 ]
           ) {
             for (
-              ctx->Map.pci[ 5 ] = RtemsIntrReqEntryInstall_Pre_ISR_Yes;
-              ctx->Map.pci[ 5 ] < RtemsIntrReqEntryInstall_Pre_ISR_NA;
+              ctx->Map.pci[ 5 ] = RtemsIntrReqEntryInstall_Pre_Init_Yes;
+              ctx->Map.pci[ 5 ] < RtemsIntrReqEntryInstall_Pre_Init_NA;
               ++ctx->Map.pci[ 5 ]
             ) {
               for (
-                ctx->Map.pci[ 6 ] = RtemsIntrReqEntryInstall_Pre_CanEnable_Yes;
-                ctx->Map.pci[ 6 ] < RtemsIntrReqEntryInstall_Pre_CanEnable_NA;
+                ctx->Map.pci[ 6 ] = RtemsIntrReqEntryInstall_Pre_ISR_Yes;
+                ctx->Map.pci[ 6 ] < RtemsIntrReqEntryInstall_Pre_ISR_NA;
                 ++ctx->Map.pci[ 6 ]
               ) {
                 for (
                   ctx->Map.pci[ 7 ] =
-                    RtemsIntrReqEntryInstall_Pre_Installed_None;
+                    RtemsIntrReqEntryInstall_Pre_CanEnable_Yes;
                   ctx->Map.pci[ 7 ] <
-                  RtemsIntrReqEntryInstall_Pre_Installed_NA;
+                  RtemsIntrReqEntryInstall_Pre_CanEnable_NA;
                   ++ctx->Map.pci[ 7 ]
                 ) {
-                  ctx->Map.entry = RtemsIntrReqEntryInstall_PopEntry( ctx );
+                  for (
+                    ctx->Map.pci[ 8 ] =
+                      RtemsIntrReqEntryInstall_Pre_Installed_None;
+                    ctx->Map.pci[ 8 ] <
+                    RtemsIntrReqEntryInstall_Pre_Installed_NA;
+                    ++ctx->Map.pci[ 8 ]
+                  ) {
+                    ctx->Map.entry = RtemsIntrReqEntryInstall_PopEntry( ctx );
 
-                  if ( ctx->Map.entry.Skip ) {
-                    continue;
+                    if ( ctx->Map.entry.Skip ) {
+                      continue;
+                    }
+
+                    RtemsIntrReqEntryInstall_SetPreConditionStates( ctx );
+                    RtemsIntrReqEntryInstall_Prepare( ctx );
+                    RtemsIntrReqEntryInstall_TestVariant( ctx );
+                    RtemsIntrReqEntryInstall_Cleanup( ctx );
                   }
-
-                  RtemsIntrReqEntryInstall_SetPreConditionStates( ctx );
-                  RtemsIntrReqEntryInstall_Prepare( ctx );
-                  RtemsIntrReqEntryInstall_TestVariant( ctx );
-                  RtemsIntrReqEntryInstall_Cleanup( ctx );
                 }
               }
             }
