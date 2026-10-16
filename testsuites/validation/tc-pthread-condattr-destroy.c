@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,29 @@
  */
 
 typedef enum {
-  CPthreadReqCondattrDestroy_Pre_Status_Ok,
-  CPthreadReqCondattrDestroy_Pre_Status_NA
-} CPthreadReqCondattrDestroy_Pre_Status;
+  CPthreadReqCondattrDestroy_Pre_Attr_Valid,
+  CPthreadReqCondattrDestroy_Pre_Attr_Null,
+  CPthreadReqCondattrDestroy_Pre_Attr_Invalid,
+  CPthreadReqCondattrDestroy_Pre_Attr_NA
+} CPthreadReqCondattrDestroy_Pre_Attr;
 
 typedef enum {
-  CPthreadReqCondattrDestroy_Post_Status_Ok,
+  CPthreadReqCondattrDestroy_Post_Status_Zero,
+  CPthreadReqCondattrDestroy_Post_Status_EINVAL,
   CPthreadReqCondattrDestroy_Post_Status_NA
 } CPthreadReqCondattrDestroy_Post_Status;
 
+typedef enum {
+  CPthreadReqCondattrDestroy_Post_AttrObj_Destroyed,
+  CPthreadReqCondattrDestroy_Post_AttrObj_Nop,
+  CPthreadReqCondattrDestroy_Post_AttrObj_NA
+} CPthreadReqCondattrDestroy_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqCondattrDestroy_Entry;
 
 /**
@@ -91,6 +104,17 @@ typedef struct {
    * @brief This member contains the return value.
    */
   int retval;
+
+  /**
+   * @brief This member contains the attribute object.
+   */
+  pthread_condattr_t attr_obj;
+
+  /**
+   * @brief This member contains a copy of the attribute object taken before
+   *   the action.
+   */
+  pthread_condattr_t attr_copy;
 
   struct {
     /**
@@ -124,44 +148,78 @@ typedef struct {
 static CPthreadReqCondattrDestroy_Context
   CPthreadReqCondattrDestroy_Instance;
 
-static const char * const CPthreadReqCondattrDestroy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondattrDestroy_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondattrDestroy_PreDesc[] = {
-  CPthreadReqCondattrDestroy_PreDesc_Status,
+  CPthreadReqCondattrDestroy_PreDesc_Attr,
   NULL
 };
 
-static void CPthreadReqCondattrDestroy_Pre_Status_Prepare(
-  CPthreadReqCondattrDestroy_Pre_Status state
+static void CPthreadReqCondattrDestroy_Pre_Attr_Prepare(
+  CPthreadReqCondattrDestroy_Context *ctx,
+  CPthreadReqCondattrDestroy_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrDestroy_Pre_Status_Ok: {
+    case CPthreadReqCondattrDestroy_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the condition variable attributes object referenced by the
+       * `attr` parameter is valid.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
       break;
     }
 
-    case CPthreadReqCondattrDestroy_Pre_Status_NA:
+    case CPthreadReqCondattrDestroy_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      break;
+    }
+
+    case CPthreadReqCondattrDestroy_Pre_Attr_Invalid: {
+      /*
+       * While the condition variable attributes object referenced by the
+       * `attr` parameter is invalid.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      break;
+    }
+
+    case CPthreadReqCondattrDestroy_Pre_Attr_NA:
       break;
   }
 }
 
 static void CPthreadReqCondattrDestroy_Post_Status_Check(
+  CPthreadReqCondattrDestroy_Context    *ctx,
   CPthreadReqCondattrDestroy_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrDestroy_Post_Status_Ok: {
+    case CPthreadReqCondattrDestroy_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_condattr_destroy() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondattrDestroy_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_condattr_destroy() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
@@ -170,21 +228,57 @@ static void CPthreadReqCondattrDestroy_Post_Status_Check(
   }
 }
 
+static void CPthreadReqCondattrDestroy_Post_AttrObj_Check(
+  CPthreadReqCondattrDestroy_Context     *ctx,
+  CPthreadReqCondattrDestroy_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondattrDestroy_Post_AttrObj_Destroyed: {
+      /*
+       * The condition variable attributes object referenced by the `attr`
+       * parameter shall be invalid.
+       */
+      T_eq_int( pthread_condattr_destroy( &ctx->attr_obj ), EINVAL );
+      break;
+    }
+
+    case CPthreadReqCondattrDestroy_Post_AttrObj_Nop: {
+      /*
+       * The condition variable attributes object referenced by the `attr`
+       * parameter shall not be modified.
+       */
+      T_eq_int(
+        memcmp( &ctx->attr_obj, &ctx->attr_copy, sizeof( ctx->attr_obj ) ),
+        0
+      );
+      break;
+    }
+
+    case CPthreadReqCondattrDestroy_Post_AttrObj_NA:
+      break;
+  }
+}
+
 static void CPthreadReqCondattrDestroy_Action(
   CPthreadReqCondattrDestroy_Context *ctx
 )
 {
+  ctx->attr_copy = ctx->attr_obj;
   ctx->retval = pthread_condattr_destroy( ctx->attr );
 }
 
 static const CPthreadReqCondattrDestroy_Entry
 CPthreadReqCondattrDestroy_Entries[] = {
-  { 0, 0, CPthreadReqCondattrDestroy_Post_Status_Ok }
+  { 0, 0, CPthreadReqCondattrDestroy_Post_Status_EINVAL,
+    CPthreadReqCondattrDestroy_Post_AttrObj_Nop },
+  { 0, 0, CPthreadReqCondattrDestroy_Post_Status_Zero,
+    CPthreadReqCondattrDestroy_Post_AttrObj_Destroyed }
 };
 
 static const uint8_t
 CPthreadReqCondattrDestroy_Map[] = {
-  0
+  1, 0, 0
 };
 
 static size_t CPthreadReqCondattrDestroy_Scope(
@@ -233,9 +327,16 @@ static void CPthreadReqCondattrDestroy_TestVariant(
   CPthreadReqCondattrDestroy_Context *ctx
 )
 {
-  CPthreadReqCondattrDestroy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrDestroy_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CPthreadReqCondattrDestroy_Action( ctx );
-  CPthreadReqCondattrDestroy_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqCondattrDestroy_Post_Status_Check(
+    ctx,
+    ctx->Map.entry.Post_Status
+  );
+  CPthreadReqCondattrDestroy_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
+  );
 }
 
 /**
@@ -253,8 +354,8 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrDestroy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrDestroy_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrDestroy_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrDestroy_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     ctx->Map.entry = CPthreadReqCondattrDestroy_PopEntry( ctx );
