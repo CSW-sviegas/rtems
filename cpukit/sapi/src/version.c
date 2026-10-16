@@ -7,18 +7,15 @@
  *
  * @brief This source file contains the implementation of rtems_version(),
  *   rtems_version_control_key(), rtems_version_major(), rtems_version_minor(),
- *   and rtems_version_revision().
+ *   rtems_version_release_label(), and rtems_version_revision().
  *
- * The version strings are created from the various pieces of version
- * information.  The main version number is part of the build system
- * and is stamped into <rtems/score/cpuopts.h>. The revision label is
- * determined by the build system and is a string. It can be used and
- * so set when deploying the sources or the release label can be
- * formed using the version control tool when the code is not released
- * and being built with a version controlled repository.
+ * The build system defines the version numbers in <rtems/score/cpuopts.h>
+ * and the release label in "version-vc-key.h".
  */
 
 /*
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
+ *
  *  Copyright (C) 2017, 2024.
  *  Chris Johns <chrisj@rtems.org>
  *
@@ -53,13 +50,17 @@
 
 #include "version-vc-key.h"
 
+#ifndef RTEMS_VERSION_CONTROL_KEY
+#define RTEMS_VERSION_CONTROL_KEY ""
+#endif
+
 const char *rtems_version( void )
 {
-#ifdef RTEMS_VERSION_CONTROL_KEY
-  return RTEMS_VERSION "." RTEMS_VERSION_CONTROL_KEY;
-#else
+  if ( rtems_version_release_label_is_valid() ) {
+    return RTEMS_VERSION "." RTEMS_VERSION_CONTROL_KEY;
+  }
+
   return RTEMS_VERSION;
-#endif
 }
 
 int rtems_version_major( void )
@@ -79,22 +80,10 @@ int rtems_version_revision( void )
 
 const char *rtems_version_control_key( void )
 {
-#ifdef RTEMS_VERSION_CONTROL_KEY
   return RTEMS_VERSION_CONTROL_KEY;
-#else
-  return "";
-#endif
 }
 
 const char *rtems_version_release_label( void )
 {
-  /*
-   * RTEMS 5 and 6 only provide the VC key. The VC key header will be
-   * moved to `version-release-label.h` after RTEMS 6
-   */
-#ifdef RTEMS_VERSION_CONTROL_KEY
   return RTEMS_VERSION_CONTROL_KEY;
-#else
-  return "";
-#endif
 }
