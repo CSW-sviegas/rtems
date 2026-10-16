@@ -4,6 +4,7 @@ brief: |
   referenced by ${.:/params[0]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -21,6 +22,10 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
 name: pthread_condattr_init
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_condattr_init()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_condattr_init.html).
@@ -33,10 +38,9 @@ return:
   return: null
   return-values:
   - description: |
-      The successful completion returns zero.
+      The requested operation was successful.
     value: 0
   - description: |
-      Insufficient memory exists to initialize the condition variable attributes
-      object.
-    value: ${/c/errno/if/enomem:/name}
+      The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
 type: interface

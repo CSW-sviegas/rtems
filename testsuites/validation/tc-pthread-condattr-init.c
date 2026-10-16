@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,27 @@
  */
 
 typedef enum {
-  CPthreadReqCondattrInit_Pre_Status_Ok,
-  CPthreadReqCondattrInit_Pre_Status_NA
-} CPthreadReqCondattrInit_Pre_Status;
+  CPthreadReqCondattrInit_Pre_Attr_Valid,
+  CPthreadReqCondattrInit_Pre_Attr_Null,
+  CPthreadReqCondattrInit_Pre_Attr_NA
+} CPthreadReqCondattrInit_Pre_Attr;
 
 typedef enum {
-  CPthreadReqCondattrInit_Post_Status_Ok,
+  CPthreadReqCondattrInit_Post_Status_Zero,
+  CPthreadReqCondattrInit_Post_Status_EINVAL,
   CPthreadReqCondattrInit_Post_Status_NA
 } CPthreadReqCondattrInit_Post_Status;
 
+typedef enum {
+  CPthreadReqCondattrInit_Post_AttrObj_Init,
+  CPthreadReqCondattrInit_Post_AttrObj_NA
+} CPthreadReqCondattrInit_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 1;
 } CPthreadReqCondattrInit_Entry;
 
 /**
@@ -91,6 +102,11 @@ typedef struct {
    * @brief This member contains the return value.
    */
   int retval;
+
+  /**
+   * @brief This member contains the attributes object.
+   */
+  pthread_condattr_t attr_obj;
 
   struct {
     /**
@@ -124,50 +140,106 @@ typedef struct {
 static CPthreadReqCondattrInit_Context
   CPthreadReqCondattrInit_Instance;
 
-static const char * const CPthreadReqCondattrInit_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondattrInit_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondattrInit_PreDesc[] = {
-  CPthreadReqCondattrInit_PreDesc_Status,
+  CPthreadReqCondattrInit_PreDesc_Attr,
   NULL
 };
 
-static void CPthreadReqCondattrInit_Pre_Status_Prepare(
-  CPthreadReqCondattrInit_Pre_Status state
+static void CPthreadReqCondattrInit_Pre_Attr_Prepare(
+  CPthreadReqCondattrInit_Context *ctx,
+  CPthreadReqCondattrInit_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrInit_Pre_Status_Ok: {
+    case CPthreadReqCondattrInit_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an object of type
+       * pthread_condattr_t.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
       break;
     }
 
-    case CPthreadReqCondattrInit_Pre_Status_NA:
+    case CPthreadReqCondattrInit_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqCondattrInit_Pre_Attr_NA:
       break;
   }
 }
 
 static void CPthreadReqCondattrInit_Post_Status_Check(
+  CPthreadReqCondattrInit_Context    *ctx,
   CPthreadReqCondattrInit_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrInit_Post_Status_Ok: {
+    case CPthreadReqCondattrInit_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_condattr_init() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondattrInit_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_condattr_init() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqCondattrInit_Post_Status_NA:
       break;
   }
+}
+
+static void CPthreadReqCondattrInit_Post_AttrObj_Check(
+  CPthreadReqCondattrInit_Context     *ctx,
+  CPthreadReqCondattrInit_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondattrInit_Post_AttrObj_Init: {
+      /*
+       * The condition variable attributes object referenced by `attr` shall be
+       * initialized with the default attributes.
+       */
+      clockid_t clock;
+      int       pshared;
+
+      clock = -1;
+      pshared = -1;
+      T_eq_int( pthread_condattr_getclock( &ctx->attr_obj, &clock ), 0 );
+      T_eq_int( clock, CLOCK_REALTIME );
+      T_eq_int( pthread_condattr_getpshared( &ctx->attr_obj, &pshared ), 0 );
+      T_eq_int( pshared, PTHREAD_PROCESS_PRIVATE );
+      T_eq_int( pthread_condattr_destroy( &ctx->attr_obj ), 0 );
+      break;
+    }
+
+    case CPthreadReqCondattrInit_Post_AttrObj_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondattrInit_Prepare(
+  CPthreadReqCondattrInit_Context *ctx
+)
+{
+  memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
 }
 
 static void CPthreadReqCondattrInit_Action(
@@ -179,12 +251,15 @@ static void CPthreadReqCondattrInit_Action(
 
 static const CPthreadReqCondattrInit_Entry
 CPthreadReqCondattrInit_Entries[] = {
-  { 0, 0, CPthreadReqCondattrInit_Post_Status_Ok }
+  { 0, 0, CPthreadReqCondattrInit_Post_Status_Zero,
+    CPthreadReqCondattrInit_Post_AttrObj_Init },
+  { 0, 0, CPthreadReqCondattrInit_Post_Status_EINVAL,
+    CPthreadReqCondattrInit_Post_AttrObj_NA }
 };
 
 static const uint8_t
 CPthreadReqCondattrInit_Map[] = {
-  0
+  0, 1
 };
 
 static size_t CPthreadReqCondattrInit_Scope( void *arg, char *buf, size_t n )
@@ -230,9 +305,13 @@ static void CPthreadReqCondattrInit_TestVariant(
   CPthreadReqCondattrInit_Context *ctx
 )
 {
-  CPthreadReqCondattrInit_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrInit_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CPthreadReqCondattrInit_Action( ctx );
-  CPthreadReqCondattrInit_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqCondattrInit_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqCondattrInit_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
+  );
 }
 
 /**
@@ -250,11 +329,12 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrInit_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrInit_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrInit_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrInit_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     ctx->Map.entry = CPthreadReqCondattrInit_PopEntry( ctx );
+    CPthreadReqCondattrInit_Prepare( ctx );
     CPthreadReqCondattrInit_TestVariant( ctx );
   }
 }
