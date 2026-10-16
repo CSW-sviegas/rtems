@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,11 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
+#include <time.h>
+#include <rtems/posix/condimpl.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +68,45 @@
  */
 
 typedef enum {
-  CPthreadReqCondInit_Pre_Status_Ok,
-  CPthreadReqCondInit_Pre_Status_NA
-} CPthreadReqCondInit_Pre_Status;
+  CPthreadReqCondInit_Pre_Cond_Valid,
+  CPthreadReqCondInit_Pre_Cond_Null,
+  CPthreadReqCondInit_Pre_Cond_NA
+} CPthreadReqCondInit_Pre_Cond;
 
 typedef enum {
-  CPthreadReqCondInit_Post_Status_Ok,
+  CPthreadReqCondInit_Pre_Attr_Default,
+  CPthreadReqCondInit_Pre_Attr_Valid,
+  CPthreadReqCondInit_Pre_Attr_Monotonic,
+  CPthreadReqCondInit_Pre_Attr_Uninitialized,
+  CPthreadReqCondInit_Pre_Attr_InvalidPshared,
+  CPthreadReqCondInit_Pre_Attr_NA
+} CPthreadReqCondInit_Pre_Attr;
+
+typedef enum {
+  CPthreadReqCondInit_Post_Status_Zero,
+  CPthreadReqCondInit_Post_Status_EINVAL,
   CPthreadReqCondInit_Post_Status_NA
 } CPthreadReqCondInit_Post_Status;
 
+typedef enum {
+  CPthreadReqCondInit_Post_Clock_Realtime,
+  CPthreadReqCondInit_Post_Clock_Monotonic,
+  CPthreadReqCondInit_Post_Clock_NA
+} CPthreadReqCondInit_Post_Clock;
+
+typedef enum {
+  CPthreadReqCondInit_Post_CondObj_Initialized,
+  CPthreadReqCondInit_Post_CondObj_Nop,
+  CPthreadReqCondInit_Post_CondObj_NA
+} CPthreadReqCondInit_Post_CondObj;
+
 typedef struct {
-  uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint16_t Skip : 1;
+  uint16_t Pre_Cond_NA : 1;
+  uint16_t Pre_Attr_NA : 1;
+  uint16_t Post_Status : 2;
+  uint16_t Post_Clock : 2;
+  uint16_t Post_CondObj : 2;
 } CPthreadReqCondInit_Entry;
 
 /**
@@ -97,11 +128,27 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the condition variable object.
+   */
+  pthread_cond_t cond_obj;
+
+  /**
+   * @brief This member contains the reference copy of the condition variable
+   *   object.
+   */
+  pthread_cond_t cond_ref;
+
+  /**
+   * @brief This member contains the attributes object.
+   */
+  pthread_condattr_t attr_obj;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,50 +176,214 @@ typedef struct {
 static CPthreadReqCondInit_Context
   CPthreadReqCondInit_Instance;
 
-static const char * const CPthreadReqCondInit_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondInit_PreDesc_Cond[] = {
+  "Valid",
+  "Null",
+  "NA"
+};
+
+static const char * const CPthreadReqCondInit_PreDesc_Attr[] = {
+  "Default",
+  "Valid",
+  "Monotonic",
+  "Uninitialized",
+  "InvalidPshared",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondInit_PreDesc[] = {
-  CPthreadReqCondInit_PreDesc_Status,
+  CPthreadReqCondInit_PreDesc_Cond,
+  CPthreadReqCondInit_PreDesc_Attr,
   NULL
 };
 
-static void CPthreadReqCondInit_Pre_Status_Prepare(
-  CPthreadReqCondInit_Pre_Status state
+static void CPthreadReqCondInit_Pre_Cond_Prepare(
+  CPthreadReqCondInit_Context *ctx,
+  CPthreadReqCondInit_Pre_Cond state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondInit_Pre_Status_Ok: {
+    case CPthreadReqCondInit_Pre_Cond_Valid: {
       /*
-       * TODO
+       * While the `cond` parameter references an object of type
+       * pthread_cond_t.
        */
-      /* TODOD */
+      ctx->cond = &ctx->cond_obj;
       break;
     }
 
-    case CPthreadReqCondInit_Pre_Status_NA:
+    case CPthreadReqCondInit_Pre_Cond_Null: {
+      /*
+       * While the `cond` parameter is NULL.
+       */
+      ctx->cond = NULL;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Cond_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondInit_Pre_Attr_Prepare(
+  CPthreadReqCondInit_Context *ctx,
+  CPthreadReqCondInit_Pre_Attr state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondInit_Pre_Attr_Default: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Attr_Valid: {
+      /*
+       * While the condition variable attributes object referenced by `attr` is
+       * initialized.
+       */
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      ctx->attr = &ctx->attr_obj;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Attr_Monotonic: {
+      /*
+       * While the condition variable clock attribute of the condition variable
+       * attributes object referenced by `attr` is CLOCK_MONOTONIC.
+       */
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      T_eq_int( pthread_condattr_setclock( &ctx->attr_obj, CLOCK_MONOTONIC ), 0 );
+      ctx->attr = &ctx->attr_obj;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Attr_Uninitialized: {
+      /*
+       * While the condition variable attributes object referenced by `attr` is
+       * not initialized.
+       */
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      ctx->attr = &ctx->attr_obj;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Attr_InvalidPshared: {
+      /*
+       * While the process-shared attribute of the condition variable
+       * attributes object referenced by `attr` is invalid.
+       */
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      ctx->attr_obj.process_shared = -1;
+      ctx->attr = &ctx->attr_obj;
+      break;
+    }
+
+    case CPthreadReqCondInit_Pre_Attr_NA:
       break;
   }
 }
 
 static void CPthreadReqCondInit_Post_Status_Check(
+  CPthreadReqCondInit_Context    *ctx,
   CPthreadReqCondInit_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondInit_Post_Status_Ok: {
+    case CPthreadReqCondInit_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_cond_init() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondInit_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_cond_init() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqCondInit_Post_Status_NA:
       break;
   }
+}
+
+static void CPthreadReqCondInit_Post_Clock_Check(
+  CPthreadReqCondInit_Context   *ctx,
+  CPthreadReqCondInit_Post_Clock state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondInit_Post_Clock_Realtime: {
+      /*
+       * The condition variable clock attribute of the condition variable
+       * object referenced by `cond` shall be CLOCK_REALTIME.
+       */
+      T_eq_int(
+        _POSIX_Condition_variables_Get_clock( ctx->cond_obj._flags ),
+        CLOCK_REALTIME
+      );
+      break;
+    }
+
+    case CPthreadReqCondInit_Post_Clock_Monotonic: {
+      /*
+       * The condition variable clock attribute of the condition variable
+       * object referenced by `cond` shall be CLOCK_MONOTONIC.
+       */
+      T_eq_int(
+        _POSIX_Condition_variables_Get_clock( ctx->cond_obj._flags ),
+        CLOCK_MONOTONIC
+      );
+      break;
+    }
+
+    case CPthreadReqCondInit_Post_Clock_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondInit_Post_CondObj_Check(
+  CPthreadReqCondInit_Context     *ctx,
+  CPthreadReqCondInit_Post_CondObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondInit_Post_CondObj_Initialized: {
+      /*
+       * The condition variable object referenced by `cond` shall be
+       * initialized.
+       */
+      T_eq_int( pthread_cond_destroy( &ctx->cond_obj ), 0 );
+      break;
+    }
+
+    case CPthreadReqCondInit_Post_CondObj_Nop: {
+      /*
+       * The condition variable object referenced by `cond` shall not be
+       * modified.
+       */
+      T_eq_int(
+        memcmp( &ctx->cond_obj, &ctx->cond_ref, sizeof( ctx->cond_obj ) ),
+        0
+      );
+      break;
+    }
+
+    case CPthreadReqCondInit_Post_CondObj_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondInit_Prepare( CPthreadReqCondInit_Context *ctx )
+{
+  memset( &ctx->cond_obj, 0xa5, sizeof( ctx->cond_obj ) );
+  memcpy( &ctx->cond_ref, &ctx->cond_obj, sizeof( ctx->cond_ref ) );
 }
 
 static void CPthreadReqCondInit_Action( CPthreadReqCondInit_Context *ctx )
@@ -182,12 +393,21 @@ static void CPthreadReqCondInit_Action( CPthreadReqCondInit_Context *ctx )
 
 static const CPthreadReqCondInit_Entry
 CPthreadReqCondInit_Entries[] = {
-  { 0, 0, CPthreadReqCondInit_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqCondInit_Post_Status_EINVAL,
+    CPthreadReqCondInit_Post_Clock_NA, CPthreadReqCondInit_Post_CondObj_NA },
+  { 0, 0, 0, CPthreadReqCondInit_Post_Status_Zero,
+    CPthreadReqCondInit_Post_Clock_Realtime,
+    CPthreadReqCondInit_Post_CondObj_Initialized },
+  { 0, 0, 0, CPthreadReqCondInit_Post_Status_EINVAL,
+    CPthreadReqCondInit_Post_Clock_NA, CPthreadReqCondInit_Post_CondObj_Nop },
+  { 0, 0, 0, CPthreadReqCondInit_Post_Status_Zero,
+    CPthreadReqCondInit_Post_Clock_Monotonic,
+    CPthreadReqCondInit_Post_CondObj_Initialized }
 };
 
 static const uint8_t
 CPthreadReqCondInit_Map[] = {
-  0
+  1, 1, 3, 2, 2, 0, 0, 0, 0, 0
 };
 
 static size_t CPthreadReqCondInit_Scope( void *arg, char *buf, size_t n )
@@ -226,9 +446,12 @@ static inline CPthreadReqCondInit_Entry CPthreadReqCondInit_PopEntry(
 
 static void CPthreadReqCondInit_TestVariant( CPthreadReqCondInit_Context *ctx )
 {
-  CPthreadReqCondInit_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondInit_Pre_Cond_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondInit_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqCondInit_Action( ctx );
-  CPthreadReqCondInit_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqCondInit_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqCondInit_Post_Clock_Check( ctx, ctx->Map.entry.Post_Clock );
+  CPthreadReqCondInit_Post_CondObj_Check( ctx, ctx->Map.entry.Post_CondObj );
 }
 
 /**
@@ -243,12 +466,19 @@ T_TEST_CASE_FIXTURE( CPthreadReqCondInit, &CPthreadReqCondInit_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondInit_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondInit_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqCondInit_Pre_Cond_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqCondInit_Pre_Cond_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqCondInit_PopEntry( ctx );
-    CPthreadReqCondInit_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqCondInit_Pre_Attr_Default;
+      ctx->Map.pcs[ 1 ] < CPthreadReqCondInit_Pre_Attr_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqCondInit_PopEntry( ctx );
+      CPthreadReqCondInit_Prepare( ctx );
+      CPthreadReqCondInit_TestVariant( ctx );
+    }
   }
 }
 
