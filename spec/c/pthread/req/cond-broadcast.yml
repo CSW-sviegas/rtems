@@ -1,63 +1,227 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/cond-broadcast
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/cond-broadcast:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/cond-broadcast:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Threads
+  states:
+  - name: Unblocked
+    test-code: |
+      T_eq_u32( ctx->woken, 2 );
+    text: |
+      All threads blocked on the condition variable shall be unblocked.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->woken, 0 );
+    text: |
+      No thread shall be unblocked.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Cond
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->cond = &ctx->cond_obj;
+      T_eq_int( pthread_cond_init( ctx->cond, NULL ), 0 );
     text: |
-      TODO
+      While the ${../if/cond-broadcast:/params[0]/name} parameter references an
+      initialized condition variable.
+  - name: Zeroed
+    test-code: |
+      ctx->cond = &ctx->cond_obj;
+      memset( &ctx->cond_obj, 0, sizeof( ctx->cond_obj ) );
+    text: |
+      While the ${../if/cond-broadcast:/params[0]/name} parameter references a
+      condition variable object filled with zero bytes.
+  - name: 'Null'
+    test-code: |
+      ctx->cond = NULL;
+    text: |
+      While the ${../if/cond-broadcast:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->cond = &ctx->cond_obj;
+      memset( &ctx->cond_obj, 0xff, sizeof( ctx->cond_obj ) );
+    text: |
+      While the ${../if/cond-broadcast:/params[0]/name} parameter references an
+      invalid condition variable.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: Some
+    test-code: |
+      StartWorkers( ctx );
+    text: |
+      While threads are blocked on the condition variable.
+  - name: None
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While no thread is blocked on the condition variable.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
-skip-reasons: {}
-test-action: ctx->retval = pthread_cond_broadcast( ctx->cond );
+skip-reasons:
+  NoWaiters: |
+    Threads can only be blocked on an initialized condition variable which
+    was set up by the test.
+test-action: |
+  ctx->retval = pthread_cond_broadcast( ctx->cond );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  size_t i;
+
+  for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->worker_id ); ++i ) {
+    if ( ctx->worker_id[ i ] != 0 ) {
+      DeleteTask( ctx->worker_id[ i ] );
+    }
+  }
+
+  (void) pthread_cond_destroy( &ctx->cond_obj );
 test-context:
-- brief: This member specifies the ${../if/cond-broadcast:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/cond-broadcast:/params[0]/name}
+    parameter value.
   description: null
   member: pthread_cond_t *cond
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: This member contains the condition variable.
+  description: null
+  member: pthread_cond_t cond_obj
+- brief: This member contains the mutex used by the workers.
+  description: null
+  member: pthread_mutex_t mutex
+- brief: This member contains the worker identifiers.
+  description: null
+  member: rtems_id worker_id[ 2 ]
+- brief: |
+    This member contains the count of workers which returned from the wait.
+  description: null
+  member: uint32_t woken
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
-test-local-includes: []
-test-prepare: null
-test-setup: null
+- rtems.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->woken = 0;
+  ctx->worker_id[ 0 ] = 0;
+  ctx->worker_id[ 1 ] = 0;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    T_eq_int( pthread_mutex_init( &ctx->mutex, NULL ), 0 );
+  description: null
 test-stop: null
-test-support: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    T_eq_int( pthread_mutex_lock( &ctx->mutex ), 0 );
+    T_eq_int( pthread_cond_wait( &ctx->cond_obj, &ctx->mutex ), 0 );
+    ++ctx->woken;
+    T_eq_int( pthread_mutex_unlock( &ctx->mutex ), 0 );
+
+    SuspendSelf();
+  }
+
+  static void StartWorkers( Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->worker_id ); ++i ) {
+      ctx->worker_id[ i ] = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id[ i ], Worker, ctx );
+    }
+  }
 test-target: testsuites/validation/tc-pthread-cond-broadcast.c
-test-teardown: null
-text: ${.:text-template}
+test-teardown:
+  brief: null
+  code: |
+    (void) pthread_mutex_destroy( &ctx->mutex );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status: Zero
+    Threads:
+    - if:
+        pre-conditions:
+          Waiters: Some
+      then: Unblocked
+    - else: Nop
   pre-conditions:
-    Status: all
+    Cond:
+    - Valid
+    Waiters: all
+- enabled-by: true
+  post-conditions: NoWaiters
+  pre-conditions:
+    Cond:
+    - Zeroed
+    - 'Null'
+    - Invalid
+    Waiters:
+    - Some
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Cond:
+          - 'Null'
+          - Invalid
+      then: EINVAL
+    - else: Zero
+    Threads: Nop
+  pre-conditions:
+    Cond:
+    - Zeroed
+    - 'Null'
+    - Invalid
+    Waiters:
+    - None
 type: requirement
