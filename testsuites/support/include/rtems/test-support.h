@@ -1623,6 +1623,17 @@ unsigned int CallCounterGet( const CallCounter *counter );
  */
 extern CallCounter AllocatorLockCounter;
 
+/**
+ * @brief Sets the release label which rtems_version_release_label() returns.
+ *
+ * A label of NULL makes rtems_version_release_label() return the release
+ * label of the build.  The suite of the caller shall carry the link flag
+ * `-Wl,--wrap=rtems_version_release_label`.
+ *
+ * @param label is the release label, or NULL.
+ */
+void SetReleaseLabel( const char *label );
+
 struct Per_CPU_Control;
 
 /**
