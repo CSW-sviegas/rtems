@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021, 2023 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -181,6 +181,7 @@ test-setup:
 
     rtems_interrupt_entry_initialize( &ctx->entry, EntryRoutine, ctx, "Info" );
     test_case_active = true;
+    SetDefaultInterruptHandler( DefaultHandler, ctx );
     SetFatalHandler( Fatal, ctx );
   description: null
 test-stop: null
@@ -227,31 +228,25 @@ test-support: |
 
   void __real_bsp_interrupt_handler_default( rtems_vector_number vector );
 
-  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector );
-
-  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector )
+  static void DefaultHandler( void *arg, rtems_vector_number vector )
   {
-    if ( test_case_active ) {
-      Context              *ctx;
-      rtems_interrupt_level level;
+    Context              *ctx;
+    rtems_interrupt_level level;
 
-      ctx = T_fixture_context();
-      ProcessInterrupt( ctx );
-      rtems_interrupt_local_disable( level );
-      rtems_interrupt_local_enable( level );
+    ctx = arg;
+    ProcessInterrupt( ctx );
+    rtems_interrupt_local_disable( level );
+    rtems_interrupt_local_enable( level );
 
-      if ( setjmp( ctx->before_call ) == 0 ) {
-        __real_bsp_interrupt_handler_default( vector );
-      } else {
-        /*
-         * _Terminate() disabled interrupts before it called the fatal
-         * handler.  On ARMv7-M, the exception return does not restore
-         * BASEPRI.
-         */
-        rtems_interrupt_local_enable( level );
-      }
-    } else {
+    if ( setjmp( ctx->before_call ) == 0 ) {
       __real_bsp_interrupt_handler_default( vector );
+    } else {
+      /*
+       * _Terminate() disabled interrupts before it called the fatal
+       * handler.  On ARMv7-M, the exception return does not restore
+       * BASEPRI.
+       */
+      rtems_interrupt_local_enable( level );
     }
   }
 
@@ -277,6 +272,7 @@ test-teardown:
   brief: null
   code: |
     SetFatalHandler( NULL, NULL );
+    SetDefaultInterruptHandler( NULL, NULL );
     test_case_active = false;
 
     if ( ctx->first != NULL ) {

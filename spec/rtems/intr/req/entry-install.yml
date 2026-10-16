@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -69,47 +69,21 @@ post-conditions:
       ${../../status/if/too-many:/name}.
   test-epilogue: null
   test-prologue: null
-- name: Enable
+- name: Enabled
   states:
   - name: Nop
     test-code: |
-      if ( ctx->handler_counter == 0 ) {
-        T_eq( ctx->enabled_before, ctx->enabled_after );
-      }
+      T_eq( ctx->enabled_after, ctx->enabled_before );
     text: |
       The enabled status of the interrupt vector specified by
       ${../if/entry-install:/params[0]/name} shall not be modified by the
       ${../if/entry-install:/name} call.
   - name: 'Yes'
     test-code: |
-      T_true( ctx->enabled_after || ctx->handler_counter > 3 );
+      T_true( ctx->enabled_after );
     text: |
       The interrupt vector specified by ${../if/entry-install:/params[0]/name} shall
       be enabled.
-  - name: Maybe
-    test-code: |
-      /*
-       * Interrupt vectors which cannot be enabled are not selected as a
-       * testable interrupt vector by GetTestableInterruptVector(), so this
-       * path is not validated by this test.  See also comment for
-       * `CanEnable` pre-condition state `Yes`.
-       */
-      T_true( ctx->enabled_after || ctx->handler_counter > 3 );
-    text: |
-      The interrupt vector specified by ${../if/entry-remove:/params[0]/name} may be
-      enabled.
-  - name: 'No'
-    test-code: |
-      /*
-       * Interrupt vectors which cannot be enabled are not selected as a
-       * testable interrupt vector by GetTestableInterruptVector(), so this
-       * path is not validated by this test.  See also comment for
-       * `CanEnable` pre-condition state `Yes`.
-       */
-      T_true( ctx->enabled_after || ctx->handler_counter > 3 );
-    text: |
-      The interrupt vector specified by ${../if/entry-remove:/params[0]/name} shall
-      not be enabled.
   test-epilogue: null
   test-prologue: null
 - name: Installed
@@ -151,30 +125,46 @@ post-conditions:
       ctx
     );
     T_rsc_success( sc );
+- name: Dispatch
+  states:
+  - name: InOrder
+    test-code: |
+      uint32_t counter;
 
-    if ( ctx->status == RTEMS_SUCCESSFUL ) {
-      if ( ctx->enabled_after ) {
-        uint32_t counter;
+      counter = 1;
 
-        counter = 1;
-
-        if ( ctx->other_installed ) {
-          T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
-          ++counter;
-        }
-
-        if ( ctx->third_installed ) {
-          T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
-          ++counter;
-        }
-
-        T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
-      } else {
-        T_eq_u32( ctx->counter_by_entry[ 0 ], 0 );
-        T_eq_u32( ctx->counter_by_entry[ 1 ], 0 );
-        T_eq_u32( ctx->counter_by_entry[ 2 ], 0 );
+      if ( ctx->other_installed ) {
+        T_eq_u32( ctx->counter_by_entry[ 1 ], counter );
+        ++counter;
       }
-    }
+
+      if ( ctx->third_installed ) {
+        T_eq_u32( ctx->counter_by_entry[ 2 ], counter );
+        ++counter;
+      }
+
+      T_eq_u32( ctx->counter_by_entry[ 0 ], counter );
+    text: |
+      The ${/glossary/interruptservice:/term} shall dispatch each entry installed at
+      the interrupt vector specified by ${../if/entry-install:/params[0]/name} once
+      in the order of installation.
+  - name: 'No'
+    test-code: |
+      T_eq_u32( ctx->counter_by_entry[ 0 ], 0 );
+      T_eq_u32( ctx->counter_by_entry[ 1 ], 0 );
+      T_eq_u32( ctx->counter_by_entry[ 2 ], 0 );
+    text: |
+      The ${/glossary/interruptservice:/term} shall dispatch no entry installed at
+      the interrupt vector specified by ${../if/entry-install:/params[0]/name}.
+  - name: Device
+    test-code: |
+      /* The test cannot raise the interrupt vector. */
+    text: |
+      The ${/glossary/interruptservice:/term} shall dispatch the entries installed at
+      the interrupt vector specified by ${../if/entry-install:/params[0]/name} as the
+      device which drives the interrupt vector requests it.
+  test-epilogue: null
+  test-prologue: null
 pre-conditions:
 - name: Vector
   states:
@@ -198,36 +188,37 @@ pre-conditions:
     test-code: |
       ctx->options = RTEMS_INTERRUPT_UNIQUE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicate that an unique entry
-      shall be installed.
+      While the ${../if/entry-install:/params[1]/name} parameter has the
+      ${../if/option-unique:/name} option set.
   - name: Shared
     test-code: |
       ctx->options = RTEMS_INTERRUPT_SHARED;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicate that a shared entry
-      shall be installed.
+      While the ${../if/entry-install:/params[1]/name} parameter has the
+      ${../if/option-unique:/name} option and the ${../if/option-replace:/name}
+      option cleared.
   - name: Replace
     test-code: |
       ctx->options = RTEMS_INTERRUPT_REPLACE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicate that the entry
-      handler routine shall be replaced.
+      While the ${../if/entry-install:/params[1]/name} parameter has the
+      ${../if/option-replace:/name} option set.
   test-epilogue: null
   test-prologue: null
-- name: Enable
+- name: EnableOption
   states:
-  - name: 'Yes'
+  - name: Enable
     test-code: |
       ctx->options |= RTEMS_INTERRUPT_ENABLE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicate that the interrupt
-      vector shall be enabled.
-  - name: 'No'
+      While the ${../if/entry-install:/params[1]/name} parameter has the
+      ${../if/option-no-enable:/name} option cleared.
+  - name: NoEnable
     test-code: |
       ctx->options |= RTEMS_INTERRUPT_NO_ENABLE;
     text: |
-      While the ${../if/entry-install:/params[1]/name} indicate that the interrupt
-      vector shall be not enabled.
+      While the ${../if/entry-install:/params[1]/name} parameter has the
+      ${../if/option-no-enable:/name} option set.
   test-epilogue: null
   test-prologue: null
 - name: Entry
@@ -305,28 +296,42 @@ pre-conditions:
   states:
   - name: 'Yes'
     test-code: |
-      /*
-       * This pre-condition depends on the attributes of an interrupt vector.
-       * For the validation test of ${../if/entry-install:/name} a testable
-       * interrupt vector is determined by GetTestableInterruptVector().  The
-       * implementation of ${../if/entry-install:/name} uses
-       * ${../if/vector-enable:/name} which is validated separately in detail.
-       */
+      if ( !ctx->can_enable ) {
+        ${.:skip}
+      }
     text: |
-      While the interrupt vector associated with the
-      ${../if/entry-remove:/params[0]/name} parameter can be enabled.
-  - name: Maybe
-    test-code: |
-      /* See comment for `Yes` state */
-    text: |
-      While the interrupt vector associated with the
-      ${../if/entry-remove:/params[0]/name} parameter may be enabled.
+      While ${../if/vector-enable:/name} enables the interrupt vector associated with
+      the ${../if/entry-install:/params[0]/name} parameter.
   - name: 'No'
     test-code: |
-      /* See comment for `Yes` state */
+      if ( ctx->can_enable ) {
+        ${.:skip}
+      }
     text: |
-      While the interrupt vector associated with the
-      ${../if/entry-remove:/params[0]/name} parameter cannot be enabled.
+      While ${../if/vector-enable:/name} does not enable the interrupt vector
+      associated with the ${../if/entry-install:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: CanRaise
+  states:
+  - name: 'Yes'
+    test-code: |
+      if ( !ctx->attributes->can_raise ) {
+        ${.:skip}
+      }
+    text: |
+      While the ${../if/attributes:/definition[5]/default/name} member of the
+      ${../if/attributes:/name} object of the interrupt vector associated with the
+      ${../if/entry-install:/params[0]/name} parameter is true.
+  - name: 'No'
+    test-code: |
+      if ( ctx->attributes->can_raise ) {
+        ${.:skip}
+      }
+    text: |
+      While the ${../if/attributes:/definition[5]/default/name} member of the
+      ${../if/attributes:/name} object of the interrupt vector associated with the
+      ${../if/entry-install:/params[0]/name} parameter is false.
   test-epilogue: null
   test-prologue: null
 - name: Installed
@@ -335,7 +340,7 @@ pre-conditions:
     test-code: |
       /* Nothing to do */
     text: |
-      While the no entry is installed at the interrupt vector specified by the
+      While no entry is installed at the interrupt vector specified by the
       ${../if/entry-install:/params[0]/name} parameter.
   - name: Unique
     test-code: |
@@ -396,7 +401,68 @@ pre-conditions:
       vector specified by the ${../if/entry-install:/params[0]/name} parameter.
   test-epilogue: null
   test-prologue: null
-rationale: null
+- name: IsEnabled
+  states:
+  - name: 'Yes'
+    test-code: |
+      if ( !SetEnabled( ctx, true ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the interrupt vector associated with the
+      ${../if/entry-install:/params[0]/name} parameter is enabled.
+  - name: 'No'
+    test-code: |
+      if ( !SetEnabled( ctx, false ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the interrupt vector associated with the
+      ${../if/entry-install:/params[0]/name} parameter is disabled.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Init covers the initialization state of the interrupt service, 2
+  states.
+
+  Dimension ISR covers the execution context of the caller, 2 states.
+
+  Dimension CanEnable covers the effect of an enable on the interrupt vector, 2
+  states.
+
+  Dimension CanRaise covers the raise attribute of the interrupt vector, 2
+  states.
+
+  Dimension Installed covers the entries installed at the interrupt vector, 6
+  states.
+
+  Dimension IsEnabled covers the enabled status of the interrupt vector before
+  the call, 2 states.
+
+  The interrupt vector of a test run selects one state of CanEnable and one state
+  of CanRaise. The other states skip. Where the attributes state that an enable
+  may take effect, the test setup enables the interrupt vector once and reads the
+  enabled status back. The vector of a test run selects the reachable state of
+  IsEnabled. The arrangement of IsEnabled follows the arrangement of Installed,
+  because an installed entry enables the interrupt vector.
+
+  The test action raises the interrupt vector after a successful call. The
+  dispatch of the entries observes the installation order. Where the test cannot
+  raise the interrupt vector, the device decides the dispatch. The check of the
+  state No of Dispatch reads the counters of the entries. Only a raise changes
+  them, so only a test run with the state Yes of CanRaise verifies the state No.
+  Whether an interrupt which the test raised while the interrupt vector was
+  disabled is pending after a later enable depends on the interrupt controller.
+  The test does not check it.
+
+  The validation test of the interrupt manager runs this item for each interrupt
+  vector which is maskable and which carries no entry. The test skips an
+  interrupt vector which it can enable but cannot disable. It skips an interrupt
+  vector which shows an active source of its own. An interrupt which no entry
+  handles counts as a failure of the test run.
+
+  The vehicles of the package reach no interrupt vector which an enable leaves
+  disabled. There, the state No of CanEnable skips.
 requirement-type: functional
 skip-reasons: {}
 test-action: |
@@ -408,6 +474,19 @@ test-action: |
 test-brief: null
 test-cleanup: |
   rtems_status_code sc;
+
+  if ( ctx->raised ) {
+    if ( ctx->attributes->can_clear ) {
+      (void) ClearSoftwareInterrupt( ctx->test_vector );
+    } else {
+      /*
+       * The interrupt controller decides whether the enable dispatches the
+       * raised interrupt.  A dispatch through the installed entries
+       * acknowledges it.
+       */
+      (void) rtems_interrupt_vector_enable( ctx->test_vector );
+    }
+  }
 
   if ( ctx->third_installed ) {
     sc = rtems_interrupt_entry_remove( ctx->test_vector, &ctx->third_entry );
@@ -440,22 +519,6 @@ test-context:
   member: |
     uint32_t counter_by_entry[ 3 ]
 - brief: |
-    This member provides the vector number of a testable interrupt vector.
-  description: null
-  member: |
-    rtems_vector_number test_vector
-- brief: |
-    If this member is true, then the testable interrupt vector was enabled at the
-    test case begin.
-  description: null
-  member: |
-    bool test_vector_was_enabled
-- brief: |
-    This member provides the attributes of the testable interrupt vector.
-  description: null
-  member: |
-    rtems_interrupt_attributes attributes
-- brief: |
     If this member is true, then the service shall be initialized.
   description: null
   member: |
@@ -478,6 +541,22 @@ test-context:
   description: null
   member: |
     bool enabled_after
+- brief: |
+    If this member is true, then the test action raised the interrupt vector.
+  description: null
+  member: |
+    bool raised
+- brief: |
+    If this member is true, then ${../if/vector-enable:/name} enables the interrupt
+    vector of the test run.
+  description: null
+  member: |
+    bool can_enable
+- brief: |
+    This member provides the count of interrupts which no entry handled.
+  description: null
+  member: |
+    uint32_t spurious_counter
 - brief: |
     This member provides the count of visited entries.
   description: null
@@ -515,19 +594,19 @@ test-context:
   member: |
     rtems_interrupt_entry entry_obj
 - brief: |
-    This member specifies if the ${../if/entry-install:/params[0]/name} parameter
+    This member specifies the ${../if/entry-install:/params[0]/name} parameter
     value.
   description: null
   member: |
     rtems_vector_number vector
 - brief: |
-    This member specifies if the ${../if/entry-install:/params[1]/name} parameter
+    This member specifies the ${../if/entry-install:/params[1]/name} parameter
     value.
   description: null
   member: |
     rtems_option options
 - brief: |
-    This member specifies if the ${../if/entry-install:/params[2]/name} parameter
+    This member specifies the ${../if/entry-install:/params[2]/name} parameter
     value.
   description: null
   member: |
@@ -538,13 +617,42 @@ test-context:
   member: |
     rtems_status_code status
 test-context-support: null
-test-description: null
-test-header: null
+test-description: |
+  The test runs for one interrupt vector. The attributes of the interrupt vector
+  decide which states of CanEnable and CanRaise the test run reaches. A read back
+  of the enabled status after an arrangement decides which state of IsEnabled the
+  test run reaches. The test action raises the interrupt vector after a
+  successful call, and the entries count their dispatch.
+test-header:
+  code: null
+  freestanding: false
+  includes:
+  - rtems.h
+  local-includes: []
+  run-params:
+  - description: |
+      is the interrupt vector number.
+    dir: in
+    name: test_vector
+    specifier: ${../if/vector-number:/name} ${.:name}
+  - description: |
+      is the attribute set of the interrupt vector.
+    dir: in
+    name: attributes
+    specifier: const ${../if/attributes:/name} *${.:name}
+  - description: |
+      is true, if the interrupt vector was enabled before the test run, otherwise
+      false.
+    dir: in
+    name: test_vector_was_enabled
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-intr-entry-install.h
 test-includes:
 - rtems/irq-extension.h
 - bsp/irq-generic.h
 test-local-includes:
 - tx-support.h
+- tr-intr-entry-install.h
 test-prepare: |
   size_t i;
 
@@ -555,21 +663,23 @@ test-prepare: |
   ctx->handler_counter = 0;
   ctx->other_installed = false;
   ctx->third_installed = false;
+  ctx->raised = false;
+
+  /* The cleanup also runs for a variant which skips before the action. */
+  ctx->status = RTEMS_NOT_DEFINED;
+  ClearTestVector( ctx );
 test-setup:
   brief: null
   code: |
-    rtems_interrupt_attributes required = { .can_raise = true };
-    rtems_status_code          sc;
-
     ctx->initialized_during_setup = bsp_interrupt_is_initialized();
-    ctx->test_vector = GetTestableInterruptVector( &required );
-    ctx->test_vector_was_enabled = false;
-    (void) rtems_interrupt_vector_is_enabled(
-      ctx->test_vector,
-      &ctx->test_vector_was_enabled
-    );
-    sc = rtems_interrupt_get_attributes( ctx->test_vector, &ctx->attributes );
-    T_rsc_success( sc );
+    ctx->spurious_counter = 0;
+    SetDefaultInterruptHandler( Spurious, ctx );
+    ctx->can_enable = ctx->attributes->can_enable;
+
+    if ( !ctx->can_enable && ctx->attributes->maybe_enable ) {
+      ctx->can_enable = SetEnabled( ctx, true );
+      (void) rtems_interrupt_vector_disable( ctx->test_vector );
+    }
   description: null
 test-stop: null
 test-support: |
@@ -614,17 +724,56 @@ test-support: |
     ctx->other_installed = true;
   }
 
+  static void Spurious( void *arg, rtems_vector_number vector )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ++ctx->spurious_counter;
+    (void) rtems_interrupt_vector_disable( vector );
+  }
+
+  static void ClearTestVector( const Context *ctx )
+  {
+    if ( ctx->attributes->can_clear ) {
+      (void) ClearSoftwareInterrupt( ctx->test_vector );
+    }
+  }
+
+  static bool SetEnabled( Context *ctx, bool enable )
+  {
+    rtems_status_code sc;
+    bool              enabled;
+
+    if ( enable ) {
+      ClearTestVector( ctx );
+      (void) rtems_interrupt_vector_enable( ctx->test_vector );
+    } else {
+      (void) rtems_interrupt_vector_disable( ctx->test_vector );
+    }
+
+    enabled = !enable;
+    sc = rtems_interrupt_vector_is_enabled( ctx->test_vector, &enabled );
+    T_rsc_success( sc );
+
+    return enabled == enable;
+  }
+
   static void Routine( Context *ctx, uint32_t counter )
   {
     rtems_status_code sc;
 
     ctx->handler_counter = counter;
 
-    if ( !ctx->attributes.cleared_by_acknowledge ) {
+    if ( !ctx->attributes->cleared_by_acknowledge ) {
       sc = ClearSoftwareInterrupt( ctx->test_vector );
       T_rsc_success( sc );
     }
 
+    /*
+     * At most three entries are installed.  A further call is an interrupt
+     * which the clear did not stop.
+     */
     if ( counter > 3 ) {
       sc = rtems_interrupt_vector_disable( ctx->test_vector );
       T_rsc_success( sc );
@@ -729,9 +878,10 @@ test-support: |
     );
     T_rsc_success( sc );
 
-    if ( ctx->status == RTEMS_SUCCESSFUL ) {
+    if ( ctx->status == RTEMS_SUCCESSFUL && ctx->attributes->can_raise ) {
       sc = RaiseSoftwareInterrupt( ctx->test_vector );
       T_rsc_success( sc );
+      ctx->raised = true;
     }
   }
 
@@ -768,13 +918,18 @@ test-support: |
 
     ctx->visited_entries = visited_entries + 1;
   }
-test-target: testsuites/validation/tc-intr-entry-install.c
+test-target: testsuites/validation/tr-intr-entry-install.c
 test-teardown:
   brief: null
   code: |
     if ( ctx->test_vector_was_enabled ) {
       (void) rtems_interrupt_vector_enable( ctx->test_vector );
+    } else {
+      (void) rtems_interrupt_vector_disable( ctx->test_vector );
     }
+
+    SetDefaultInterruptHandler( NULL, NULL );
+    T_eq_u32( ctx->spurious_counter, 0 );
   description: null
 text: |
   ${.:text-template}
@@ -825,16 +980,21 @@ transition-map:
           - Match
       then: InUse
     - else: Ok
-    Enable:
+    Enabled:
     - if:
         pre-conditions:
           Vector: Invalid
       then: N/A
     - if:
-        post-conditions:
-          Enable: 'Yes'
-          Status: Ok
-      then-specified-by: CanEnable
+        and:
+        - post-conditions:
+            Status: Ok
+        - pre-conditions:
+            CanEnable: 'Yes'
+            EnableOption: Enable
+            Installed: None
+            IsEnabled: 'No'
+      then: 'Yes'
     - else: Nop
     Installed:
     - if:
@@ -848,10 +1008,44 @@ transition-map:
           Status: Ok
       then: Last
     - else: 'No'
+    Dispatch:
+    - if:
+      - pre-conditions:
+          Vector: Invalid
+      - pre-conditions:
+          Entry: 'Null'
+      then: N/A
+    - if:
+        and:
+        - post-conditions:
+            Status: Ok
+        - or:
+          - post-conditions:
+              Enabled: 'Yes'
+          - pre-conditions:
+              IsEnabled: 'Yes'
+        - pre-conditions:
+            CanRaise: 'Yes'
+      then: InOrder
+    - if:
+        and:
+        - post-conditions:
+            Status: Ok
+        - or:
+          - post-conditions:
+              Enabled: 'Yes'
+          - pre-conditions:
+              IsEnabled: 'Yes'
+      then: Device
+    - if:
+        post-conditions:
+          Status: Ok
+      then: 'No'
+    - else: N/A
   pre-conditions:
     Vector: all
     InstallOptions: all
-    Enable: all
+    EnableOption: all
     Entry: all
     Routine:
       applicable:
@@ -863,7 +1057,15 @@ transition-map:
       applicable:
         pre-conditions:
           Vector: Valid
+    CanRaise:
+      applicable:
+        pre-conditions:
+          Vector: Valid
     Installed:
+      applicable:
+        pre-conditions:
+          Vector: Valid
+    IsEnabled:
       applicable:
         pre-conditions:
           Vector: Valid
