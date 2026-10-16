@@ -24,7 +24,6 @@ links:
 source:
 - testsuites/validation/tc-bsp-interrupt-handler-dispatch-unchecked.c
 - testsuites/validation/tc-intr-clear.c
-- testsuites/validation/tc-intr-entry-install.c
 - testsuites/validation/tc-intr-entry-remove.c
 - testsuites/validation/tc-intr-get-affinity.c
 - testsuites/validation/tc-intr-get-attributes.c
@@ -39,6 +38,7 @@ source:
 - testsuites/validation/tc-intr-vector-is-enabled.c
 - testsuites/validation/tc-intr.c
 - testsuites/validation/tc-score-isr.c
+- testsuites/validation/tr-intr-entry-install.c
 - testsuites/validation/tr-intr-get-priority.c
 - testsuites/validation/tr-intr-set-priority.c
 - testsuites/validation/tr-isr-lock-acquire.c

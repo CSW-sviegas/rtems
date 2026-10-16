@@ -38,6 +38,7 @@
 #include <rtems.h>
 #include <bsp/irq-generic.h>
 
+#include "tr-intr-entry-install.h"
 #include "tr-intr-get-priority.h"
 #include "tr-intr-set-priority.h"
 #include "tx-support.h"
@@ -91,8 +92,72 @@
  *
  * - Check rtems_interrupt_set_priority() for each valid vector.
  *
+ * - Check rtems_interrupt_entry_install() for each valid vector which is
+ *   maskable and which carries no entry.
+ *
  * @{
  */
+
+static void ProbeSpurious( void *arg, rtems_vector_number vector )
+{
+  bool *spurious;
+
+  spurious = arg;
+  *spurious = true;
+  (void) rtems_interrupt_vector_disable( vector );
+}
+
+static bool HasActiveSource(
+  rtems_vector_number               vector,
+  const rtems_interrupt_attributes *attr
+)
+{
+  rtems_status_code sc;
+  bool              pending;
+  bool              spurious;
+
+  if ( attr->can_clear ) {
+    (void) ClearSoftwareInterrupt( vector );
+  }
+
+  pending = false;
+  sc = rtems_interrupt_is_pending( vector, &pending );
+
+  if ( sc == RTEMS_SUCCESSFUL && pending ) {
+    return true;
+  }
+
+  spurious = false;
+  SetDefaultInterruptHandler( ProbeSpurious, &spurious );
+  (void) rtems_interrupt_vector_enable( vector );
+  (void) rtems_interrupt_vector_disable( vector );
+  SetDefaultInterruptHandler( NULL, NULL );
+
+  return spurious;
+}
+
+static bool IsFreeForEntryInstall(
+  rtems_vector_number               vector,
+  const rtems_interrupt_attributes *attr
+)
+{
+  if ( !attr->is_maskable ) {
+    return false;
+  }
+
+  if (
+    ( attr->can_enable || attr->maybe_enable ) &&
+    !( attr->can_disable || attr->maybe_disable )
+  ) {
+    return false;
+  }
+
+  if ( HasInterruptVectorEntriesInstalled( vector ) ) {
+    return false;
+  }
+
+  return !HasActiveSource( vector, attr );
+}
 
 static void EntryRoutine( void *arg )
 {
@@ -264,6 +329,40 @@ static void RtemsIntrValIntr_Action_4( void )
 }
 
 /**
+ * @brief Check rtems_interrupt_entry_install() for each valid vector which is
+ *   maskable and which carries no entry.
+ */
+static void RtemsIntrValIntr_Action_5( void )
+{
+  rtems_vector_number vector;
+
+  for ( vector = 0; vector < BSP_INTERRUPT_VECTOR_COUNT; ++vector ) {
+    rtems_interrupt_attributes attr;
+    rtems_status_code          sc;
+    bool                       enabled;
+
+    memset( &attr, 0, sizeof( attr ) );
+    sc = rtems_interrupt_get_attributes( vector, &attr );
+
+    if ( sc == RTEMS_INVALID_ID ) {
+      continue;
+    }
+
+    T_rsc_success( sc );
+
+    /* The probe of IsFreeForEntryInstall() disables the vector. */
+    enabled = false;
+    (void) rtems_interrupt_vector_is_enabled( vector, &enabled );
+
+    if ( !IsFreeForEntryInstall( vector, &attr ) ) {
+      continue;
+    }
+
+    RtemsIntrReqEntryInstall_Run( vector, &attr, enabled );
+  }
+}
+
+/**
  * @fn void T_case_body_RtemsIntrValIntr( void )
  */
 T_TEST_CASE( RtemsIntrValIntr )
@@ -273,6 +372,7 @@ T_TEST_CASE( RtemsIntrValIntr )
   RtemsIntrValIntr_Action_2();
   RtemsIntrValIntr_Action_3();
   RtemsIntrValIntr_Action_4();
+  RtemsIntrValIntr_Action_5();
 }
 
 /** @} */
