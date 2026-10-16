@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +53,7 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
 
 #include <rtems/test.h>
@@ -64,19 +66,36 @@
  */
 
 typedef enum {
-  CPthreadReqCondattrSetpshared_Pre_Status_Ok,
-  CPthreadReqCondattrSetpshared_Pre_Status_NA
-} CPthreadReqCondattrSetpshared_Pre_Status;
+  CPthreadReqCondattrSetpshared_Pre_Attr_Valid,
+  CPthreadReqCondattrSetpshared_Pre_Attr_Null,
+  CPthreadReqCondattrSetpshared_Pre_Attr_NA
+} CPthreadReqCondattrSetpshared_Pre_Attr;
 
 typedef enum {
-  CPthreadReqCondattrSetpshared_Post_Status_Ok,
+  CPthreadReqCondattrSetpshared_Pre_Pshared_Shared,
+  CPthreadReqCondattrSetpshared_Pre_Pshared_Private,
+  CPthreadReqCondattrSetpshared_Pre_Pshared_Invalid,
+  CPthreadReqCondattrSetpshared_Pre_Pshared_NA
+} CPthreadReqCondattrSetpshared_Pre_Pshared;
+
+typedef enum {
+  CPthreadReqCondattrSetpshared_Post_Status_Zero,
+  CPthreadReqCondattrSetpshared_Post_Status_EINVAL,
   CPthreadReqCondattrSetpshared_Post_Status_NA
 } CPthreadReqCondattrSetpshared_Post_Status;
 
+typedef enum {
+  CPthreadReqCondattrSetpshared_Post_AttrObj_Set,
+  CPthreadReqCondattrSetpshared_Post_AttrObj_Nop,
+  CPthreadReqCondattrSetpshared_Post_AttrObj_NA
+} CPthreadReqCondattrSetpshared_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_Pshared_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqCondattrSetpshared_Entry;
 
 /**
@@ -98,11 +117,16 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the attribute object.
+   */
+  pthread_condattr_t attr_obj;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -130,48 +154,151 @@ typedef struct {
 static CPthreadReqCondattrSetpshared_Context
   CPthreadReqCondattrSetpshared_Instance;
 
-static const char * const CPthreadReqCondattrSetpshared_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqCondattrSetpshared_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "NA"
+};
+
+static const char * const CPthreadReqCondattrSetpshared_PreDesc_Pshared[] = {
+  "Shared",
+  "Private",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqCondattrSetpshared_PreDesc[] = {
-  CPthreadReqCondattrSetpshared_PreDesc_Status,
+  CPthreadReqCondattrSetpshared_PreDesc_Attr,
+  CPthreadReqCondattrSetpshared_PreDesc_Pshared,
   NULL
 };
 
-static void CPthreadReqCondattrSetpshared_Pre_Status_Prepare(
-  CPthreadReqCondattrSetpshared_Pre_Status state
+static void CPthreadReqCondattrSetpshared_Pre_Attr_Prepare(
+  CPthreadReqCondattrSetpshared_Context *ctx,
+  CPthreadReqCondattrSetpshared_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrSetpshared_Pre_Status_Ok: {
+    case CPthreadReqCondattrSetpshared_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized condition
+       * variable attributes object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
       break;
     }
 
-    case CPthreadReqCondattrSetpshared_Pre_Status_NA:
+    case CPthreadReqCondattrSetpshared_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondattrSetpshared_Pre_Pshared_Prepare(
+  CPthreadReqCondattrSetpshared_Context    *ctx,
+  CPthreadReqCondattrSetpshared_Pre_Pshared state
+)
+{
+  switch ( state ) {
+    case CPthreadReqCondattrSetpshared_Pre_Pshared_Shared: {
+      /*
+       * While the `pshared` parameter is PTHREAD_PROCESS_SHARED.
+       */
+      ctx->pshared = PTHREAD_PROCESS_SHARED;
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Pre_Pshared_Private: {
+      /*
+       * While the `pshared` parameter is PTHREAD_PROCESS_PRIVATE.
+       */
+      ctx->pshared = PTHREAD_PROCESS_PRIVATE;
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Pre_Pshared_Invalid: {
+      /*
+       * While the `pshared` parameter is neither PTHREAD_PROCESS_SHARED nor
+       * PTHREAD_PROCESS_PRIVATE.
+       */
+      ctx->pshared = -1;
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Pre_Pshared_NA:
       break;
   }
 }
 
 static void CPthreadReqCondattrSetpshared_Post_Status_Check(
+  CPthreadReqCondattrSetpshared_Context    *ctx,
   CPthreadReqCondattrSetpshared_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqCondattrSetpshared_Post_Status_Ok: {
+    case CPthreadReqCondattrSetpshared_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_condattr_setpshared() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_condattr_setpshared() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqCondattrSetpshared_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqCondattrSetpshared_Post_AttrObj_Check(
+  CPthreadReqCondattrSetpshared_Context     *ctx,
+  CPthreadReqCondattrSetpshared_Post_AttrObj state
+)
+{
+  int pshared;
+
+  switch ( state ) {
+    case CPthreadReqCondattrSetpshared_Post_AttrObj_Set: {
+      /*
+       * The process-shared attribute of the condition variable attributes
+       * object referenced by `attr` shall be set to the value specified by
+       * `pshared`.
+       */
+      pshared = -1;
+      T_eq_int( pthread_condattr_getpshared( &ctx->attr_obj, &pshared ), 0 );
+      T_eq_int( pshared, ctx->pshared );
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Post_AttrObj_Nop: {
+      /*
+       * The process-shared attribute of the condition variable attributes
+       * object referenced by `attr` shall not be modified.
+       */
+      pshared = -1;
+      T_eq_int( pthread_condattr_getpshared( &ctx->attr_obj, &pshared ), 0 );
+      T_eq_int( pshared, PTHREAD_PROCESS_PRIVATE );
+      break;
+    }
+
+    case CPthreadReqCondattrSetpshared_Post_AttrObj_NA:
       break;
   }
 }
@@ -185,12 +312,17 @@ static void CPthreadReqCondattrSetpshared_Action(
 
 static const CPthreadReqCondattrSetpshared_Entry
 CPthreadReqCondattrSetpshared_Entries[] = {
-  { 0, 0, CPthreadReqCondattrSetpshared_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqCondattrSetpshared_Post_Status_EINVAL,
+    CPthreadReqCondattrSetpshared_Post_AttrObj_NA },
+  { 0, 0, 0, CPthreadReqCondattrSetpshared_Post_Status_Zero,
+    CPthreadReqCondattrSetpshared_Post_AttrObj_Set },
+  { 0, 0, 0, CPthreadReqCondattrSetpshared_Post_Status_EINVAL,
+    CPthreadReqCondattrSetpshared_Post_AttrObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqCondattrSetpshared_Map[] = {
-  0
+  1, 1, 2, 0, 0, 0
 };
 
 static size_t CPthreadReqCondattrSetpshared_Scope(
@@ -241,10 +373,16 @@ static void CPthreadReqCondattrSetpshared_TestVariant(
   CPthreadReqCondattrSetpshared_Context *ctx
 )
 {
-  CPthreadReqCondattrSetpshared_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrSetpshared_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqCondattrSetpshared_Pre_Pshared_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqCondattrSetpshared_Action( ctx );
   CPthreadReqCondattrSetpshared_Post_Status_Check(
+    ctx,
     ctx->Map.entry.Post_Status
+  );
+  CPthreadReqCondattrSetpshared_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
   );
 }
 
@@ -263,12 +401,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrSetpshared_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrSetpshared_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqCondattrSetpshared_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqCondattrSetpshared_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqCondattrSetpshared_PopEntry( ctx );
-    CPthreadReqCondattrSetpshared_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqCondattrSetpshared_Pre_Pshared_Shared;
+      ctx->Map.pcs[ 1 ] < CPthreadReqCondattrSetpshared_Pre_Pshared_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqCondattrSetpshared_PopEntry( ctx );
+      CPthreadReqCondattrSetpshared_TestVariant( ctx );
+    }
   }
 }
 

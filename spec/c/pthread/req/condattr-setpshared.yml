@@ -1,54 +1,124 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/condattr-setpshared
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/condattr-setpshared:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/condattr-setpshared:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
   test-epilogue: null
   test-prologue: null
-pre-conditions:
-- name: Status
+- name: AttrObj
   states:
-  - name: Ok
+  - name: Set
     test-code: |
-      /* TODOD */
+      pshared = -1;
+      T_eq_int( pthread_condattr_getpshared( &ctx->attr_obj, &pshared ), 0 );
+      T_eq_int( pshared, ctx->pshared );
     text: |
-      TODO
+      The process-shared attribute of the condition variable attributes object
+      referenced by ${../if/condattr-setpshared:/params[0]/name} shall be set to the
+      value specified by ${../if/condattr-setpshared:/params[1]/name}.
+  - name: Nop
+    test-code: |
+      pshared = -1;
+      T_eq_int( pthread_condattr_getpshared( &ctx->attr_obj, &pshared ), 0 );
+      T_eq_int( pshared, PTHREAD_PROCESS_PRIVATE );
+    text: |
+      The process-shared attribute of the condition variable attributes object
+      referenced by ${../if/condattr-setpshared:/params[0]/name} shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: |
+    int pshared;
+pre-conditions:
+- name: Attr
+  states:
+  - name: Valid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+    text: |
+      While the ${../if/condattr-setpshared:/params[0]/name} parameter references an
+      initialized condition variable attributes object.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/condattr-setpshared:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Pshared
+  states:
+  - name: Shared
+    test-code: |
+      ctx->pshared = PTHREAD_PROCESS_SHARED;
+    text: |
+      While the ${../if/condattr-setpshared:/params[1]/name} parameter is
+      ${../if/process-shared:/name}.
+  - name: Private
+    test-code: |
+      ctx->pshared = PTHREAD_PROCESS_PRIVATE;
+    text: |
+      While the ${../if/condattr-setpshared:/params[1]/name} parameter is
+      ${../if/process-private:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->pshared = -1;
+    text: |
+      While the ${../if/condattr-setpshared:/params[1]/name} parameter is neither
+      ${../if/process-shared:/name} nor ${../if/process-private:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_condattr_setpshared( ctx->attr, ctx->pshared );
+test-action: |
+  ctx->retval = pthread_condattr_setpshared( ctx->attr, ctx->pshared );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/condattr-setpshared:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/condattr-setpshared:/params[0]/name}
+    parameter value.
   description: null
   member: pthread_condattr_t *attr
-- brief: This member specifies the ${../if/condattr-setpshared:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/condattr-setpshared:/params[1]/name}
+    parameter value.
   description: null
   member: int pshared
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the attribute object.
+  description: null
+  member: pthread_condattr_t attr_obj
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
 test-local-includes: []
 test-prepare: null
@@ -57,11 +127,32 @@ test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-pthread-condattr-setpshared.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Pshared: Invalid
+      then: EINVAL
+    - else: Zero
+    AttrObj:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Set
+    - else: Nop
   pre-conditions:
-    Status: all
+    Attr: all
+    Pshared: all
 type: requirement

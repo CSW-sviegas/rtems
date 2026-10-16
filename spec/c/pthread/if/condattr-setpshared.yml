@@ -5,6 +5,7 @@ brief: |
   ${.:/params[0]/name} to the value specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -23,6 +24,14 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The value specified by ${.:/params[1]/name} is neither
+      ${../if/process-private:/name} nor ${../if/process-shared:/name}.
+  role: errno
+  uid: /c/errno/if/einval
 name: pthread_condattr_setpshared
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_condattr_setpshared()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_condattr_setpshared.html).
@@ -39,12 +48,13 @@ return:
   return: null
   return-values:
   - description: |
-      The successful completion returns zero.
+      The requested operation was successful.
     value: 0
   - description: |
       This error number indicates the following error conditions:
 
-      - The value specified by ${.:/params[0]/name} is invalid.
-      - The value specified by ${.:/params[1]/name} is invalid.
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The value specified by ${.:/params[1]/name} is neither
+        ${../if/process-private:/name} nor ${../if/process-shared:/name}.
     value: ${/c/errno/if/einval:/name}
 type: interface
