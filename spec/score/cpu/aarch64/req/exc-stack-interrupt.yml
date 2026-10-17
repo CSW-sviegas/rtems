@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: aarch64
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../../req/exc-stack
+rationale: |
+  The start of a processor points SP_EL0 to that stack.
+references: []
+requirement-type: functional
+text: |
+  While the exception interrupts a thread, the default exception handler shall
+  build the exception frame at the top of the interrupt stack of the processor
+  which it runs on.
+type: requirement

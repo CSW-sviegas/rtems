@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: aarch64
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: exception-init-cel-spelx-sync
+- location: D1.10.2
+  role: reference
+  uid: /ref/arch/aarch64/ddi0487f-c
+rationale: |
+  The index of a vector is its offset in the exception vector table divided by
+  0x80. The index of this vector is four, which is the value of
+  AARCH64_EXCEPTION_SPx_SYNCHRONOUS.
+references: []
+requirement-type: functional
+text: |
+  When a synchronous exception is taken from the current exception level with
+  SP_ELx with x > 0, the default exception handler shall set the vector member of
+  the exception frame to the index of the vector of the exception in the
+  exception vector table.
+type: requirement
