@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: mips
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../../req/ctx-initial-floating-point-environment
+rationale: |
+  FS makes the floating-point unit give zero for a denormalised result. Without
+  FS, a MIPS floating-point unit can raise the unimplemented operation exception
+  for such a result, and no enable bit masks that exception.
+references: []
+requirement-type: functional
+text: |
+  Where the multilib provides a floating-point unit, the context initialization
+  shall give the context an fcr31 in which the trap enables are zero and FS is
+  one.
+type: requirement
