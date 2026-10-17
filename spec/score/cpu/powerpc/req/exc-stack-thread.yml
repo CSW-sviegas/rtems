@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: powerpc
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../../req/exc-stack
+rationale: |
+  A thread executes on one processor at a time, so its stack belongs to the
+  processor which the handler runs on. A BSP can give the critical input
+  exception and the machine check exception a stack of their own.
+references: []
+requirement-type: functional
+text: |
+  The default exception handler shall build the exception frame of an exception
+  which saves its state to SRR0 and SRR1 on the stack of the trapped context,
+  below its stack pointer.
+type: requirement
