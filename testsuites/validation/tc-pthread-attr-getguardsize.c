@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,36 @@
  */
 
 typedef enum {
-  CPthreadReqAttrGetguardsize_Pre_Status_Ok,
-  CPthreadReqAttrGetguardsize_Pre_Status_NA
-} CPthreadReqAttrGetguardsize_Pre_Status;
+  CPthreadReqAttrGetguardsize_Pre_Attr_Valid,
+  CPthreadReqAttrGetguardsize_Pre_Attr_Null,
+  CPthreadReqAttrGetguardsize_Pre_Attr_Invalid,
+  CPthreadReqAttrGetguardsize_Pre_Attr_NA
+} CPthreadReqAttrGetguardsize_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrGetguardsize_Post_Status_Ok,
+  CPthreadReqAttrGetguardsize_Pre_GuardSize_Valid,
+  CPthreadReqAttrGetguardsize_Pre_GuardSize_Null,
+  CPthreadReqAttrGetguardsize_Pre_GuardSize_NA
+} CPthreadReqAttrGetguardsize_Pre_GuardSize;
+
+typedef enum {
+  CPthreadReqAttrGetguardsize_Post_Status_Zero,
+  CPthreadReqAttrGetguardsize_Post_Status_EINVAL,
   CPthreadReqAttrGetguardsize_Post_Status_NA
 } CPthreadReqAttrGetguardsize_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Set,
+  CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Nop,
+  CPthreadReqAttrGetguardsize_Post_GuardSizeObj_NA
+} CPthreadReqAttrGetguardsize_Post_GuardSizeObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_GuardSize_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_GuardSizeObj : 2;
 } CPthreadReqAttrGetguardsize_Entry;
 
 /**
@@ -97,11 +117,21 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
+
+  /**
+   * @brief This member contains the guard size output object.
+   */
+  size_t guardsize_value;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,48 +159,152 @@ typedef struct {
 static CPthreadReqAttrGetguardsize_Context
   CPthreadReqAttrGetguardsize_Instance;
 
-static const char * const CPthreadReqAttrGetguardsize_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrGetguardsize_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrGetguardsize_PreDesc_GuardSize[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrGetguardsize_PreDesc[] = {
-  CPthreadReqAttrGetguardsize_PreDesc_Status,
+  CPthreadReqAttrGetguardsize_PreDesc_Attr,
+  CPthreadReqAttrGetguardsize_PreDesc_GuardSize,
   NULL
 };
 
-static void CPthreadReqAttrGetguardsize_Pre_Status_Prepare(
-  CPthreadReqAttrGetguardsize_Pre_Status state
+#define GUARD_SIZE_VALUE ( (size_t) 4096 )
+
+#define STALE_GUARD_SIZE ( (size_t) -1 )
+
+static void CPthreadReqAttrGetguardsize_Pre_Attr_Prepare(
+  CPthreadReqAttrGetguardsize_Context *ctx,
+  CPthreadReqAttrGetguardsize_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrGetguardsize_Pre_Status_Ok: {
+    case CPthreadReqAttrGetguardsize_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      pthread_attr_setguardsize( &ctx->attr_obj, GUARD_SIZE_VALUE );
       break;
     }
 
-    case CPthreadReqAttrGetguardsize_Pre_Status_NA:
+    case CPthreadReqAttrGetguardsize_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrGetguardsize_Pre_GuardSize_Prepare(
+  CPthreadReqAttrGetguardsize_Context      *ctx,
+  CPthreadReqAttrGetguardsize_Pre_GuardSize state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrGetguardsize_Pre_GuardSize_Valid: {
+      /*
+       * While the `guardsize` parameter references an object of type size_t.
+       */
+      ctx->guardsize_value = STALE_GUARD_SIZE;
+      ctx->guardsize = &ctx->guardsize_value;
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Pre_GuardSize_Null: {
+      /*
+       * While the `guardsize` parameter is NULL.
+       */
+      ctx->guardsize = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Pre_GuardSize_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrGetguardsize_Post_Status_Check(
+  CPthreadReqAttrGetguardsize_Context    *ctx,
   CPthreadReqAttrGetguardsize_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrGetguardsize_Post_Status_Ok: {
+    case CPthreadReqAttrGetguardsize_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_getguardsize() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_getguardsize() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqAttrGetguardsize_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Check(
+  CPthreadReqAttrGetguardsize_Context          *ctx,
+  CPthreadReqAttrGetguardsize_Post_GuardSizeObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Set: {
+      /*
+       * The value of the object referenced by the `guardsize` parameter shall
+       * be set to the thread guard size attribute of the thread attributes
+       * object referenced by the `attr` parameter.
+       */
+      T_eq_sz( ctx->guardsize_value, GUARD_SIZE_VALUE );
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Nop: {
+      /*
+       * The object referenced by the `guardsize` parameter shall not be
+       * modified.
+       */
+      T_eq_sz( ctx->guardsize_value, STALE_GUARD_SIZE );
+      break;
+    }
+
+    case CPthreadReqAttrGetguardsize_Post_GuardSizeObj_NA:
       break;
   }
 }
@@ -184,12 +318,17 @@ static void CPthreadReqAttrGetguardsize_Action(
 
 static const CPthreadReqAttrGetguardsize_Entry
 CPthreadReqAttrGetguardsize_Entries[] = {
-  { 0, 0, CPthreadReqAttrGetguardsize_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrGetguardsize_Post_Status_EINVAL,
+    CPthreadReqAttrGetguardsize_Post_GuardSizeObj_NA },
+  { 0, 0, 0, CPthreadReqAttrGetguardsize_Post_Status_EINVAL,
+    CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrGetguardsize_Post_Status_Zero,
+    CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Set }
 };
 
 static const uint8_t
 CPthreadReqAttrGetguardsize_Map[] = {
-  0
+  2, 0, 1, 0, 1, 0
 };
 
 static size_t CPthreadReqAttrGetguardsize_Scope(
@@ -240,9 +379,17 @@ static void CPthreadReqAttrGetguardsize_TestVariant(
   CPthreadReqAttrGetguardsize_Context *ctx
 )
 {
-  CPthreadReqAttrGetguardsize_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrGetguardsize_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrGetguardsize_Pre_GuardSize_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqAttrGetguardsize_Action( ctx );
-  CPthreadReqAttrGetguardsize_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrGetguardsize_Post_Status_Check(
+    ctx,
+    ctx->Map.entry.Post_Status
+  );
+  CPthreadReqAttrGetguardsize_Post_GuardSizeObj_Check(
+    ctx,
+    ctx->Map.entry.Post_GuardSizeObj
+  );
 }
 
 /**
@@ -260,12 +407,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrGetguardsize_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrGetguardsize_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrGetguardsize_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrGetguardsize_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrGetguardsize_PopEntry( ctx );
-    CPthreadReqAttrGetguardsize_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrGetguardsize_Pre_GuardSize_Valid;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrGetguardsize_Pre_GuardSize_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrGetguardsize_PopEntry( ctx );
+      CPthreadReqAttrGetguardsize_TestVariant( ctx );
+    }
   }
 }
 
