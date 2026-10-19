@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,10 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <sched.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +67,27 @@
  */
 
 typedef enum {
-  CPthreadReqAttrInit_Pre_Status_Ok,
-  CPthreadReqAttrInit_Pre_Status_NA
-} CPthreadReqAttrInit_Pre_Status;
+  CPthreadReqAttrInit_Pre_Attr_Valid,
+  CPthreadReqAttrInit_Pre_Attr_Null,
+  CPthreadReqAttrInit_Pre_Attr_NA
+} CPthreadReqAttrInit_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrInit_Post_Status_Ok,
+  CPthreadReqAttrInit_Post_Status_Zero,
+  CPthreadReqAttrInit_Post_Status_EINVAL,
   CPthreadReqAttrInit_Post_Status_NA
 } CPthreadReqAttrInit_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrInit_Post_AttrObj_Initialized,
+  CPthreadReqAttrInit_Post_AttrObj_NA
+} CPthreadReqAttrInit_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 1;
 } CPthreadReqAttrInit_Entry;
 
 /**
@@ -91,6 +103,11 @@ typedef struct {
    * @brief This member contains the return value.
    */
   int retval;
+
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
 
   struct {
     /**
@@ -124,48 +141,108 @@ typedef struct {
 static CPthreadReqAttrInit_Context
   CPthreadReqAttrInit_Instance;
 
-static const char * const CPthreadReqAttrInit_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrInit_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrInit_PreDesc[] = {
-  CPthreadReqAttrInit_PreDesc_Status,
+  CPthreadReqAttrInit_PreDesc_Attr,
   NULL
 };
 
-static void CPthreadReqAttrInit_Pre_Status_Prepare(
-  CPthreadReqAttrInit_Pre_Status state
+static void CPthreadReqAttrInit_Pre_Attr_Prepare(
+  CPthreadReqAttrInit_Context *ctx,
+  CPthreadReqAttrInit_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrInit_Pre_Status_Ok: {
+    case CPthreadReqAttrInit_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references a thread attributes object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.is_initialized = false;
       break;
     }
 
-    case CPthreadReqAttrInit_Pre_Status_NA:
+    case CPthreadReqAttrInit_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrInit_Pre_Attr_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrInit_Post_Status_Check(
+  CPthreadReqAttrInit_Context    *ctx,
   CPthreadReqAttrInit_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrInit_Post_Status_Ok: {
+    case CPthreadReqAttrInit_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_init() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrInit_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_init() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqAttrInit_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrInit_Post_AttrObj_Check(
+  CPthreadReqAttrInit_Context     *ctx,
+  CPthreadReqAttrInit_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrInit_Post_AttrObj_Initialized: {
+      /*
+       * The thread attributes object referenced by the `attr` parameter shall
+       * be set to the default thread attributes after the return of the
+       * pthread_attr_init() call.
+       */
+      T_true( ctx->attr_obj.is_initialized );
+      T_eq_ptr( ctx->attr_obj.stackaddr, NULL );
+      T_eq_sz( ctx->attr_obj.stacksize, 0 );
+      T_eq_int( ctx->attr_obj.contentionscope, PTHREAD_SCOPE_PROCESS );
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_INHERIT_SCHED );
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_FIFO );
+      T_eq_int( ctx->attr_obj.schedparam.sched_priority, 2 );
+      T_eq_sz( ctx->attr_obj.guardsize, 0 );
+      T_eq_int( ctx->attr_obj.cputime_clock_allowed, 1 );
+      T_eq_int( ctx->attr_obj.detachstate, PTHREAD_CREATE_JOINABLE );
+      T_eq_sz(
+        ctx->attr_obj.affinitysetsize,
+        sizeof( ctx->attr_obj.affinitysetpreallocated )
+      );
+      T_eq_ptr(
+        ctx->attr_obj.affinityset,
+        &ctx->attr_obj.affinitysetpreallocated
+      );
+      T_true( CPU_ISSET( 0, &ctx->attr_obj.affinitysetpreallocated ) );
+      break;
+    }
+
+    case CPthreadReqAttrInit_Post_AttrObj_NA:
       break;
   }
 }
@@ -177,12 +254,15 @@ static void CPthreadReqAttrInit_Action( CPthreadReqAttrInit_Context *ctx )
 
 static const CPthreadReqAttrInit_Entry
 CPthreadReqAttrInit_Entries[] = {
-  { 0, 0, CPthreadReqAttrInit_Post_Status_Ok }
+  { 0, 0, CPthreadReqAttrInit_Post_Status_Zero,
+    CPthreadReqAttrInit_Post_AttrObj_Initialized },
+  { 0, 0, CPthreadReqAttrInit_Post_Status_EINVAL,
+    CPthreadReqAttrInit_Post_AttrObj_NA }
 };
 
 static const uint8_t
 CPthreadReqAttrInit_Map[] = {
-  0
+  0, 1
 };
 
 static size_t CPthreadReqAttrInit_Scope( void *arg, char *buf, size_t n )
@@ -221,9 +301,10 @@ static inline CPthreadReqAttrInit_Entry CPthreadReqAttrInit_PopEntry(
 
 static void CPthreadReqAttrInit_TestVariant( CPthreadReqAttrInit_Context *ctx )
 {
-  CPthreadReqAttrInit_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrInit_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CPthreadReqAttrInit_Action( ctx );
-  CPthreadReqAttrInit_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrInit_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqAttrInit_Post_AttrObj_Check( ctx, ctx->Map.entry.Post_AttrObj );
 }
 
 /**
@@ -238,8 +319,8 @@ T_TEST_CASE_FIXTURE( CPthreadReqAttrInit, &CPthreadReqAttrInit_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrInit_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrInit_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrInit_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrInit_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     ctx->Map.entry = CPthreadReqAttrInit_PopEntry( ctx );
