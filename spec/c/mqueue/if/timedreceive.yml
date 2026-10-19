@@ -8,6 +8,7 @@ brief: |
   by ${.:/params[4]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -44,11 +45,8 @@ links:
   role: errno
   uid: /c/errno/if/ebadf
 - description: |
-    The call was interrupted by a signal handler.
-  role: errno
-  uid: /c/errno/if/eintr
-- description: |
-    The call would have blocked, and ${.:/params[4]/name} was invalid.
+    The call would have blocked, and the ${.:/params[4]/name} parameter was
+    invalid.
   role: errno
   uid: /c/errno/if/einval
 - description: |
@@ -79,7 +77,8 @@ params:
   name: msg_len
 - description: |
     is the pointer to the location where the ${../glossary/msgprio:/term} will be
-    stored.
+    stored. If this parameter is ${/c/if/null:/name}, then the
+    ${../glossary/msgprio:/term} is not stored.
   dir: out
   name: msg_prio
 - description: |
@@ -88,7 +87,11 @@ params:
   name: abs_timeout
 return:
   return: |
-    On success, returns the number of bytes in the received message; on error, -1
-    is returned, with ${/c/errno/if/errno:/name} set to indicate the error.
-  return-values: []
+    On success, the number of bytes in the received ${/glossary/message:/term} is
+    returned.
+  return-values:
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
 type: interface
