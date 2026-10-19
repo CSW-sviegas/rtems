@@ -7,6 +7,7 @@ brief: |
   referenced by ${.:/params[3]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -39,16 +40,16 @@ links:
     - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
     - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was not
       opened for reading.
+    - The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+      open.
   role: errno
   uid: /c/errno/if/ebadf
 - description: |
-    The call was interrupted by a signal handler.
+    ${.:/params[2]/name} was less than the
+    ${/c/if/mq_attr:/definition[2]/default/name} attribute of the
+    ${/glossary/messagequeue:/term}.
   role: errno
-  uid: /c/errno/if/eintr
-- description: |
-    The call would have blocked, and the timeout was invalid.
-  role: errno
-  uid: /c/errno/if/einval
+  uid: /c/errno/if/emsgsize
 name: mq_receive
 notes: |
   See [POSIX.1-2024, System Interfaces, mq_receive()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_receive.html).
@@ -67,8 +68,16 @@ params:
   name: msg_len
 - description: |
     is the pointer to the location where the ${../glossary/msgprio:/term} will be
-    stored.
+    stored. If this parameter is ${/c/if/null:/name}, then the
+    ${../glossary/msgprio:/term} is not stored.
   dir: out
   name: msg_prio
-return: null
+return:
+  return: |
+    On success, the number of bytes in the received ${/glossary/message:/term} is
+    returned.
+  return-values:
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
 type: interface

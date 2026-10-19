@@ -1,72 +1,492 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/receive
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Length
     test-code: |
-      /* TODOD */
+      T_eq_long( ctx->retval, MSG_SIZE );
     text: |
-      TODO
+      The return value of ${../if/receive:/name} shall be equal to the
+      ${../glossary/msgsize:/term} of the received ${/glossary/message:/term}.
+  - name: MinusOne
+    test-code: |
+      T_eq_long( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/receive:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/receive:/name} call.
+  - name: EBADF
+    test-code: |
+      T_eq_int( errno, EBADF );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/ebadf:/name}.
+  - name: EMSGSIZE
+    test-code: |
+      T_eq_int( errno, EMSGSIZE );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/emsgsize:/name}.
+  - name: EAGAIN
+    test-code: |
+      T_eq_int( errno, EAGAIN );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/eagain:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Buffer
+  states:
+  - name: Received
+    test-code: |
+      T_eq_mem( ctx->recv_buf, ctx->msg, MSG_SIZE );
+    text: |
+      The buffer referenced by ${../if/receive:/params[1]/name} shall contain the
+      received ${/glossary/message:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->recv_buf, ctx->untouched_buf, MSG_SIZE );
+    text: |
+      The buffer referenced by ${../if/receive:/params[1]/name} shall not be modified
+      by the ${../if/receive:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Prio
+  states:
+  - name: Received
+    test-code: |
+      T_eq_uint( ctx->prio_value, MSG_PRIO );
+    text: |
+      The object referenced by ${../if/receive:/params[3]/name} shall be set to the
+      ${../glossary/msgprio:/term} of the received ${/glossary/message:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_uint( ctx->prio_value, UINT_MAX );
+    text: |
+      The object referenced by ${../if/receive:/params[3]/name} shall not be modified
+      by the ${../if/receive:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Message
+  states:
+  - name: Dequeued
+    test-code: |
+      T_eq_long( GetPendingCount( ctx ), 0 );
+    text: |
+      The received ${/glossary/message:/term} shall be removed from the
+      ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      if ( ctx->queue_pending ) {
+        T_eq_long( GetPendingCount( ctx ), 1 );
+        CheckReceive( ctx );
+      } else {
+        T_eq_long( GetPendingCount( ctx ), 0 );
+      }
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be changed by the
+      ${../if/receive:/name} call.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Mqdes
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->mqdes = ctx->mq;
     text: |
-      TODO
+      While the ${../if/receive:/params[0]/name} parameter is a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term} opened for
+      reading.
+  - name: WriteOnly
+    test-code: |
+      T_eq_int( mq_close( ctx->mq ), 0 );
+      T_eq_int( mq_unlink( MQ_NAME ), 0 );
+      ctx->mq = mq_open( MQ_NAME, O_CREAT | O_WRONLY, 0600, &ctx->mq_attr );
+      T_ne_u32( ctx->mq, INVALID_MQ );
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/receive:/params[0]/name} parameter is a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term} opened for
+      writing only.
+  - name: Closed
+    test-code: |
+      ctx->mqdes = ctx->mq;
+      T_eq_int( mq_close( ctx->mq ), 0 );
+      ctx->mq_closed = true;
+    text: |
+      While the ${../if/receive:/params[0]/name} parameter is a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term} which was
+      closed and not unlinked.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = INVALID_MQ;
+    text: |
+      While the ${../if/receive:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgLen
+  states:
+  - name: Valid
+    test-code: |
+      ctx->msg_len = MSG_SIZE;
+    text: |
+      While the ${../if/receive:/params[2]/name} parameter is greater than or equal
+      to the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term}.
+  - name: TooSmall
+    test-code: |
+      ctx->msg_len = MSG_SIZE - 1;
+    text: |
+      While the ${../if/receive:/params[2]/name} parameter is less than the maximum
+      ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgPrio
+  states:
+  - name: Valid
+    test-code: |
+      ctx->msg_prio = &ctx->prio_value;
+    text: |
+      While the ${../if/receive:/params[3]/name} parameter references an object of
+      type `unsigned int`.
+  - name: 'Null'
+    test-code: |
+      ctx->msg_prio = NULL;
+    text: |
+      While the ${../if/receive:/params[3]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Pending
+    test-code: |
+      ctx->queue_pending = true;
+      T_eq_int(
+        mq_send( ctx->mq, (const char *) ctx->msg, MSG_SIZE, MSG_PRIO ),
+        0
+      );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains a
+      ${/glossary/message:/term}.
+  - name: Empty
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/glossary/messagequeue:/term} is empty.
+  test-epilogue: null
+  test-prologue: null
+- name: Blocking
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->mq_attr.mq_flags = O_RDWR;
+      T_eq_int( mq_setattr( ctx->mq, &ctx->mq_attr, NULL ), 0 );
+      SendEvents( ctx->worker_id, EVENT_SEND );
+    text: |
+      While the ${/c/fcntl/if/o-nonblock:/name} flag is not set for the
+      ${/glossary/messagequeue:/term} description, while a thread sends a
+      ${/glossary/message:/term} once the calling thread is blocked.
+  - name: 'No'
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/c/fcntl/if/o-nonblock:/name} flag is set for the
+      ${/glossary/messagequeue:/term} description.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = mq_receive( ctx->mqdes, ctx->msg_ptr, ctx->msg_len, ctx->msg_prio
+test-action: |
+  ctx->retval = mq_receive(
+    ctx->mqdes,
+    ctx->msg_ptr,
+    ctx->msg_len,
+    ctx->msg_prio
   );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  if ( !ctx->mq_closed ) {
+    T_eq_int( mq_close( ctx->mq ), 0 );
+  }
+
+  T_eq_int( mq_unlink( MQ_NAME ), 0 );
 test-context:
-- brief: This member specifies the ${../if/receive:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/receive:/params[0]/name} parameter value.
   description: null
-  member: mqd_t mqdes
-- brief: This member specifies the ${../if/receive:/params[1]/name} parameter value.
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/receive:/params[1]/name} parameter value.
   description: null
-  member: char *msg_ptr
-- brief: This member specifies the ${../if/receive:/params[2]/name} parameter value.
+  member: |
+    char *msg_ptr
+- brief: |
+    This member specifies the ${../if/receive:/params[2]/name} parameter value.
   description: null
-  member: size_t msg_len
-- brief: This member specifies the ${../if/receive:/params[3]/name} parameter value.
+  member: |
+    size_t msg_len
+- brief: |
+    This member specifies the ${../if/receive:/params[3]/name} parameter value.
   description: null
-  member: unsigned int *msg_prio
-- brief: This member contains the return value.
+  member: |
+    unsigned int *msg_prio
+- brief: |
+    This member contains the return value.
   description: null
-  member: ssize_t retval
-test-context-support: null
+  member: |
+    ssize_t retval
+- brief: |
+    This member contains the descriptor used to prepare and check the
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    mqd_t mq
+- brief: |
+    This member contains the attributes used to open and modify the
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    struct mq_attr mq_attr
+- brief: |
+    If this member is true, then the descriptor of the
+    ${/glossary/messagequeue:/term} used for the preparation was closed.
+  description: null
+  member: |
+    bool mq_closed
+- brief: |
+    If this member is true, then a ${/glossary/message:/term} was sent to the
+    ${/glossary/messagequeue:/term} during the preparation.
+  description: null
+  member: |
+    bool queue_pending
+- brief: |
+    This member contains the message sent to the
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    uint8_t msg[ MSG_SIZE ]
+- brief: |
+    This member contains the buffer which receives the message.
+  description: null
+  member: |
+    char recv_buf[ MSG_SIZE ]
+- brief: |
+    This member contains the expected content of the buffer if no message was
+    received.
+  description: null
+  member: |
+    uint8_t untouched_buf[ MSG_SIZE ]
+- brief: |
+    This member contains the object which receives the
+    ${../glossary/msgprio:/term}.
+  description: null
+  member: |
+    unsigned int prio_value
+- brief: |
+    This member contains the identifier of the worker task which sends the
+    message.
+  description: null
+  member: |
+    rtems_id worker_id
+test-context-support: |
+  #define MQ_NAME "/MQRECV"
+
+  #define MSG_SIZE 4
+
+  #define MSG_PRIO 3
+
+  #define INVALID_MQ ( ( mqd_t ) - 1 )
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- fcntl.h
+- limits.h
 - mqueue.h
-test-local-includes: []
-test-prepare: null
-test-setup: null
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->mq_attr.mq_flags = O_RDWR | O_NONBLOCK;
+  ctx->mq_attr.mq_maxmsg = 1;
+  ctx->mq_attr.mq_msgsize = MSG_SIZE;
+  ctx->mq = mq_open(
+    MQ_NAME,
+    O_CREAT | O_RDWR | O_NONBLOCK,
+    0600,
+    &ctx->mq_attr
+  );
+  T_ne_u32( ctx->mq, INVALID_MQ );
+  ctx->mqdes = ctx->mq;
+  ctx->mq_closed = false;
+  ctx->queue_pending = false;
+  memset( ctx->msg, 0x5a, sizeof( ctx->msg ) );
+  memset( ctx->recv_buf, 0xa5, sizeof( ctx->recv_buf ) );
+  memset( ctx->untouched_buf, 0xa5, sizeof( ctx->untouched_buf ) );
+  ctx->msg_ptr = ctx->recv_buf;
+  ctx->msg_len = MSG_SIZE;
+  ctx->prio_value = UINT_MAX;
+  ctx->msg_prio = &ctx->prio_value;
+  errno = -1;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->worker_id = CreateTask( "WORK", PRIO_LOW );
+    StartTask( ctx->worker_id, WorkerTask, ctx );
+  description: null
 test-stop: null
-test-support: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const rtems_event_set EVENT_SEND = RTEMS_EVENT_17;
+
+  static void WorkerTask( rtems_task_argument arg )
+  {
+    Context *ctx = (Context *) arg;
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+      T_eq_int(
+        mq_send( ctx->mq, (const char *) ctx->msg, MSG_SIZE, MSG_PRIO ),
+        0
+      );
+    }
+  }
+
+  static long GetPendingCount( Context *ctx )
+  {
+    struct mq_attr attr;
+
+    if ( ctx->mq_closed ) {
+      ctx->mq = mq_open( MQ_NAME, O_RDWR );
+      T_ne_u32( ctx->mq, INVALID_MQ );
+      ctx->mq_closed = false;
+    }
+
+    T_eq_int( mq_getattr( ctx->mq, &attr ), 0 );
+    return attr.mq_curmsgs;
+  }
+
+  static void CheckReceive( Context *ctx )
+  {
+    char         buf[ MSG_SIZE ];
+    unsigned int prio;
+
+    T_eq_long( mq_receive( ctx->mq, buf, sizeof( buf ), &prio ), MSG_SIZE );
+    T_eq_mem( buf, ctx->msg, MSG_SIZE );
+    T_eq_uint( prio, MSG_PRIO );
+  }
 test-target: testsuites/validation/tc-posix-mq-receive.c
-test-teardown: null
-text: ${.:text-template}
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+      - pre-conditions:
+          Mqdes:
+          - WriteOnly
+          - Closed
+          - Invalid
+      - pre-conditions:
+          MsgLen: TooSmall
+      - pre-conditions:
+          Blocking: 'No'
+          Queue: Empty
+      then: MinusOne
+    - else: Length
+    Errno:
+    - if:
+        pre-conditions:
+          Mqdes:
+          - WriteOnly
+          - Invalid
+      then: EBADF
+    - if:
+        pre-conditions:
+          MsgLen: TooSmall
+      then: EMSGSIZE
+    - if:
+        pre-conditions:
+          Mqdes: Closed
+      then: EBADF
+    - if:
+        pre-conditions:
+          Blocking: 'No'
+          Queue: Empty
+      then: EAGAIN
+    - else: Unchanged
+    Buffer:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - else: Received
+    Prio:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - if:
+        pre-conditions:
+          MsgPrio: 'Null'
+      then: N/A
+    - else: Received
+    Message:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - else: Dequeued
   pre-conditions:
-    Status: all
+    Mqdes: all
+    MsgLen:
+      applicable:
+        pre-conditions:
+          Mqdes:
+          - Valid
+          - Closed
+    MsgPrio:
+      applicable:
+        pre-conditions:
+          Mqdes: Valid
+          MsgLen: Valid
+    Queue:
+      applicable:
+        pre-conditions:
+          Mqdes: Valid
+    Blocking:
+      applicable:
+        pre-conditions:
+          Mqdes: Valid
+          MsgLen: Valid
+          Queue: Empty
 type: requirement
