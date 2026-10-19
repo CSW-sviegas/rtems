@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -64,19 +67,36 @@
  */
 
 typedef enum {
-  CPthreadReqAttrGetdetachstate_Pre_Status_Ok,
-  CPthreadReqAttrGetdetachstate_Pre_Status_NA
-} CPthreadReqAttrGetdetachstate_Pre_Status;
+  CPthreadReqAttrGetdetachstate_Pre_Attr_Valid,
+  CPthreadReqAttrGetdetachstate_Pre_Attr_Null,
+  CPthreadReqAttrGetdetachstate_Pre_Attr_Invalid,
+  CPthreadReqAttrGetdetachstate_Pre_Attr_NA
+} CPthreadReqAttrGetdetachstate_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrGetdetachstate_Post_Status_Ok,
+  CPthreadReqAttrGetdetachstate_Pre_DetachState_Valid,
+  CPthreadReqAttrGetdetachstate_Pre_DetachState_Null,
+  CPthreadReqAttrGetdetachstate_Pre_DetachState_NA
+} CPthreadReqAttrGetdetachstate_Pre_DetachState;
+
+typedef enum {
+  CPthreadReqAttrGetdetachstate_Post_Status_Zero,
+  CPthreadReqAttrGetdetachstate_Post_Status_EINVAL,
   CPthreadReqAttrGetdetachstate_Post_Status_NA
 } CPthreadReqAttrGetdetachstate_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Set,
+  CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Nop,
+  CPthreadReqAttrGetdetachstate_Post_DetachStateObj_NA
+} CPthreadReqAttrGetdetachstate_Post_DetachStateObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_DetachState_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_DetachStateObj : 2;
 } CPthreadReqAttrGetdetachstate_Entry;
 
 /**
@@ -98,11 +118,21 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
+
+  /**
+   * @brief This member contains the detach state output object.
+   */
+  int detachstate_value;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -130,48 +160,150 @@ typedef struct {
 static CPthreadReqAttrGetdetachstate_Context
   CPthreadReqAttrGetdetachstate_Instance;
 
-static const char * const CPthreadReqAttrGetdetachstate_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrGetdetachstate_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrGetdetachstate_PreDesc_DetachState[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrGetdetachstate_PreDesc[] = {
-  CPthreadReqAttrGetdetachstate_PreDesc_Status,
+  CPthreadReqAttrGetdetachstate_PreDesc_Attr,
+  CPthreadReqAttrGetdetachstate_PreDesc_DetachState,
   NULL
 };
 
-static void CPthreadReqAttrGetdetachstate_Pre_Status_Prepare(
-  CPthreadReqAttrGetdetachstate_Pre_Status state
+#define DETACH_STATE_VALUE PTHREAD_CREATE_DETACHED
+
+static void CPthreadReqAttrGetdetachstate_Pre_Attr_Prepare(
+  CPthreadReqAttrGetdetachstate_Context *ctx,
+  CPthreadReqAttrGetdetachstate_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrGetdetachstate_Pre_Status_Ok: {
+    case CPthreadReqAttrGetdetachstate_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      pthread_attr_setdetachstate( &ctx->attr_obj, DETACH_STATE_VALUE );
       break;
     }
 
-    case CPthreadReqAttrGetdetachstate_Pre_Status_NA:
+    case CPthreadReqAttrGetdetachstate_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrGetdetachstate_Pre_DetachState_Prepare(
+  CPthreadReqAttrGetdetachstate_Context        *ctx,
+  CPthreadReqAttrGetdetachstate_Pre_DetachState state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrGetdetachstate_Pre_DetachState_Valid: {
+      /*
+       * While the `detachstate` parameter references an object of type `int`.
+       */
+      ctx->detachstate_value = -1;
+      ctx->detachstate = &ctx->detachstate_value;
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Pre_DetachState_Null: {
+      /*
+       * While the `detachstate` parameter is NULL.
+       */
+      ctx->detachstate = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Pre_DetachState_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrGetdetachstate_Post_Status_Check(
+  CPthreadReqAttrGetdetachstate_Context    *ctx,
   CPthreadReqAttrGetdetachstate_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrGetdetachstate_Post_Status_Ok: {
+    case CPthreadReqAttrGetdetachstate_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_getdetachstate() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_getdetachstate() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqAttrGetdetachstate_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Check(
+  CPthreadReqAttrGetdetachstate_Context            *ctx,
+  CPthreadReqAttrGetdetachstate_Post_DetachStateObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Set: {
+      /*
+       * The value of the object referenced by the `detachstate` parameter
+       * shall be set to the thread detach state attribute of the thread
+       * attributes object referenced by the `attr` parameter.
+       */
+      T_eq_int( ctx->detachstate_value, DETACH_STATE_VALUE );
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Nop: {
+      /*
+       * The object referenced by the `detachstate` parameter shall not be
+       * modified.
+       */
+      T_eq_int( ctx->detachstate_value, -1 );
+      break;
+    }
+
+    case CPthreadReqAttrGetdetachstate_Post_DetachStateObj_NA:
       break;
   }
 }
@@ -185,12 +317,17 @@ static void CPthreadReqAttrGetdetachstate_Action(
 
 static const CPthreadReqAttrGetdetachstate_Entry
 CPthreadReqAttrGetdetachstate_Entries[] = {
-  { 0, 0, CPthreadReqAttrGetdetachstate_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrGetdetachstate_Post_Status_EINVAL,
+    CPthreadReqAttrGetdetachstate_Post_DetachStateObj_NA },
+  { 0, 0, 0, CPthreadReqAttrGetdetachstate_Post_Status_EINVAL,
+    CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrGetdetachstate_Post_Status_Zero,
+    CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Set }
 };
 
 static const uint8_t
 CPthreadReqAttrGetdetachstate_Map[] = {
-  0
+  2, 0, 1, 0, 1, 0
 };
 
 static size_t CPthreadReqAttrGetdetachstate_Scope(
@@ -241,10 +378,19 @@ static void CPthreadReqAttrGetdetachstate_TestVariant(
   CPthreadReqAttrGetdetachstate_Context *ctx
 )
 {
-  CPthreadReqAttrGetdetachstate_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrGetdetachstate_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrGetdetachstate_Pre_DetachState_Prepare(
+    ctx,
+    ctx->Map.pcs[ 1 ]
+  );
   CPthreadReqAttrGetdetachstate_Action( ctx );
   CPthreadReqAttrGetdetachstate_Post_Status_Check(
+    ctx,
     ctx->Map.entry.Post_Status
+  );
+  CPthreadReqAttrGetdetachstate_Post_DetachStateObj_Check(
+    ctx,
+    ctx->Map.entry.Post_DetachStateObj
   );
 }
 
@@ -263,12 +409,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrGetdetachstate_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrGetdetachstate_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrGetdetachstate_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrGetdetachstate_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrGetdetachstate_PopEntry( ctx );
-    CPthreadReqAttrGetdetachstate_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrGetdetachstate_Pre_DetachState_Valid;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrGetdetachstate_Pre_DetachState_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrGetdetachstate_PopEntry( ctx );
+      CPthreadReqAttrGetdetachstate_TestVariant( ctx );
+    }
   }
 }
 
