@@ -1,75 +1,489 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/timedsend
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/timedsend:/name} shall be equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/timedsend:/name} shall be equal to minus one.
   test-epilogue: null
   test-prologue: null
-pre-conditions:
-- name: Status
+- name: Errno
   states:
-  - name: Ok
+  - name: Unchanged
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->eno, -1 );
     text: |
-      TODO
+      The ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/timedsend:/name} call.
+  - name: EAGAIN
+    test-code: |
+      T_eq_int( ctx->eno, EAGAIN );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/eagain:/name}.
+  - name: EBADF
+    test-code: |
+      T_eq_int( ctx->eno, EBADF );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/ebadf:/name}.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->eno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/einval:/name}.
+  - name: EMSGSIZE
+    test-code: |
+      T_eq_int( ctx->eno, EMSGSIZE );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/emsgsize:/name}.
+  - name: ETIMEDOUT
+    test-code: |
+      T_eq_int( ctx->eno, ETIMEDOUT );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/etimedout:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Timer
+  states:
+  - name: Inactive
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_INACTIVE );
+    text: |
+      The timer of the calling task shall be inactive.
+  - name: Realtime
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_REALTIME );
+    text: |
+      The timer of the calling task shall be active using the
+      ${/glossary/clock-realtime:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Added
+    test-code: |
+      T_eq_long( attr.mq_curmsgs, 1 );
+      len = mq_receive( mq, buf, sizeof( buf ), &prio );
+      T_eq_sz( len, MSG_SIZE );
+      T_eq_u32( prio, MQ_PRIO_MAX );
+      T_eq_mem( buf, message, MSG_SIZE );
+    text: |
+      The ${/glossary/message:/term} referenced by the
+      ${../if/timedsend:/params[1]/name} parameter with the size in bytes specified
+      by the ${../if/timedsend:/params[2]/name} parameter and the
+      ${../glossary/msgprio:/term} specified by the
+      ${../if/timedsend:/params[3]/name} parameter shall be appended to the
+      ${/glossary/messagequeue:/term} specified by the
+      ${../if/timedsend:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_long( attr.mq_curmsgs, ctx->curmsgs );
+
+      if ( ctx->curmsgs > 0 ) {
+        len = mq_receive( mq, buf, sizeof( buf ), &prio );
+        T_eq_sz( len, 1 );
+        T_eq_u32( prio, 0 );
+        T_eq_mem( buf, "x", 1 );
+      }
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be changed by the
+      ${../if/timedsend:/name} call.
+  test-epilogue: |
+    T_eq_int( mq_close( mq ), 0 );
+  test-prologue: |
+    char           buf[ MSG_SIZE ];
+    mqd_t          mq;
+    struct mq_attr attr;
+    unsigned int   prio;
+    ssize_t        len;
+
+    mq = mq_open( QUEUE_NAME, O_RDWR );
+    T_ne_u32( mq, (mqd_t) -1 );
+    T_eq_int( mq_getattr( mq, &attr ), 0 );
+pre-conditions:
+- name: Flags
+  states:
+  - name: Blocking
+    test-code: |
+      ctx->mq = mq_open( QUEUE_NAME, O_CREAT | O_RDWR, S_IRWXU, &queue_attr );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for writing without the
+      ${/c/fcntl/if/o-nonblock:/name} flag.
+  - name: NonBlock
+    test-code: |
+      ctx->mq = mq_open(
+        QUEUE_NAME,
+        O_CREAT | O_RDWR | O_NONBLOCK,
+        S_IRWXU,
+        &queue_attr
+      );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for writing with the
+      ${/c/fcntl/if/o-nonblock:/name} flag.
+  - name: ReadOnly
+    test-code: |
+      ctx->mq = mq_open( QUEUE_NAME, O_CREAT | O_RDONLY, S_IRWXU, &queue_attr );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for reading only.
+  test-epilogue: null
+  test-prologue: null
+- name: Full
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( mq_send( ctx->mq, "x", 1, 0 ), 0 );
+      ctx->curmsgs = 1;
+    text: |
+      While the ${/glossary/messagequeue:/term} is full.
+  - name: 'No'
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/glossary/messagequeue:/term} is not full.
+  test-epilogue: null
+  test-prologue: null
+- name: Mqdes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/timedsend:/params[0]/name} parameter specifies a
+      ${../glossary/mqdes:/term} of an open ${/glossary/messagequeue:/term}.
+  - name: Closed
+    test-code: |
+      T_eq_int( mq_close( ctx->mq ), 0 );
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/timedsend:/params[0]/name} parameter specifies a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term} which was
+      closed and not unlinked.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = INVALID_ID;
+    text: |
+      While the ${../if/timedsend:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgLen
+  states:
+  - name: Fits
+    test-code: |
+      ctx->msg_len = MSG_SIZE;
+    text: |
+      While the ${../if/timedsend:/params[2]/name} parameter is less than or equal to
+      the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term}.
+  - name: TooLong
+    test-code: |
+      ctx->msg_len = MSG_SIZE + 1;
+    text: |
+      While the ${../if/timedsend:/params[2]/name} parameter is greater than the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgPrio
+  states:
+  - name: Valid
+    test-code: |
+      ctx->msg_prio = MQ_PRIO_MAX;
+    text: |
+      While the ${../if/timedsend:/params[3]/name} parameter is less than or equal to
+      ${/c/limits/if/mq-prio-max:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->msg_prio = MQ_PRIO_MAX + 1;
+    text: |
+      While the ${../if/timedsend:/params[3]/name} parameter is greater than
+      ${/c/limits/if/mq-prio-max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Abstime
+  states:
+  - name: Future
+    test-code: |
+      ctx->abstime_obj.tv_sec = 1621322302;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/timedsend:/params[4]/name} parameter references an object of
+      type ${/c/if/timespec:/name} specifying a valid time point which is after the
+      current time of the ${/glossary/clock-realtime:/term}.
+  - name: Past
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/timedsend:/params[4]/name} parameter references an object of
+      type ${/c/if/timespec:/name} specifying a valid time point which is before or
+      at the current time of the ${/glossary/clock-realtime:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->abstime_obj.tv_sec = 1621322302;
+      ctx->abstime_obj.tv_nsec = -1;
+    text: |
+      While the ${../if/timedsend:/params[4]/name} parameter references an object of
+      type ${/c/if/timespec:/name} whose nanoseconds value is invalid.
+  - name: 'Null'
+    test-code: |
+      ctx->abstime = NULL;
+    text: |
+      While the ${../if/timedsend:/params[4]/name} parameter is ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = mq_timedsend( ctx->mqdes, ctx->msg_ptr, ctx->msg_len, ctx->msg_prio,
-  ctx->abstime );
+test-action: |
+  ResumeTask( ctx->worker_id );
+  GetTaskTimerInfo( ctx->worker_id, &ctx->timer_info );
+  FinalClockTick();
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  (void) mq_close( ctx->mq );
+  (void) mq_unlink( QUEUE_NAME );
 test-context:
-- brief: This member specifies the ${../if/timedsend:/params[0]/name} parameter value.
+- brief: |
+    This member contains the worker task identifier.
   description: null
-  member: mqd_t mqdes
-- brief: This member specifies the ${../if/timedsend:/params[1]/name} parameter value.
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member contains the timer information of the worker task.
   description: null
-  member: const char *msg_ptr
-- brief: This member specifies the ${../if/timedsend:/params[2]/name} parameter value.
+  member: |
+    TaskTimerInfo timer_info
+- brief: |
+    This member contains the descriptor of the message queue created for the
+    test variant.
   description: null
-  member: size_t msg_len
-- brief: This member specifies the ${../if/timedsend:/params[3]/name} parameter value.
+  member: |
+    mqd_t mq
+- brief: |
+    This member contains the number of messages in the message queue before the
+    ${../if/timedsend:/name} call.
   description: null
-  member: unsigned int msg_prio
-- brief: This member specifies the ${../if/timedsend:/params[4]/name} parameter value.
+  member: |
+    long curmsgs
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timedsend:/params[4]/name} parameter.
   description: null
-  member: const struct timespec *abstime
-- brief: This member contains the return value.
+  member: |
+    struct timespec abstime_obj
+- brief: |
+    This member specifies the ${../if/timedsend:/params[0]/name} parameter
+    value.
   description: null
-  member: int retval
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/timedsend:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    const char *msg_ptr
+- brief: |
+    This member specifies the ${../if/timedsend:/params[2]/name} parameter
+    value.
+  description: null
+  member: |
+    size_t msg_len
+- brief: |
+    This member specifies the ${../if/timedsend:/params[3]/name} parameter
+    value.
+  description: null
+  member: |
+    unsigned int msg_prio
+- brief: |
+    This member specifies the ${../if/timedsend:/params[4]/name} parameter
+    value.
+  description: null
+  member: |
+    const struct timespec *abstime
+- brief: |
+    This member contains the return value of the ${../if/timedsend:/name} call.
+  description: null
+  member: |
+    int retval
+- brief: |
+    This member contains the ${/c/errno/if/errno:/name} value after the
+    ${../if/timedsend:/name} call.
+  description: null
+  member: |
+    int eno
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- fcntl.h
+- limits.h
 - mqueue.h
-test-local-includes: []
-test-prepare: null
-test-setup: null
+- rtems.h
+- sys/stat.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->retval = -1;
+  ctx->eno = 0;
+  ctx->curmsgs = 0;
+  ctx->msg_ptr = message;
+  ctx->abstime = &ctx->abstime_obj;
+  ctx->abstime_obj.tv_sec = 1621322302;
+  ctx->abstime_obj.tv_nsec = 0;
+test-setup:
+  brief: null
+  code: |
+    rtems_time_of_day now = { 1988, 1, 1, 0, 0, 0, 0 };
+
+    T_rsc_success( rtems_clock_set( &now ) );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( ctx->worker_id, Worker, ctx );
+  description: null
 test-stop: null
-test-support: null
+test-support: |
+  #define QUEUE_NAME "mq"
+
+  #define MSG_SIZE 4
+
+  static const struct mq_attr queue_attr = { 0, 1, MSG_SIZE, 0 };
+
+  static const char message[] = "abcde";
+
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      SuspendSelf();
+      errno = -1;
+      ctx->retval = mq_timedsend(
+        ctx->mqdes,
+        ctx->msg_ptr,
+        ctx->msg_len,
+        ctx->msg_prio,
+        ctx->abstime
+      );
+      ctx->eno = errno;
+    }
+  }
 test-target: testsuites/validation/tc-posix-mq-timedsend.c
-test-teardown: null
-text: ${.:text-template}
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+      - pre-conditions:
+          MsgPrio: Invalid
+      - pre-conditions:
+          Mqdes:
+          - Closed
+          - Invalid
+      - pre-conditions:
+          Flags: ReadOnly
+      - pre-conditions:
+          MsgLen: TooLong
+      - pre-conditions:
+          Full: 'Yes'
+      then: MinusOne
+    - else: Zero
+    Errno:
+    - if:
+        pre-conditions:
+          MsgPrio: Invalid
+      then: EINVAL
+    - if:
+      - pre-conditions:
+          Mqdes:
+          - Closed
+          - Invalid
+      - pre-conditions:
+          Flags: ReadOnly
+      then: EBADF
+    - if:
+        pre-conditions:
+          MsgLen: TooLong
+      then: EMSGSIZE
+    - if:
+        pre-conditions:
+          Flags: NonBlock
+          Full: 'Yes'
+      then: EAGAIN
+    - if:
+        pre-conditions:
+          Abstime:
+          - Invalid
+          - 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Full: 'Yes'
+      then: ETIMEDOUT
+    - else: Unchanged
+    Timer:
+    - if:
+        pre-conditions:
+          Abstime: Future
+      then: Realtime
+    - else: Inactive
+    Queue:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Added
+    - else: Nop
   pre-conditions:
-    Status: all
+    Flags: all
+    Full:
+      applicable:
+        pre-conditions:
+          Flags:
+          - Blocking
+          - NonBlock
+    Mqdes: all
+    MsgLen: all
+    MsgPrio: all
+    Abstime:
+      applicable:
+        pre-conditions:
+          Flags: Blocking
+          Full: 'Yes'
+          Mqdes: Valid
+          MsgLen: Fits
+          MsgPrio: Valid
 type: requirement
