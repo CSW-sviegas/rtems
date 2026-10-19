@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -22,10 +23,19 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    The caller does not have permission to unlink the
-    ${/glossary/messagequeue:/term}.
+    The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
   role: errno
-  uid: /c/errno/if/eacces
+  uid: /c/errno/if/einval
+- description: |
+    The length of the name specified by ${.:/params[0]/name} was greater than the
+    maximum length of a ${/glossary/messagequeue:/term} name.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    There was no ${/glossary/messagequeue:/term} with the name specified by
+    ${.:/params[0]/name}.
+  role: errno
+  uid: /c/errno/if/enoent
 name: mq_unlink
 notes: |
   See [POSIX.1-2024, System Interfaces, mq_unlink()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_unlink.html).
@@ -34,5 +44,14 @@ params:
     is the name of the message queue to unlink.
   dir: in
   name: name
-return: null
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
 type: interface

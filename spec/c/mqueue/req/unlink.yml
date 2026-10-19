@@ -1,62 +1,234 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/unlink
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/unlink:/name} shall be equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/unlink:/name} shall be equal to minus one.
   test-epilogue: null
   test-prologue: null
-pre-conditions:
-- name: Status
+- name: Errno
   states:
-  - name: Ok
+  - name: Unchanged
     test-code: |
-      /* TODOD */
+      T_eq_int( errno, -1 );
     text: |
-      TODO
+      The ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/unlink:/name} call.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( errno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/einval:/name}.
+  - name: ENAMETOOLONG
+    test-code: |
+      T_eq_int( errno, ENAMETOOLONG );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to
+      ${/c/errno/if/enametoolong:/name}.
+  - name: ENOENT
+    test-code: |
+      T_eq_int( errno, ENOENT );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enoent:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Removed
+    test-code: |
+      T_eq_u32( mq, (mqd_t) -1 );
+      T_eq_int( errno, ENOENT );
+    text: |
+      The name specified by the ${../if/unlink:/params[0]/name} parameter shall not
+      identify a ${/glossary/messagequeue:/term} after the return of the
+      ${../if/unlink:/name} call.
+  - name: Nop
+    test-code: |
+      T_ne_u32( mq, (mqd_t) -1 );
+      T_eq_int( mq_close( mq ), 0 );
+    text: |
+      The ${/glossary/messagequeue:/term} shall be identified by its name after the
+      return of the ${../if/unlink:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    mqd_t mq;
+
+    mq = mq_open( QUEUE_NAME, O_RDWR );
+- name: Mqdes
+  states:
+  - name: Valid
+    test-code: |
+      T_eq_int( mq_getattr( ctx->mq, &attr ), 0 );
+    text: |
+      The ${../glossary/mqdes:/term} of the ${/glossary/messagequeue:/term} opened
+      before the ${../if/unlink:/name} call shall still grant access to the
+      ${/glossary/messagequeue:/term} after the return of the ${../if/unlink:/name}
+      call.
+  test-epilogue: null
+  test-prologue: |
+    struct mq_attr attr;
+pre-conditions:
+- name: Name
+  states:
+  - name: Valid
+    test-code: |
+      ctx->name = QUEUE_NAME;
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter is the name of an existing
+      ${/glossary/messagequeue:/term}.
+  - name: Unknown
+    test-code: |
+      ctx->name = "unknown";
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter is not the name of a
+      ${/glossary/messagequeue:/term}.
+  - name: TooLong
+    test-code: |
+      memset( ctx->long_name, 'a', _POSIX_PATH_MAX + 1 );
+      ctx->long_name[ _POSIX_PATH_MAX + 1 ] = '\0';
+      ctx->name = ctx->long_name;
+    text: |
+      While the length of the string referenced by the
+      ${../if/unlink:/params[0]/name} parameter is greater than the maximum length of
+      a ${/glossary/messagequeue:/term} name.
+  - name: 'Null'
+    test-code: |
+      ctx->name = NULL;
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->mq ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = mq_unlink( ctx->name );
+test-action: |
+  ctx->retval = mq_unlink( ctx->name );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  (void) mq_close( ctx->mq );
+  (void) mq_unlink( QUEUE_NAME );
 test-context:
-- brief: This member specifies the ${../if/unlink:/params[0]/name} parameter value.
+- brief: |
+    This member contains the descriptor of the message queue created for the
+    test variant.
   description: null
-  member: const char *name
-- brief: This member contains the return value.
+  member: |
+    mqd_t mq
+- brief: |
+    This member provides a string longer than the maximum message queue name
+    length.
   description: null
-  member: int retval
+  member: |
+    char long_name[ _POSIX_PATH_MAX + 2 ]
+- brief: |
+    This member specifies the ${../if/unlink:/params[0]/name} parameter value.
+  description: null
+  member: |
+    const char *name
+- brief: |
+    This member contains the return value of the ${../if/unlink:/name} call.
+  description: null
+  member: |
+    int retval
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- fcntl.h
+- limits.h
 - mqueue.h
+- string.h
+- sys/stat.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  errno = -1;
+  ctx->retval = -1;
+  ctx->mq = mq_open( QUEUE_NAME, O_CREAT | O_RDWR, S_IRWXU, &queue_attr );
+  T_ne_u32( ctx->mq, (mqd_t) -1 );
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define QUEUE_NAME "mq"
+
+  static const struct mq_attr queue_attr = { 0, 1, 1, 0 };
 test-target: testsuites/validation/tc-posix-mq-unlink.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Name: Valid
+      then: Zero
+    - else: MinusOne
+    Errno:
+    - if:
+        pre-conditions:
+          Name: Unknown
+      then: ENOENT
+    - if:
+        pre-conditions:
+          Name: TooLong
+      then: ENAMETOOLONG
+    - if:
+        pre-conditions:
+          Name: 'Null'
+      then: EINVAL
+    - else: Unchanged
+    Name:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Removed
+    - else: Nop
+    Mqdes:
+    - if:
+        pre-conditions:
+          Name: Valid
+          Open: 'No'
+      then: N/A
+    - else: Valid
   pre-conditions:
-    Status: all
+    Name: all
+    Open:
+      applicable:
+        pre-conditions:
+          Name: Valid
 type: requirement
