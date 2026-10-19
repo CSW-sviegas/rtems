@@ -1,10 +1,11 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Get the ${../glossary/mqattr:/plural} of the ${../glossary/mqdes:/term}
+  Get the ${../glossary/mqattr:/term}s of the ${../glossary/mqdes:/term}
   specified by ${.:/params[0]/name} and store them in the object referenced by
   ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -24,12 +25,15 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} is invalid.
+    This error number indicates the following error conditions:
+
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
+    - The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+      open.
   role: errno
   uid: /c/errno/if/ebadf
 - description: |
-    The mq_flags field in ${.:/params[1]/name} contained set bits other than
-    O_NONBLOCK.
+    The ${.:/params[1]/name} parameter was ${/c/if/null:/name}.
   role: errno
   uid: /c/errno/if/einval
 name: mq_getattr
@@ -41,14 +45,15 @@ params:
   dir: null
   name: mqdes
 - description: |
-    is the pointer to an mq_attr structure where the attributes will be stored.
+    is the pointer to an ${/c/if/mq_attr:/name} object where the attributes will be
+    stored.
   dir: out
   name: mqstat
 return:
   return: null
   return-values:
   - description: |
-      On success, zero is returned.
+      The requested operation was successful.
     value: 0
   - description: |
       On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
