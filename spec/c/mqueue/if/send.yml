@@ -6,6 +6,7 @@ brief: |
   ${../glossary/msgprio:/term} specified by ${.:/params[3]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -38,12 +39,10 @@ links:
     - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
     - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was not
       opened for writing.
+    - The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+      open.
   role: errno
   uid: /c/errno/if/ebadf
-- description: |
-    The call was interrupted by a signal handler.
-  role: errno
-  uid: /c/errno/if/eintr
 - description: |
     ${.:/params[3]/name} was greater than ${/c/limits/if/mq-prio-max:/name}.
   role: errno
@@ -78,7 +77,7 @@ return:
   return: null
   return-values:
   - description: |
-      On success, zero is returned.
+      The requested operation was successful.
     value: 0
   - description: |
       On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
