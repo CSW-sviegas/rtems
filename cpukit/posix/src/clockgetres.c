@@ -56,10 +56,8 @@ int clock_getres( clockid_t clock_id, struct timespec *res )
   }
 
   switch ( clock_id ) {
-      /*
-       *  All time in rtems is based on the same clock tick.
-       */
-
+    /* All clocks read the timecounter */
+    case CLOCK_MONOTONIC:
     case CLOCK_REALTIME:
     case CLOCK_PROCESS_CPUTIME_ID:
     case CLOCK_THREAD_CPUTIME_ID: {
