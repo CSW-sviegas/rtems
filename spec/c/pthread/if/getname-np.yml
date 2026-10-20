@@ -5,6 +5,7 @@ brief: |
   ${.:/params[1]/name} of size specified by ${.:/params[2]/name} in bytes.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -29,6 +30,10 @@ links:
     name.
   role: errno
   uid: /c/errno/if/erange
+- description: |
+    The thread specified by ID ${.:/params[0]/name} could not be found.
+  role: errno
+  uid: /c/errno/if/esrch
 name: pthread_getname_np
 notes: |
   See [FreeBSD Manual Pages, pthread_getname_np()](https://man.freebsd.org/cgi/man.cgi?query=pthread_getname_np&sektion=3).
@@ -55,4 +60,7 @@ return:
       The buffer specified by ${.:/params[1]/name} and ${.:/params[2]/name} is too
       small.
     value: ${/c/errno/if/erange:/name}
+  - description: |
+      The thread specified by ID ${.:/params[0]/name} could not be found.
+    value: ${/c/errno/if/esrch:/name}
 type: interface
