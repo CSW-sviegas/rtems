@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -64,19 +67,38 @@
  */
 
 typedef enum {
-  CPthreadReqAttrSetinheritsched_Pre_Status_Ok,
-  CPthreadReqAttrSetinheritsched_Pre_Status_NA
-} CPthreadReqAttrSetinheritsched_Pre_Status;
+  CPthreadReqAttrSetinheritsched_Pre_Attr_Valid,
+  CPthreadReqAttrSetinheritsched_Pre_Attr_Null,
+  CPthreadReqAttrSetinheritsched_Pre_Attr_Invalid,
+  CPthreadReqAttrSetinheritsched_Pre_Attr_NA
+} CPthreadReqAttrSetinheritsched_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrSetinheritsched_Post_Status_Ok,
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Inherit,
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Explicit,
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Invalid,
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched_NA
+} CPthreadReqAttrSetinheritsched_Pre_Inheritsched;
+
+typedef enum {
+  CPthreadReqAttrSetinheritsched_Post_Status_Zero,
+  CPthreadReqAttrSetinheritsched_Post_Status_EINVAL,
+  CPthreadReqAttrSetinheritsched_Post_Status_ENOTSUP,
   CPthreadReqAttrSetinheritsched_Post_Status_NA
 } CPthreadReqAttrSetinheritsched_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrSetinheritsched_Post_AttrObj_Set,
+  CPthreadReqAttrSetinheritsched_Post_AttrObj_Nop,
+  CPthreadReqAttrSetinheritsched_Post_AttrObj_NA
+} CPthreadReqAttrSetinheritsched_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_Inheritsched_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqAttrSetinheritsched_Entry;
 
 /**
@@ -94,15 +116,21 @@ typedef struct {
   int inheritsched;
 
   /**
-   * @brief This member contains the return value.
+   * @brief This member contains the return value of the
+   *   pthread_attr_setinheritsched() call.
    */
   int retval;
+
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
 
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -130,48 +158,174 @@ typedef struct {
 static CPthreadReqAttrSetinheritsched_Context
   CPthreadReqAttrSetinheritsched_Instance;
 
-static const char * const CPthreadReqAttrSetinheritsched_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrSetinheritsched_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetinheritsched_PreDesc_Inheritsched[] = {
+  "Inherit",
+  "Explicit",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrSetinheritsched_PreDesc[] = {
-  CPthreadReqAttrSetinheritsched_PreDesc_Status,
+  CPthreadReqAttrSetinheritsched_PreDesc_Attr,
+  CPthreadReqAttrSetinheritsched_PreDesc_Inheritsched,
   NULL
 };
 
-static void CPthreadReqAttrSetinheritsched_Pre_Status_Prepare(
-  CPthreadReqAttrSetinheritsched_Pre_Status state
+#define INHERITSCHED_INVALID 123
+
+static void CPthreadReqAttrSetinheritsched_Pre_Attr_Prepare(
+  CPthreadReqAttrSetinheritsched_Context *ctx,
+  CPthreadReqAttrSetinheritsched_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetinheritsched_Pre_Status_Ok: {
+    case CPthreadReqAttrSetinheritsched_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      ctx->attr_obj.inheritsched = -1;
       break;
     }
 
-    case CPthreadReqAttrSetinheritsched_Pre_Status_NA:
+    case CPthreadReqAttrSetinheritsched_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.inheritsched = -1;
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Prepare(
+  CPthreadReqAttrSetinheritsched_Context         *ctx,
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Inherit: {
+      /*
+       * While the `inheritsched` parameter is equal to PTHREAD_INHERIT_SCHED.
+       */
+      ctx->inheritsched = PTHREAD_INHERIT_SCHED;
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Explicit: {
+      /*
+       * While the `inheritsched` parameter is equal to PTHREAD_EXPLICIT_SCHED.
+       */
+      ctx->inheritsched = PTHREAD_EXPLICIT_SCHED;
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Invalid: {
+      /*
+       * While the `inheritsched` parameter is not a valid thread inherit
+       * scheduler attribute.
+       */
+      ctx->inheritsched = INHERITSCHED_INVALID;
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Pre_Inheritsched_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrSetinheritsched_Post_Status_Check(
+  CPthreadReqAttrSetinheritsched_Context    *ctx,
   CPthreadReqAttrSetinheritsched_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetinheritsched_Post_Status_Ok: {
+    case CPthreadReqAttrSetinheritsched_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_setinheritsched() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_setinheritsched() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Post_Status_ENOTSUP: {
+      /*
+       * The return value of pthread_attr_setinheritsched() shall be equal to
+       * ENOTSUP.
+       */
+      T_eq_int( ctx->retval, ENOTSUP );
       break;
     }
 
     case CPthreadReqAttrSetinheritsched_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetinheritsched_Post_AttrObj_Check(
+  CPthreadReqAttrSetinheritsched_Context     *ctx,
+  CPthreadReqAttrSetinheritsched_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetinheritsched_Post_AttrObj_Set: {
+      /*
+       * The value of the thread inherit scheduler attribute of the thread
+       * attributes object referenced by the `attr` parameter shall be set to
+       * the indicator specified by the `inheritsched` parameter.
+       */
+      int inheritsched;
+      int eno;
+
+      eno = pthread_attr_getinheritsched( &ctx->attr_obj, &inheritsched );
+      T_eno_success( eno );
+      T_eq_int( inheritsched, ctx->inheritsched );
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Post_AttrObj_Nop: {
+      /*
+       * The thread attributes object referenced by the `attr` parameter shall
+       * not be modified.
+       */
+      T_eq_int( ctx->attr_obj.inheritsched, -1 );
+      break;
+    }
+
+    case CPthreadReqAttrSetinheritsched_Post_AttrObj_NA:
       break;
   }
 }
@@ -185,12 +339,19 @@ static void CPthreadReqAttrSetinheritsched_Action(
 
 static const CPthreadReqAttrSetinheritsched_Entry
 CPthreadReqAttrSetinheritsched_Entries[] = {
-  { 0, 0, CPthreadReqAttrSetinheritsched_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrSetinheritsched_Post_Status_EINVAL,
+    CPthreadReqAttrSetinheritsched_Post_AttrObj_NA },
+  { 0, 0, 0, CPthreadReqAttrSetinheritsched_Post_Status_EINVAL,
+    CPthreadReqAttrSetinheritsched_Post_AttrObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrSetinheritsched_Post_Status_Zero,
+    CPthreadReqAttrSetinheritsched_Post_AttrObj_Set },
+  { 0, 0, 0, CPthreadReqAttrSetinheritsched_Post_Status_ENOTSUP,
+    CPthreadReqAttrSetinheritsched_Post_AttrObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqAttrSetinheritsched_Map[] = {
-  0
+  2, 2, 3, 0, 0, 0, 1, 1, 1
 };
 
 static size_t CPthreadReqAttrSetinheritsched_Scope(
@@ -241,10 +402,19 @@ static void CPthreadReqAttrSetinheritsched_TestVariant(
   CPthreadReqAttrSetinheritsched_Context *ctx
 )
 {
-  CPthreadReqAttrSetinheritsched_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetinheritsched_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Prepare(
+    ctx,
+    ctx->Map.pcs[ 1 ]
+  );
   CPthreadReqAttrSetinheritsched_Action( ctx );
   CPthreadReqAttrSetinheritsched_Post_Status_Check(
+    ctx,
     ctx->Map.entry.Post_Status
+  );
+  CPthreadReqAttrSetinheritsched_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
   );
 }
 
@@ -263,12 +433,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetinheritsched_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetinheritsched_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetinheritsched_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetinheritsched_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrSetinheritsched_PopEntry( ctx );
-    CPthreadReqAttrSetinheritsched_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrSetinheritsched_Pre_Inheritsched_Inherit;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrSetinheritsched_Pre_Inheritsched_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrSetinheritsched_PopEntry( ctx );
+      CPthreadReqAttrSetinheritsched_TestVariant( ctx );
+    }
   }
 }
 
