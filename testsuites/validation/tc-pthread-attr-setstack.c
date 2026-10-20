@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,48 @@
  */
 
 typedef enum {
-  CPthreadReqAttrSetstack_Pre_Status_Ok,
-  CPthreadReqAttrSetstack_Pre_Status_NA
-} CPthreadReqAttrSetstack_Pre_Status;
+  CPthreadReqAttrSetstack_Pre_Attr_Valid,
+  CPthreadReqAttrSetstack_Pre_Attr_Null,
+  CPthreadReqAttrSetstack_Pre_Attr_Invalid,
+  CPthreadReqAttrSetstack_Pre_Attr_NA
+} CPthreadReqAttrSetstack_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrSetstack_Post_Status_Ok,
+  CPthreadReqAttrSetstack_Pre_StackAddr_Valid,
+  CPthreadReqAttrSetstack_Pre_StackAddr_NA
+} CPthreadReqAttrSetstack_Pre_StackAddr;
+
+typedef enum {
+  CPthreadReqAttrSetstack_Pre_StackSize_Valid,
+  CPthreadReqAttrSetstack_Pre_StackSize_NA
+} CPthreadReqAttrSetstack_Pre_StackSize;
+
+typedef enum {
+  CPthreadReqAttrSetstack_Post_Status_Zero,
+  CPthreadReqAttrSetstack_Post_Status_EINVAL,
   CPthreadReqAttrSetstack_Post_Status_NA
 } CPthreadReqAttrSetstack_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrSetstack_Post_StackAddrObj_Set,
+  CPthreadReqAttrSetstack_Post_StackAddrObj_Nop,
+  CPthreadReqAttrSetstack_Post_StackAddrObj_NA
+} CPthreadReqAttrSetstack_Post_StackAddrObj;
+
+typedef enum {
+  CPthreadReqAttrSetstack_Post_StackSizeObj_Set,
+  CPthreadReqAttrSetstack_Post_StackSizeObj_Nop,
+  CPthreadReqAttrSetstack_Post_StackSizeObj_NA
+} CPthreadReqAttrSetstack_Post_StackSizeObj;
+
 typedef struct {
-  uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint16_t Skip : 1;
+  uint16_t Pre_Attr_NA : 1;
+  uint16_t Pre_StackAddr_NA : 1;
+  uint16_t Pre_StackSize_NA : 1;
+  uint16_t Post_Status : 2;
+  uint16_t Post_StackAddrObj : 2;
+  uint16_t Post_StackSizeObj : 2;
 } CPthreadReqAttrSetstack_Entry;
 
 /**
@@ -102,11 +134,16 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 3 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -134,44 +171,138 @@ typedef struct {
 static CPthreadReqAttrSetstack_Context
   CPthreadReqAttrSetstack_Instance;
 
-static const char * const CPthreadReqAttrSetstack_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrSetstack_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetstack_PreDesc_StackAddr[] = {
+  "Valid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetstack_PreDesc_StackSize[] = {
+  "Valid",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrSetstack_PreDesc[] = {
-  CPthreadReqAttrSetstack_PreDesc_Status,
+  CPthreadReqAttrSetstack_PreDesc_Attr,
+  CPthreadReqAttrSetstack_PreDesc_StackAddr,
+  CPthreadReqAttrSetstack_PreDesc_StackSize,
   NULL
 };
 
-static void CPthreadReqAttrSetstack_Pre_Status_Prepare(
-  CPthreadReqAttrSetstack_Pre_Status state
+#define STACK_ADDR_VALUE ( (void *) 0x1000 )
+
+#define STALE_STACK_ADDR ( (void *) 0x2000 )
+
+#define STACK_SIZE_VALUE ( (size_t) 0x4000 )
+
+#define STALE_STACK_SIZE ( (size_t) -1 )
+
+static void CPthreadReqAttrSetstack_Pre_Attr_Prepare(
+  CPthreadReqAttrSetstack_Context *ctx,
+  CPthreadReqAttrSetstack_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetstack_Pre_Status_Ok: {
+    case CPthreadReqAttrSetstack_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      ctx->attr_obj.stackaddr = STALE_STACK_ADDR;
+      ctx->attr_obj.stacksize = STALE_STACK_SIZE;
       break;
     }
 
-    case CPthreadReqAttrSetstack_Pre_Status_NA:
+    case CPthreadReqAttrSetstack_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.stackaddr = STALE_STACK_ADDR;
+      ctx->attr_obj.stacksize = STALE_STACK_SIZE;
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetstack_Pre_StackAddr_Prepare(
+  CPthreadReqAttrSetstack_Context      *ctx,
+  CPthreadReqAttrSetstack_Pre_StackAddr state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetstack_Pre_StackAddr_Valid: {
+      /*
+       * While the `stackaddr` parameter specifies a stack address.
+       */
+      ctx->stackaddr = STACK_ADDR_VALUE;
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Pre_StackAddr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetstack_Pre_StackSize_Prepare(
+  CPthreadReqAttrSetstack_Context      *ctx,
+  CPthreadReqAttrSetstack_Pre_StackSize state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetstack_Pre_StackSize_Valid: {
+      /*
+       * While the `stacksize` parameter specifies a stack size.
+       */
+      ctx->stacksize = STACK_SIZE_VALUE;
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Pre_StackSize_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrSetstack_Post_Status_Check(
+  CPthreadReqAttrSetstack_Context    *ctx,
   CPthreadReqAttrSetstack_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetstack_Post_Status_Ok: {
+    case CPthreadReqAttrSetstack_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_setstack() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_setstack() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
@@ -180,21 +311,105 @@ static void CPthreadReqAttrSetstack_Post_Status_Check(
   }
 }
 
+static void CPthreadReqAttrSetstack_Post_StackAddrObj_Check(
+  CPthreadReqAttrSetstack_Context          *ctx,
+  CPthreadReqAttrSetstack_Post_StackAddrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetstack_Post_StackAddrObj_Set: {
+      /*
+       * The value of the thread stack address attribute of the thread
+       * attributes object referenced by the `attr` parameter shall be set to
+       * the address specified by the `stackaddr` parameter.
+       */
+      void  *stackaddr;
+      size_t stacksize;
+      int    eno;
+
+      eno = pthread_attr_getstack( &ctx->attr_obj, &stackaddr, &stacksize );
+      T_eno_success( eno );
+      T_eq_ptr( stackaddr, STACK_ADDR_VALUE );
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Post_StackAddrObj_Nop: {
+      /*
+       * The thread stack address attribute of the thread attributes object
+       * referenced by the `attr` parameter shall not be modified.
+       */
+      T_eq_ptr( ctx->attr_obj.stackaddr, STALE_STACK_ADDR );
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Post_StackAddrObj_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetstack_Post_StackSizeObj_Check(
+  CPthreadReqAttrSetstack_Context          *ctx,
+  CPthreadReqAttrSetstack_Post_StackSizeObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetstack_Post_StackSizeObj_Set: {
+      /*
+       * The value of the thread stack size attribute of the thread attributes
+       * object referenced by the `attr` parameter shall be set to the size
+       * specified by the `stacksize` parameter.
+       */
+      void  *stackaddr;
+      size_t stacksize;
+      int    eno;
+
+      eno = pthread_attr_getstack( &ctx->attr_obj, &stackaddr, &stacksize );
+      T_eno_success( eno );
+      T_eq_sz( stacksize, STACK_SIZE_VALUE );
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Post_StackSizeObj_Nop: {
+      /*
+       * The thread stack size attribute of the thread attributes object
+       * referenced by the `attr` parameter shall not be modified.
+       */
+      T_eq_sz( ctx->attr_obj.stacksize, STALE_STACK_SIZE );
+      break;
+    }
+
+    case CPthreadReqAttrSetstack_Post_StackSizeObj_NA:
+      break;
+  }
+}
+
 static void CPthreadReqAttrSetstack_Action(
   CPthreadReqAttrSetstack_Context *ctx
 )
 {
-  ctx->retval = pthread_attr_setstack( ctx->attr, ctx->stackaddr, ctx->stacksize );
+  ctx->retval = pthread_attr_setstack(
+    ctx->attr,
+    ctx->stackaddr,
+    ctx->stacksize
+  );
 }
 
 static const CPthreadReqAttrSetstack_Entry
 CPthreadReqAttrSetstack_Entries[] = {
-  { 0, 0, CPthreadReqAttrSetstack_Post_Status_Ok }
+  { 0, 0, 0, 0, CPthreadReqAttrSetstack_Post_Status_Zero,
+    CPthreadReqAttrSetstack_Post_StackAddrObj_Set,
+    CPthreadReqAttrSetstack_Post_StackSizeObj_Set },
+  { 0, 0, 0, 0, CPthreadReqAttrSetstack_Post_Status_EINVAL,
+    CPthreadReqAttrSetstack_Post_StackAddrObj_NA,
+    CPthreadReqAttrSetstack_Post_StackSizeObj_NA },
+  { 0, 0, 0, 0, CPthreadReqAttrSetstack_Post_Status_EINVAL,
+    CPthreadReqAttrSetstack_Post_StackAddrObj_Nop,
+    CPthreadReqAttrSetstack_Post_StackSizeObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqAttrSetstack_Map[] = {
-  0
+  0, 1, 2
 };
 
 static size_t CPthreadReqAttrSetstack_Scope( void *arg, char *buf, size_t n )
@@ -240,9 +455,19 @@ static void CPthreadReqAttrSetstack_TestVariant(
   CPthreadReqAttrSetstack_Context *ctx
 )
 {
-  CPthreadReqAttrSetstack_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetstack_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetstack_Pre_StackAddr_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CPthreadReqAttrSetstack_Pre_StackSize_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CPthreadReqAttrSetstack_Action( ctx );
-  CPthreadReqAttrSetstack_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrSetstack_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqAttrSetstack_Post_StackAddrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_StackAddrObj
+  );
+  CPthreadReqAttrSetstack_Post_StackSizeObj_Check(
+    ctx,
+    ctx->Map.entry.Post_StackSizeObj
+  );
 }
 
 /**
@@ -260,12 +485,24 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetstack_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetstack_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetstack_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetstack_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrSetstack_PopEntry( ctx );
-    CPthreadReqAttrSetstack_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrSetstack_Pre_StackAddr_Valid;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrSetstack_Pre_StackAddr_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      for (
+        ctx->Map.pcs[ 2 ] = CPthreadReqAttrSetstack_Pre_StackSize_Valid;
+        ctx->Map.pcs[ 2 ] < CPthreadReqAttrSetstack_Pre_StackSize_NA;
+        ++ctx->Map.pcs[ 2 ]
+      ) {
+        ctx->Map.entry = CPthreadReqAttrSetstack_PopEntry( ctx );
+        CPthreadReqAttrSetstack_TestVariant( ctx );
+      }
+    }
   }
 }
 
