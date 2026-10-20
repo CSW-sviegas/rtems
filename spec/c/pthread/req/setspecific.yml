@@ -1,67 +1,316 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/setspecific
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/setspecific:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/setspecific:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  - name: ENOMEM
+    test-code: |
+      T_eq_int( ctx->retval, ENOMEM );
+    text: |
+      The return value of ${../if/setspecific:/name} shall be equal to
+      ${/c/errno/if/enomem:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Stored
+    test-code: |
+      T_eq_ptr( pthread_getspecific( ctx->key_value ), ctx->value );
+    text: |
+      The value associated with the thread-specific data key for the calling thread
+      shall be equal to the ${../if/setspecific:/params[1]/name} parameter.
+  - name: Cleared
+    test-code: |
+      T_null( pthread_getspecific( ctx->key_value ) );
+    text: |
+      The calling thread shall have no value associated with the thread-specific data
+      key.
+  - name: Nop
+    test-code: |
+      T_null( pthread_getspecific( ctx->key_value ) );
+    text: |
+      The value associated with the thread-specific data key for the calling thread
+      shall not be changed.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Key
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->key = ctx->key_value;
     text: |
-      TODO
+      While the ${../if/setspecific:/params[0]/name} parameter is associated with a
+      thread-specific data key.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/setspecific:/params[0]/name} parameter is not associated with
+      a thread-specific data key.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: NonNull
+    test-code: |
+      ctx->value = ctx;
+    text: |
+      While the ${../if/setspecific:/params[1]/name} parameter is not equal to
+      ${/c/if/null:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->value = NULL;
+    text: |
+      While the ${../if/setspecific:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Current
+  states:
+  - name: Set
+    test-code: |
+      eno = pthread_setspecific( ctx->key_value, &ctx->current_value );
+      T_eq_int( eno, 0 );
+    text: |
+      While the calling thread has a value associated with the thread-specific data
+      key.
+  - name: Unset
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While the calling thread has no value associated with the thread-specific data
+      key.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+- name: Memory
+  states:
+  - name: Available
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While the system has at least one inactive key value pair object available, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: None
+    test-code: |
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id, Worker, ctx );
+      (void) ReceiveAnyEvents();
+
+      /*
+       * Ensure that the worker stopped due to a failed operation and not due
+       * to the bound given by the size of the extra keys member.
+       */
+      T_ne_int( ctx->extra_status, 0 );
+      T_lt_sz( ctx->extra_used, RTEMS_ARRAY_SIZE( ctx->extra_keys ) );
+    text: |
+      While the system has no inactive key value pair object available, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_setspecific( ctx->key, ctx->value );
+test-action: |
+  ctx->retval = pthread_setspecific( ctx->key, ctx->value );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  int    eno;
+  size_t i;
+
+  if ( ctx->key_value != KEY_INVALID ) {
+    eno = pthread_key_delete( ctx->key_value );
+    T_eq_int( eno, 0 );
+  }
+
+  for ( i = 0; i < ctx->extra_used; ++i ) {
+    eno = pthread_key_delete( ctx->extra_keys[ i ] );
+    T_eq_int( eno, 0 );
+  }
+
+  DeleteTask( ctx->worker_id );
 test-context:
-- brief: This member specifies the ${../if/setspecific:/params[0]/name} parameter
+- brief: |
+    This member specifies the ${../if/setspecific:/params[0]/name} parameter
     value.
   description: null
   member: pthread_key_t key
-- brief: This member specifies the ${../if/setspecific:/params[1]/name} parameter
+- brief: |
+    This member specifies the ${../if/setspecific:/params[1]/name} parameter
     value.
   description: null
   member: const void *value
-- brief: This member contains the return value.
+- brief: |
+    This member provides the key created for the test.
+  description: null
+  member: pthread_key_t key_value
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member contains the identifier of the worker task.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member contains the keys created by the worker task to use up the
+    inactive key value pair objects.
+  description: null
+  member: pthread_key_t extra_keys[ 32 ]
+- brief: |
+    This member contains the count of valid elements of the extra keys
+    member.
+  description: null
+  member: size_t extra_used
+- brief: |
+    This member contains the status of the last key operation of the worker
+    task.
+  description: null
+  member: int extra_status
+- brief: |
+    This member provides the value associated with the key by the
+    ``Current`` pre-condition.
+  description: null
+  member: int current_value
+- brief: |
+    This member contains the return value.
   description: null
   member: int retval
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
-test-local-includes: []
-test-prepare: null
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  int eno;
+
+  ctx->worker_id = 0;
+  ctx->extra_used = 0;
+  ctx->extra_status = 0;
+  ctx->runner_id = rtems_task_self();
+
+  eno = pthread_key_create( &ctx->key_value, NULL );
+  T_eq_int( eno, 0 );
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    /*
+     * Associate a value with the key of the test first.  Then create keys and
+     * associate values with them until no inactive key value pair object is
+     * available or no key can be created.  The number of keys is limited by
+     * ${/acfg/if/max-posix-keys:/name}, so the key value pair objects may be
+     * used up before the key objects.  The loop is bounded by the size of the
+     * extra keys member.
+     */
+    ctx->extra_status = pthread_setspecific( ctx->key_value, ctx );
+
+    while (
+      ctx->extra_status == 0 &&
+      ctx->extra_used < RTEMS_ARRAY_SIZE( ctx->extra_keys )
+    ) {
+      pthread_key_t *key;
+
+      key = &ctx->extra_keys[ ctx->extra_used ];
+      ctx->extra_status = pthread_key_create( key, NULL );
+
+      if ( ctx->extra_status != 0 ) {
+        break;
+      }
+
+      ++ctx->extra_used;
+      ctx->extra_status = pthread_setspecific( *key, ctx );
+
+      if ( ctx->extra_status != 0 ) {
+        break;
+      }
+    }
+
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
 test-target: testsuites/validation/tc-pthread-setspecific.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Key: Invalid
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Memory: None
+      then: ENOMEM
+    - else: Zero
+    Value:
+    - if:
+        and:
+        - pre-conditions:
+            Value: NonNull
+        - post-conditions:
+            Status: Zero
+      then: Stored
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Cleared
+    - if:
+        post-conditions:
+          Status: ENOMEM
+      then: Nop
+    - else: N/A
   pre-conditions:
-    Status: all
+    Key: all
+    Value: all
+    Current:
+      applicable:
+        pre-conditions:
+          Key: Valid
+    Memory:
+      applicable:
+        pre-conditions:
+          Current: Unset
+          Key: Valid
+          Value: NonNull
 type: requirement

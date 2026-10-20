@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name} to the value specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -13,7 +14,9 @@ definition:
     - const void *${.:/params[1]/name}
     return: int
   variants: []
-description: null
+description: |
+  If ${.:/params[1]/name} is ${/c/if/null:/name}, the association of the calling
+  thread with the key is removed.
 enabled-by: true
 index-entries: []
 interface-type: function
@@ -23,19 +26,27 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    The value specified by ${.:/params[0]/name} is not a valid, allocated TSD key.
+    The value specified by ${.:/params[0]/name} is not associated with a
+    thread-specific data key.
   role: errno
   uid: /c/errno/if/einval
+- description: |
+    Insufficient memory exists to associate the ${.:/params[1]/name} with the
+    ${.:/params[0]/name}. The number of key value pairs available to the
+    application is configured through the
+    ${/acfg/if/max-posix-key-value-pairs:/name} application configuration option.
+  role: errno
+  uid: /c/errno/if/enomem
 name: pthread_setspecific
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_setspecific()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setspecific.html).
 params:
 - description: |
-    is the thread-specific data key
+    is the thread-specific data key to associate the value with.
   dir: null
   name: key
 - description: |
-    is the thread-specific data value
+    is the thread-specific data value to associate with the key.
   dir: null
   name: value
 return:
@@ -45,9 +56,13 @@ return:
       The requested operation was successful.
     value: 0
   - description: |
-      Insufficient memory exists to associate the ${.:/params[1]/name} with the key.
-    value: ${/c/errno/if/enomem:/name}
-  - description: |
-      The ${.:/params[0]/name} value is invalid.
+      The value specified by ${.:/params[0]/name} is not associated with a
+      thread-specific data key.
     value: ${/c/errno/if/einval:/name}
+  - description: |
+      Insufficient memory exists to associate the ${.:/params[1]/name} with the
+      ${.:/params[0]/name}. The number of key value pairs available to the
+      application is configured through the
+      ${/acfg/if/max-posix-key-value-pairs:/name} application configuration option.
+    value: ${/c/errno/if/enomem:/name}
 type: interface
