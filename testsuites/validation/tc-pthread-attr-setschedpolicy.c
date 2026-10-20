@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -64,19 +67,40 @@
  */
 
 typedef enum {
-  CPthreadReqAttrSetschedpolicy_Pre_Status_Ok,
-  CPthreadReqAttrSetschedpolicy_Pre_Status_NA
-} CPthreadReqAttrSetschedpolicy_Pre_Status;
+  CPthreadReqAttrSetschedpolicy_Pre_Attr_Valid,
+  CPthreadReqAttrSetschedpolicy_Pre_Attr_Null,
+  CPthreadReqAttrSetschedpolicy_Pre_Attr_Invalid,
+  CPthreadReqAttrSetschedpolicy_Pre_Attr_NA
+} CPthreadReqAttrSetschedpolicy_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrSetschedpolicy_Post_Status_Ok,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_Other,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_Fifo,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_RoundRobin,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_Sporadic,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_Invalid,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_NA
+} CPthreadReqAttrSetschedpolicy_Pre_Policy;
+
+typedef enum {
+  CPthreadReqAttrSetschedpolicy_Post_Status_Zero,
+  CPthreadReqAttrSetschedpolicy_Post_Status_EINVAL,
+  CPthreadReqAttrSetschedpolicy_Post_Status_ENOTSUP,
   CPthreadReqAttrSetschedpolicy_Post_Status_NA
 } CPthreadReqAttrSetschedpolicy_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrSetschedpolicy_Post_AttrObj_Set,
+  CPthreadReqAttrSetschedpolicy_Post_AttrObj_Nop,
+  CPthreadReqAttrSetschedpolicy_Post_AttrObj_NA
+} CPthreadReqAttrSetschedpolicy_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_Policy_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqAttrSetschedpolicy_Entry;
 
 /**
@@ -94,15 +118,21 @@ typedef struct {
   int policy;
 
   /**
-   * @brief This member contains the return value.
+   * @brief This member contains the return value of the
+   *   pthread_attr_setschedpolicy() call.
    */
   int retval;
+
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
 
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -130,48 +160,191 @@ typedef struct {
 static CPthreadReqAttrSetschedpolicy_Context
   CPthreadReqAttrSetschedpolicy_Instance;
 
-static const char * const CPthreadReqAttrSetschedpolicy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrSetschedpolicy_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetschedpolicy_PreDesc_Policy[] = {
+  "Other",
+  "Fifo",
+  "RoundRobin",
+  "Sporadic",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrSetschedpolicy_PreDesc[] = {
-  CPthreadReqAttrSetschedpolicy_PreDesc_Status,
+  CPthreadReqAttrSetschedpolicy_PreDesc_Attr,
+  CPthreadReqAttrSetschedpolicy_PreDesc_Policy,
   NULL
 };
 
-static void CPthreadReqAttrSetschedpolicy_Pre_Status_Prepare(
-  CPthreadReqAttrSetschedpolicy_Pre_Status state
+#define POLICY_INVALID 123
+
+static void CPthreadReqAttrSetschedpolicy_Pre_Attr_Prepare(
+  CPthreadReqAttrSetschedpolicy_Context *ctx,
+  CPthreadReqAttrSetschedpolicy_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetschedpolicy_Pre_Status_Ok: {
+    case CPthreadReqAttrSetschedpolicy_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      ctx->attr_obj.schedpolicy = -1;
       break;
     }
 
-    case CPthreadReqAttrSetschedpolicy_Pre_Status_NA:
+    case CPthreadReqAttrSetschedpolicy_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.schedpolicy = -1;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetschedpolicy_Pre_Policy_Prepare(
+  CPthreadReqAttrSetschedpolicy_Context   *ctx,
+  CPthreadReqAttrSetschedpolicy_Pre_Policy state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_Other: {
+      /*
+       * While the `policy` parameter is equal to SCHED_OTHER.
+       */
+      ctx->policy = SCHED_OTHER;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_Fifo: {
+      /*
+       * While the `policy` parameter is equal to SCHED_FIFO.
+       */
+      ctx->policy = SCHED_FIFO;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_RoundRobin: {
+      /*
+       * While the `policy` parameter is equal to SCHED_RR.
+       */
+      ctx->policy = SCHED_RR;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_Sporadic: {
+      /*
+       * While the `policy` parameter is equal to SCHED_SPORADIC.
+       */
+      ctx->policy = SCHED_SPORADIC;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_Invalid: {
+      /*
+       * While the `policy` parameter is not a valid scheduling policy.
+       */
+      ctx->policy = POLICY_INVALID;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Pre_Policy_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrSetschedpolicy_Post_Status_Check(
+  CPthreadReqAttrSetschedpolicy_Context    *ctx,
   CPthreadReqAttrSetschedpolicy_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetschedpolicy_Post_Status_Ok: {
+    case CPthreadReqAttrSetschedpolicy_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_setschedpolicy() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_setschedpolicy() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Post_Status_ENOTSUP: {
+      /*
+       * The return value of pthread_attr_setschedpolicy() shall be equal to
+       * ENOTSUP.
+       */
+      T_eq_int( ctx->retval, ENOTSUP );
       break;
     }
 
     case CPthreadReqAttrSetschedpolicy_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetschedpolicy_Post_AttrObj_Check(
+  CPthreadReqAttrSetschedpolicy_Context     *ctx,
+  CPthreadReqAttrSetschedpolicy_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetschedpolicy_Post_AttrObj_Set: {
+      /*
+       * The value of the scheduling policy of the thread attributes object
+       * referenced by the `attr` parameter shall be set to the policy
+       * specified by the `policy` parameter.
+       */
+      int policy;
+      int eno;
+
+      eno = pthread_attr_getschedpolicy( &ctx->attr_obj, &policy );
+      T_eno_success( eno );
+      T_eq_int( policy, ctx->policy );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Post_AttrObj_Nop: {
+      /*
+       * The thread attributes object referenced by the `attr` parameter shall
+       * not be modified.
+       */
+      T_eq_int( ctx->attr_obj.schedpolicy, -1 );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedpolicy_Post_AttrObj_NA:
       break;
   }
 }
@@ -185,12 +358,19 @@ static void CPthreadReqAttrSetschedpolicy_Action(
 
 static const CPthreadReqAttrSetschedpolicy_Entry
 CPthreadReqAttrSetschedpolicy_Entries[] = {
-  { 0, 0, CPthreadReqAttrSetschedpolicy_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrSetschedpolicy_Post_Status_EINVAL,
+    CPthreadReqAttrSetschedpolicy_Post_AttrObj_NA },
+  { 0, 0, 0, CPthreadReqAttrSetschedpolicy_Post_Status_EINVAL,
+    CPthreadReqAttrSetschedpolicy_Post_AttrObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrSetschedpolicy_Post_Status_Zero,
+    CPthreadReqAttrSetschedpolicy_Post_AttrObj_Set },
+  { 0, 0, 0, CPthreadReqAttrSetschedpolicy_Post_Status_ENOTSUP,
+    CPthreadReqAttrSetschedpolicy_Post_AttrObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqAttrSetschedpolicy_Map[] = {
-  0
+  2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1
 };
 
 static size_t CPthreadReqAttrSetschedpolicy_Scope(
@@ -241,10 +421,16 @@ static void CPthreadReqAttrSetschedpolicy_TestVariant(
   CPthreadReqAttrSetschedpolicy_Context *ctx
 )
 {
-  CPthreadReqAttrSetschedpolicy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetschedpolicy_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetschedpolicy_Pre_Policy_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqAttrSetschedpolicy_Action( ctx );
   CPthreadReqAttrSetschedpolicy_Post_Status_Check(
+    ctx,
     ctx->Map.entry.Post_Status
+  );
+  CPthreadReqAttrSetschedpolicy_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
   );
 }
 
@@ -263,12 +449,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetschedpolicy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetschedpolicy_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetschedpolicy_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetschedpolicy_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrSetschedpolicy_PopEntry( ctx );
-    CPthreadReqAttrSetschedpolicy_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrSetschedpolicy_Pre_Policy_Other;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrSetschedpolicy_Pre_Policy_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrSetschedpolicy_PopEntry( ctx );
+      CPthreadReqAttrSetschedpolicy_TestVariant( ctx );
+    }
   }
 }
 
