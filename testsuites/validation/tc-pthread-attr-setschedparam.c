@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -64,19 +67,36 @@
  */
 
 typedef enum {
-  CPthreadReqAttrSetschedparam_Pre_Status_Ok,
-  CPthreadReqAttrSetschedparam_Pre_Status_NA
-} CPthreadReqAttrSetschedparam_Pre_Status;
+  CPthreadReqAttrSetschedparam_Pre_Attr_Valid,
+  CPthreadReqAttrSetschedparam_Pre_Attr_Null,
+  CPthreadReqAttrSetschedparam_Pre_Attr_Invalid,
+  CPthreadReqAttrSetschedparam_Pre_Attr_NA
+} CPthreadReqAttrSetschedparam_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrSetschedparam_Post_Status_Ok,
+  CPthreadReqAttrSetschedparam_Pre_Param_Valid,
+  CPthreadReqAttrSetschedparam_Pre_Param_Null,
+  CPthreadReqAttrSetschedparam_Pre_Param_NA
+} CPthreadReqAttrSetschedparam_Pre_Param;
+
+typedef enum {
+  CPthreadReqAttrSetschedparam_Post_Status_Zero,
+  CPthreadReqAttrSetschedparam_Post_Status_EINVAL,
   CPthreadReqAttrSetschedparam_Post_Status_NA
 } CPthreadReqAttrSetschedparam_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrSetschedparam_Post_AttrObj_Set,
+  CPthreadReqAttrSetschedparam_Post_AttrObj_Nop,
+  CPthreadReqAttrSetschedparam_Post_AttrObj_NA
+} CPthreadReqAttrSetschedparam_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_Param_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqAttrSetschedparam_Entry;
 
 /**
@@ -94,15 +114,26 @@ typedef struct {
   const struct sched_param *param;
 
   /**
-   * @brief This member contains the return value.
+   * @brief This member contains the return value of the
+   *   pthread_attr_setschedparam() call.
    */
   int retval;
+
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
+
+  /**
+   * @brief This member contains the scheduling parameter object.
+   */
+  struct sched_param param_obj;
 
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -130,48 +161,203 @@ typedef struct {
 static CPthreadReqAttrSetschedparam_Context
   CPthreadReqAttrSetschedparam_Instance;
 
-static const char * const CPthreadReqAttrSetschedparam_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrSetschedparam_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetschedparam_PreDesc_Param[] = {
+  "Valid",
+  "Null",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrSetschedparam_PreDesc[] = {
-  CPthreadReqAttrSetschedparam_PreDesc_Status,
+  CPthreadReqAttrSetschedparam_PreDesc_Attr,
+  CPthreadReqAttrSetschedparam_PreDesc_Param,
   NULL
 };
 
-static void CPthreadReqAttrSetschedparam_Pre_Status_Prepare(
-  CPthreadReqAttrSetschedparam_Pre_Status state
+#define PARAM_PRIORITY 3
+
+#define PARAM_LOW_PRIORITY 4
+
+static void CheckSchedParam(
+  const struct sched_param *actual,
+  const struct sched_param *expected
+)
+{
+  T_eq_int( actual->sched_priority, expected->sched_priority );
+#if defined( _POSIX_SPORADIC_SERVER ) || \
+  defined( _POSIX_THREAD_SPORADIC_SERVER )
+  T_eq_int( actual->sched_ss_low_priority, expected->sched_ss_low_priority );
+  T_eq_i64(
+    (int64_t) actual->sched_ss_repl_period.tv_sec,
+    (int64_t) expected->sched_ss_repl_period.tv_sec
+  );
+  T_eq_long(
+    actual->sched_ss_repl_period.tv_nsec,
+    expected->sched_ss_repl_period.tv_nsec
+  );
+  T_eq_i64(
+    (int64_t) actual->sched_ss_init_budget.tv_sec,
+    (int64_t) expected->sched_ss_init_budget.tv_sec
+  );
+  T_eq_long(
+    actual->sched_ss_init_budget.tv_nsec,
+    expected->sched_ss_init_budget.tv_nsec
+  );
+  T_eq_int( actual->sched_ss_max_repl, expected->sched_ss_max_repl );
+#endif
+}
+
+static void CPthreadReqAttrSetschedparam_Pre_Attr_Prepare(
+  CPthreadReqAttrSetschedparam_Context *ctx,
+  CPthreadReqAttrSetschedparam_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetschedparam_Pre_Status_Ok: {
+    case CPthreadReqAttrSetschedparam_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      memset(
+        &ctx->attr_obj.schedparam,
+        0xff,
+        sizeof( ctx->attr_obj.schedparam )
+      );
       break;
     }
 
-    case CPthreadReqAttrSetschedparam_Pre_Status_NA:
+    case CPthreadReqAttrSetschedparam_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      memset(
+        &ctx->attr_obj.schedparam,
+        0xff,
+        sizeof( ctx->attr_obj.schedparam )
+      );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetschedparam_Pre_Param_Prepare(
+  CPthreadReqAttrSetschedparam_Context  *ctx,
+  CPthreadReqAttrSetschedparam_Pre_Param state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetschedparam_Pre_Param_Valid: {
+      /*
+       * While the `param` parameter references a scheduling parameter object.
+       */
+      memset( &ctx->param_obj, 0, sizeof( ctx->param_obj ) );
+      ctx->param_obj.sched_priority = PARAM_PRIORITY;
+      #if defined( _POSIX_SPORADIC_SERVER ) || \
+      defined( _POSIX_THREAD_SPORADIC_SERVER )
+      ctx->param_obj.sched_ss_low_priority = PARAM_LOW_PRIORITY;
+      ctx->param_obj.sched_ss_repl_period.tv_sec = 1;
+      ctx->param_obj.sched_ss_repl_period.tv_nsec = 2;
+      ctx->param_obj.sched_ss_init_budget.tv_sec = 3;
+      ctx->param_obj.sched_ss_init_budget.tv_nsec = 4;
+      ctx->param_obj.sched_ss_max_repl = 5;
+      #endif
+      ctx->param = &ctx->param_obj;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Pre_Param_Null: {
+      /*
+       * While the `param` parameter is NULL.
+       */
+      ctx->param = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Pre_Param_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrSetschedparam_Post_Status_Check(
+  CPthreadReqAttrSetschedparam_Context    *ctx,
   CPthreadReqAttrSetschedparam_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetschedparam_Post_Status_Ok: {
+    case CPthreadReqAttrSetschedparam_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_setschedparam() shall be equal to
+       * zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_setschedparam() shall be equal to
+       * EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqAttrSetschedparam_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetschedparam_Post_AttrObj_Check(
+  CPthreadReqAttrSetschedparam_Context     *ctx,
+  CPthreadReqAttrSetschedparam_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetschedparam_Post_AttrObj_Set: {
+      /*
+       * The value of the scheduling parameter of the thread attributes object
+       * referenced by the `attr` parameter shall be set to the parameters
+       * object referenced by the `param` parameter.
+       */
+      CheckSchedParam( &ctx->attr_obj.schedparam, ctx->param );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Post_AttrObj_Nop: {
+      /*
+       * The thread attributes object referenced by the `attr` parameter shall
+       * not be modified.
+       */
+      struct sched_param param;
+
+      memset( &param, 0xff, sizeof( param ) );
+      CheckSchedParam( &ctx->attr_obj.schedparam, &param );
+      break;
+    }
+
+    case CPthreadReqAttrSetschedparam_Post_AttrObj_NA:
       break;
   }
 }
@@ -185,12 +371,17 @@ static void CPthreadReqAttrSetschedparam_Action(
 
 static const CPthreadReqAttrSetschedparam_Entry
 CPthreadReqAttrSetschedparam_Entries[] = {
-  { 0, 0, CPthreadReqAttrSetschedparam_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrSetschedparam_Post_Status_EINVAL,
+    CPthreadReqAttrSetschedparam_Post_AttrObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrSetschedparam_Post_Status_EINVAL,
+    CPthreadReqAttrSetschedparam_Post_AttrObj_NA },
+  { 0, 0, 0, CPthreadReqAttrSetschedparam_Post_Status_Zero,
+    CPthreadReqAttrSetschedparam_Post_AttrObj_Set }
 };
 
 static const uint8_t
 CPthreadReqAttrSetschedparam_Map[] = {
-  0
+  2, 0, 1, 1, 0, 0
 };
 
 static size_t CPthreadReqAttrSetschedparam_Scope(
@@ -241,9 +432,17 @@ static void CPthreadReqAttrSetschedparam_TestVariant(
   CPthreadReqAttrSetschedparam_Context *ctx
 )
 {
-  CPthreadReqAttrSetschedparam_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetschedparam_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetschedparam_Pre_Param_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqAttrSetschedparam_Action( ctx );
-  CPthreadReqAttrSetschedparam_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrSetschedparam_Post_Status_Check(
+    ctx,
+    ctx->Map.entry.Post_Status
+  );
+  CPthreadReqAttrSetschedparam_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
+  );
 }
 
 /**
@@ -261,12 +460,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetschedparam_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetschedparam_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetschedparam_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetschedparam_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrSetschedparam_PopEntry( ctx );
-    CPthreadReqAttrSetschedparam_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrSetschedparam_Pre_Param_Valid;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrSetschedparam_Pre_Param_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrSetschedparam_PopEntry( ctx );
+      CPthreadReqAttrSetschedparam_TestVariant( ctx );
+    }
   }
 }
 
