@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,19 +64,28 @@
  */
 
 typedef enum {
-  CPthreadReqGetspecific_Pre_Status_Ok,
-  CPthreadReqGetspecific_Pre_Status_NA
-} CPthreadReqGetspecific_Pre_Status;
+  CPthreadReqGetspecific_Pre_Key_Valid,
+  CPthreadReqGetspecific_Pre_Key_Invalid,
+  CPthreadReqGetspecific_Pre_Key_NA
+} CPthreadReqGetspecific_Pre_Key;
 
 typedef enum {
-  CPthreadReqGetspecific_Post_Status_Ok,
-  CPthreadReqGetspecific_Post_Status_NA
-} CPthreadReqGetspecific_Post_Status;
+  CPthreadReqGetspecific_Pre_Value_Set,
+  CPthreadReqGetspecific_Pre_Value_Unset,
+  CPthreadReqGetspecific_Pre_Value_NA
+} CPthreadReqGetspecific_Pre_Value;
+
+typedef enum {
+  CPthreadReqGetspecific_Post_Result_Value,
+  CPthreadReqGetspecific_Post_Result_Null,
+  CPthreadReqGetspecific_Post_Result_NA
+} CPthreadReqGetspecific_Post_Result;
 
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Key_NA : 1;
+  uint8_t Pre_Value_NA : 1;
+  uint8_t Post_Result : 2;
 } CPthreadReqGetspecific_Entry;
 
 /**
@@ -88,15 +98,31 @@ typedef struct {
   pthread_key_t key;
 
   /**
+   * @brief This member provides the key created for the test.
+   */
+  pthread_key_t key_value;
+
+  /**
    * @brief This member contains the return value.
    */
   void *retval;
 
+  /**
+   * @brief This member provides a value to associate with the key.
+   */
+  int value;
+
   struct {
+    /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -124,50 +150,124 @@ typedef struct {
 static CPthreadReqGetspecific_Context
   CPthreadReqGetspecific_Instance;
 
-static const char * const CPthreadReqGetspecific_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqGetspecific_PreDesc_Key[] = {
+  "Valid",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqGetspecific_PreDesc_Value[] = {
+  "Set",
+  "Unset",
   "NA"
 };
 
 static const char * const * const CPthreadReqGetspecific_PreDesc[] = {
-  CPthreadReqGetspecific_PreDesc_Status,
+  CPthreadReqGetspecific_PreDesc_Key,
+  CPthreadReqGetspecific_PreDesc_Value,
   NULL
 };
 
-static void CPthreadReqGetspecific_Pre_Status_Prepare(
-  CPthreadReqGetspecific_Pre_Status state
+#define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+static void CPthreadReqGetspecific_Pre_Key_Prepare(
+  CPthreadReqGetspecific_Context *ctx,
+  CPthreadReqGetspecific_Pre_Key  state
 )
 {
   switch ( state ) {
-    case CPthreadReqGetspecific_Pre_Status_Ok: {
+    case CPthreadReqGetspecific_Pre_Key_Valid: {
       /*
-       * TODO
+       * While the `key` parameter is associated with a thread-specific data
+       * key.
        */
-      /* TODOD */
+      ctx->key = ctx->key_value;
       break;
     }
 
-    case CPthreadReqGetspecific_Pre_Status_NA:
+    case CPthreadReqGetspecific_Pre_Key_Invalid: {
+      /*
+       * While the `key` parameter is not associated with a thread-specific
+       * data key.
+       */
+      ctx->key = KEY_INVALID;
+      break;
+    }
+
+    case CPthreadReqGetspecific_Pre_Key_NA:
       break;
   }
 }
 
-static void CPthreadReqGetspecific_Post_Status_Check(
-  CPthreadReqGetspecific_Post_Status state
+static void CPthreadReqGetspecific_Pre_Value_Prepare(
+  CPthreadReqGetspecific_Context  *ctx,
+  CPthreadReqGetspecific_Pre_Value state
 )
 {
+  int eno;
+
   switch ( state ) {
-    case CPthreadReqGetspecific_Post_Status_Ok: {
+    case CPthreadReqGetspecific_Pre_Value_Set: {
       /*
-       * TODO
+       * While the calling thread has a value associated with the key specified
+       * by the `key` parameter.
        */
-      /* TODOD */
+      eno = pthread_setspecific( ctx->key_value, &ctx->value );
+      T_eno_success( eno );
       break;
     }
 
-    case CPthreadReqGetspecific_Post_Status_NA:
+    case CPthreadReqGetspecific_Pre_Value_Unset: {
+      /*
+       * While the calling thread has no value associated with the key
+       * specified by the `key` parameter.
+       */
+      /* Nothing to do */
+      break;
+    }
+
+    case CPthreadReqGetspecific_Pre_Value_NA:
       break;
   }
+}
+
+static void CPthreadReqGetspecific_Post_Result_Check(
+  CPthreadReqGetspecific_Context    *ctx,
+  CPthreadReqGetspecific_Post_Result state
+)
+{
+  switch ( state ) {
+    case CPthreadReqGetspecific_Post_Result_Value: {
+      /*
+       * The return value of pthread_getspecific() shall be equal to the value
+       * associated with the key specified by the `key` parameter for the
+       * calling thread.
+       */
+      T_eq_ptr( ctx->retval, &ctx->value );
+      break;
+    }
+
+    case CPthreadReqGetspecific_Post_Result_Null: {
+      /*
+       * The return value of pthread_getspecific() shall be equal to NULL.
+       */
+      T_null( ctx->retval );
+      break;
+    }
+
+    case CPthreadReqGetspecific_Post_Result_NA:
+      break;
+  }
+}
+
+static void CPthreadReqGetspecific_Prepare(
+  CPthreadReqGetspecific_Context *ctx
+)
+{
+  int eno;
+
+  eno = pthread_key_create( &ctx->key_value, NULL );
+  T_eno_success( eno );
 }
 
 static void CPthreadReqGetspecific_Action(
@@ -177,14 +277,26 @@ static void CPthreadReqGetspecific_Action(
   ctx->retval = pthread_getspecific( ctx->key );
 }
 
+static void CPthreadReqGetspecific_Cleanup(
+  CPthreadReqGetspecific_Context *ctx
+)
+{
+  int eno;
+
+  eno = pthread_key_delete( ctx->key_value );
+  T_eno_success( eno );
+}
+
 static const CPthreadReqGetspecific_Entry
 CPthreadReqGetspecific_Entries[] = {
-  { 0, 0, CPthreadReqGetspecific_Post_Status_Ok }
+  { 0, 0, 1, CPthreadReqGetspecific_Post_Result_Null },
+  { 0, 0, 0, CPthreadReqGetspecific_Post_Result_Value },
+  { 0, 0, 0, CPthreadReqGetspecific_Post_Result_Null }
 };
 
 static const uint8_t
 CPthreadReqGetspecific_Map[] = {
-  0
+  1, 2, 0, 0
 };
 
 static size_t CPthreadReqGetspecific_Scope( void *arg, char *buf, size_t n )
@@ -221,13 +333,27 @@ static inline CPthreadReqGetspecific_Entry CPthreadReqGetspecific_PopEntry(
   ];
 }
 
+static void CPthreadReqGetspecific_SetPreConditionStates(
+  CPthreadReqGetspecific_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Value_NA ) {
+    ctx->Map.pcs[ 1 ] = CPthreadReqGetspecific_Pre_Value_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CPthreadReqGetspecific_TestVariant(
   CPthreadReqGetspecific_Context *ctx
 )
 {
-  CPthreadReqGetspecific_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqGetspecific_Pre_Key_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqGetspecific_Pre_Value_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqGetspecific_Action( ctx );
-  CPthreadReqGetspecific_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqGetspecific_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
 }
 
 /**
@@ -242,12 +368,21 @@ T_TEST_CASE_FIXTURE( CPthreadReqGetspecific, &CPthreadReqGetspecific_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqGetspecific_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqGetspecific_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CPthreadReqGetspecific_Pre_Key_Valid;
+    ctx->Map.pci[ 0 ] < CPthreadReqGetspecific_Pre_Key_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqGetspecific_PopEntry( ctx );
-    CPthreadReqGetspecific_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CPthreadReqGetspecific_Pre_Value_Set;
+      ctx->Map.pci[ 1 ] < CPthreadReqGetspecific_Pre_Value_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqGetspecific_PopEntry( ctx );
+      CPthreadReqGetspecific_SetPreConditionStates( ctx );
+      CPthreadReqGetspecific_Prepare( ctx );
+      CPthreadReqGetspecific_TestVariant( ctx );
+      CPthreadReqGetspecific_Cleanup( ctx );
+    }
   }
 }
 

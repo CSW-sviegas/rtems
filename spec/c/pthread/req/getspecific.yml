@@ -1,63 +1,127 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/getspecific
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Value
     test-code: |
-      /* TODOD */
+      T_eq_ptr( ctx->retval, &ctx->value );
     text: |
-      TODO
+      The return value of ${../if/getspecific:/name} shall be equal to the value
+      associated with the key specified by the ${../if/getspecific:/params[0]/name}
+      parameter for the calling thread.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/getspecific:/name} shall be equal to
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Key
   states:
-  - name: Ok
+  - name: Valid
     test-code: |
-      /* TODOD */
+      ctx->key = ctx->key_value;
     text: |
-      TODO
+      While the ${../if/getspecific:/params[0]/name} parameter is associated with a
+      thread-specific data key.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/getspecific:/params[0]/name} parameter is not associated with
+      a thread-specific data key.
   test-epilogue: null
   test-prologue: null
+- name: Value
+  states:
+  - name: Set
+    test-code: |
+      eno = pthread_setspecific( ctx->key_value, &ctx->value );
+      T_eno_success( eno );
+    text: |
+      While the calling thread has a value associated with the key specified by the
+      ${../if/getspecific:/params[0]/name} parameter.
+  - name: Unset
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While the calling thread has no value associated with the key specified by the
+      ${../if/getspecific:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_getspecific( ctx->key );
+test-action: |
+  ctx->retval = pthread_getspecific( ctx->key );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  int eno;
+
+  eno = pthread_key_delete( ctx->key_value );
+  T_eno_success( eno );
 test-context:
-- brief: This member specifies the ${../if/getspecific:/params[0]/name} parameter
+- brief: |
+    This member specifies the ${../if/getspecific:/params[0]/name} parameter
     value.
   description: null
   member: pthread_key_t key
+- brief: This member provides the key created for the test.
+  description: null
+  member: pthread_key_t key_value
 - brief: This member contains the return value.
   description: null
   member: void *retval
+- brief: This member provides a value to associate with the key.
+  description: null
+  member: int value
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - pthread.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  int eno;
+
+  eno = pthread_key_create( &ctx->key_value, NULL );
+  T_eno_success( eno );
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
 test-target: testsuites/validation/tc-pthread-getspecific.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          Key: Valid
+          Value: Set
+      then: Value
+    - else: 'Null'
   pre-conditions:
-    Status: all
+    Key: all
+    Value:
+      applicable:
+        pre-conditions:
+          Key: Valid
 type: requirement
