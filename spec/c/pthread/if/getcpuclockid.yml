@@ -5,6 +5,7 @@ brief: |
   ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -23,14 +24,12 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
+- role: constraint
+  uid: /constraint/no-impl
 - description: |
-    Per-thread CPU time clocks are not supported by the system.
+    The directive is not supported by the implementation.
   role: errno
-  uid: /c/errno/if/enoent
-- description: |
-    No thread with the ID ${.:/params[0]/name} could be found.
-  role: errno
-  uid: /c/errno/if/esrch
+  uid: /c/errno/if/enosys
 name: pthread_getcpuclockid
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_getcpuclockid()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_getcpuclockid.html).
@@ -40,17 +39,16 @@ params:
   dir: null
   name: thread
 - description: |
-    is the pointer to an object where the CPU clock ID will be stored.
+    is the pointer to a ${/c/if/clockid_t:/name} object. The object is not modified
+    by the call.
   dir: out
   name: clock_id
 return:
   return: null
   return-values:
   - description: |
-      The successful completion returns zero.
-    value: 0
-  - description: |
-      No thread could be found corresponding to that specified by the given
-      ${.:/params[0]/name} ID.
-    value: ${/c/errno/if/esrch:/name}
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+      The value -1 is always returned since the directive is not supported by the
+      implementation.
+    value: -1
 type: interface
