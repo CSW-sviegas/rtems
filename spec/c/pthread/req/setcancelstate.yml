@@ -1,67 +1,269 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/setcancelstate
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/setcancelstate:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/setcancelstate:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  - name: EPROTO
+    test-code: |
+      T_eq_int( ctx->retval, EPROTO );
+    text: |
+      The return value of ${../if/setcancelstate:/name} shall be equal to
+      ${/c/errno/if/eproto:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: OldState
+  states:
+  - name: Set
+    test-code: |
+      T_eq_int( ctx->oldstate_value, ctx->previous );
+    text: |
+      The value of the object referenced by the
+      ${../if/setcancelstate:/params[1]/name} parameter shall be set to the
+      ${../glossary/thread-cancel-state:/term} of the calling thread immediately
+      before the ${../if/setcancelstate:/name} call.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->oldstate_value, INVALID_STATE );
+    text: |
+      Objects referenced by the ${../if/setcancelstate:/params[1]/name} parameter in
+      past calls to ${../if/setcancelstate:/name} shall not be accessed by the
+      ${../if/setcancelstate:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: Enabled
+    test-code: |
+      T_eq_int( GetCancelState(), PTHREAD_CANCEL_ENABLE );
+    text: |
+      The ${../glossary/thread-cancel-state:/term} of the calling thread shall be
+      ${/c/pthread/if/cancel-enable:/name} after the return of the
+      ${../if/setcancelstate:/name} call.
+  - name: Disabled
+    test-code: |
+      T_eq_int( GetCancelState(), PTHREAD_CANCEL_DISABLE );
+    text: |
+      The ${../glossary/thread-cancel-state:/term} of the calling thread shall be
+      ${/c/pthread/if/cancel-disable:/name} after the return of the
+      ${../if/setcancelstate:/name} call.
+  - name: Nop
+    test-code: |
+      T_eq_int( GetCancelState(), ctx->previous );
+    text: |
+      The ${../glossary/thread-cancel-state:/term} of the calling thread shall not be
+      changed by the ${../if/setcancelstate:/name} call.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Context
   states:
-  - name: Ok
+  - name: Thread
     test-code: |
-      /* TODOD */
+      ctx->in_isr = false;
     text: |
-      TODO
+      While the ${../if/setcancelstate:/name} call is made from within thread
+      context.
+  - name: Interrupt
+    test-code: |
+      ctx->in_isr = true;
+    text: |
+      While the ${../if/setcancelstate:/name} call is made from within interrupt
+      context.
+  test-epilogue: null
+  test-prologue: null
+- name: NewState
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->state = PTHREAD_CANCEL_ENABLE;
+    text: |
+      While the ${../if/setcancelstate:/params[0]/name} parameter is
+      ${/c/pthread/if/cancel-enable:/name}.
+  - name: Disabled
+    test-code: |
+      ctx->state = PTHREAD_CANCEL_DISABLE;
+    text: |
+      While the ${../if/setcancelstate:/params[0]/name} parameter is
+      ${/c/pthread/if/cancel-disable:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->state = INT_MAX;
+    text: |
+      While the ${../if/setcancelstate:/params[0]/name} parameter is neither
+      ${/c/pthread/if/cancel-enable:/name} nor ${/c/pthread/if/cancel-disable:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: OldState
+  states:
+  - name: Valid
+    test-code: |
+      ctx->oldstate = &ctx->oldstate_value;
+    text: |
+      While the ${../if/setcancelstate:/params[1]/name} parameter references an
+      object of type `int`.
+  - name: 'Null'
+    test-code: |
+      ctx->oldstate = NULL;
+    text: |
+      While the ${../if/setcancelstate:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Previous
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->previous = PTHREAD_CANCEL_ENABLE;
+      (void) pthread_setcancelstate( ctx->previous, NULL );
+    text: |
+      While the ${../glossary/thread-cancel-state:/term} of the calling thread is
+      ${/c/pthread/if/cancel-enable:/name} immediately before the
+      ${../if/setcancelstate:/name} call.
+  - name: Disabled
+    test-code: |
+      ctx->previous = PTHREAD_CANCEL_DISABLE;
+      (void) pthread_setcancelstate( ctx->previous, NULL );
+    text: |
+      While the ${../glossary/thread-cancel-state:/term} of the calling thread is
+      ${/c/pthread/if/cancel-disable:/name} immediately before the
+      ${../if/setcancelstate:/name} call.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_setcancelstate( ctx->state, ctx->oldstate );
+test-action: |
+  if ( ctx->in_isr ) {
+    CallWithinISR( Call, ctx );
+  } else {
+    ctx->retval = pthread_setcancelstate( ctx->state, ctx->oldstate );
+  }
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  (void) pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, NULL );
 test-context:
-- brief: This member specifies the ${../if/setcancelstate:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/setcancelstate:/params[0]/name}
+    parameter value.
   description: null
   member: int state
-- brief: This member specifies the ${../if/setcancelstate:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/setcancelstate:/params[1]/name}
+    parameter value.
   description: null
   member: int *oldstate
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the object referenced by the
+    ${../if/setcancelstate:/params[1]/name} parameter in case it is not
+    ${/c/if/null:/name}.
+  description: null
+  member: int oldstate_value
+- brief: |
+    This member specifies the ${../glossary/thread-cancel-state:/term} of the
+    calling thread immediately before the ${../if/setcancelstate:/name}
+    call.
+  description: null
+  member: int previous
+- brief: |
+    If this member is true, then the ${../if/setcancelstate:/name} call
+    shall be made from within interrupt context.
+  description: null
+  member: bool in_isr
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- limits.h
 - pthread.h
-test-local-includes: []
-test-prepare: null
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->oldstate_value = INVALID_STATE;
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define INVALID_STATE -1
+
+  static int GetCancelState( void )
+  {
+    int state;
+
+    (void) pthread_setcancelstate( PTHREAD_CANCEL_DISABLE, &state );
+    (void) pthread_setcancelstate( state, NULL );
+
+    return state;
+  }
+
+  static void Call( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ctx->retval = pthread_setcancelstate( ctx->state, ctx->oldstate );
+  }
 test-target: testsuites/validation/tc-pthread-setcancelstate.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Context: Interrupt
+      then: EPROTO
+    - if:
+        pre-conditions:
+          NewState: Invalid
+      then: EINVAL
+    - else: Zero
+    OldState:
+    - if:
+        pre-conditions:
+          OldState: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Set
+    - else: Nop
+    State:
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: NewState
+    - else: Nop
   pre-conditions:
-    Status: all
+    Context: all
+    NewState: all
+    OldState: all
+    Previous: all
 type: requirement

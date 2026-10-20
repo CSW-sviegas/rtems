@@ -6,6 +6,7 @@ brief: |
   ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -28,16 +29,22 @@ links:
     The value specified in ${.:/params[0]/name} is invalid.
   role: errno
   uid: /c/errno/if/einval
+- description: |
+    The ${.:/name} call was made from within interrupt context.
+  role: errno
+  uid: /c/errno/if/eproto
 name: pthread_setcancelstate
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_setcancelstate()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setcancelstate.html).
 params:
 - description: |
-    is the new cancelability state
+    is the new ${../glossary/thread-cancel-state:/term}.
   dir: null
   name: state
 - description: |
-    is the pointer to store the old cancelability state
+    is the pointer to an object where the previous
+    ${../glossary/thread-cancel-state:/term} will be stored, if it is not
+    ${/c/if/null:/name}.
   dir: out
   name: oldstate
 return:
@@ -50,4 +57,7 @@ return:
       The specified ${.:/params[0]/name} is not ${/c/pthread/if/cancel-enable:/name}
       or ${/c/pthread/if/cancel-disable:/name}.
     value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/name} call was made from within interrupt context.
+    value: ${/c/errno/if/eproto:/name}
 type: interface
