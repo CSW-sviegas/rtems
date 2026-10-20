@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,38 @@
  */
 
 typedef enum {
-  CPthreadReqAttrSetscope_Pre_Status_Ok,
-  CPthreadReqAttrSetscope_Pre_Status_NA
-} CPthreadReqAttrSetscope_Pre_Status;
+  CPthreadReqAttrSetscope_Pre_Attr_Valid,
+  CPthreadReqAttrSetscope_Pre_Attr_Null,
+  CPthreadReqAttrSetscope_Pre_Attr_Invalid,
+  CPthreadReqAttrSetscope_Pre_Attr_NA
+} CPthreadReqAttrSetscope_Pre_Attr;
 
 typedef enum {
-  CPthreadReqAttrSetscope_Post_Status_Ok,
+  CPthreadReqAttrSetscope_Pre_ContentionScope_Process,
+  CPthreadReqAttrSetscope_Pre_ContentionScope_System,
+  CPthreadReqAttrSetscope_Pre_ContentionScope_Invalid,
+  CPthreadReqAttrSetscope_Pre_ContentionScope_NA
+} CPthreadReqAttrSetscope_Pre_ContentionScope;
+
+typedef enum {
+  CPthreadReqAttrSetscope_Post_Status_Zero,
+  CPthreadReqAttrSetscope_Post_Status_EINVAL,
+  CPthreadReqAttrSetscope_Post_Status_ENOTSUP,
   CPthreadReqAttrSetscope_Post_Status_NA
 } CPthreadReqAttrSetscope_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrSetscope_Post_AttrObj_Set,
+  CPthreadReqAttrSetscope_Post_AttrObj_Nop,
+  CPthreadReqAttrSetscope_Post_AttrObj_NA
+} CPthreadReqAttrSetscope_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Pre_ContentionScope_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 2;
 } CPthreadReqAttrSetscope_Entry;
 
 /**
@@ -97,11 +119,16 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,48 +156,173 @@ typedef struct {
 static CPthreadReqAttrSetscope_Context
   CPthreadReqAttrSetscope_Instance;
 
-static const char * const CPthreadReqAttrSetscope_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrSetscope_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqAttrSetscope_PreDesc_ContentionScope[] = {
+  "Process",
+  "System",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrSetscope_PreDesc[] = {
-  CPthreadReqAttrSetscope_PreDesc_Status,
+  CPthreadReqAttrSetscope_PreDesc_Attr,
+  CPthreadReqAttrSetscope_PreDesc_ContentionScope,
   NULL
 };
 
-static void CPthreadReqAttrSetscope_Pre_Status_Prepare(
-  CPthreadReqAttrSetscope_Pre_Status state
+#define CONTENTIONSCOPE_INVALID 123
+
+static void CPthreadReqAttrSetscope_Pre_Attr_Prepare(
+  CPthreadReqAttrSetscope_Context *ctx,
+  CPthreadReqAttrSetscope_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetscope_Pre_Status_Ok: {
+    case CPthreadReqAttrSetscope_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
+      ctx->attr_obj.contentionscope = -1;
       break;
     }
 
-    case CPthreadReqAttrSetscope_Pre_Status_NA:
+    case CPthreadReqAttrSetscope_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.contentionscope = -1;
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Pre_Attr_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetscope_Pre_ContentionScope_Prepare(
+  CPthreadReqAttrSetscope_Context            *ctx,
+  CPthreadReqAttrSetscope_Pre_ContentionScope state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetscope_Pre_ContentionScope_Process: {
+      /*
+       * While the `contentionscope` parameter is equal to
+       * PTHREAD_SCOPE_PROCESS.
+       */
+      ctx->contentionscope = PTHREAD_SCOPE_PROCESS;
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Pre_ContentionScope_System: {
+      /*
+       * While the `contentionscope` parameter is equal to
+       * PTHREAD_SCOPE_SYSTEM.
+       */
+      ctx->contentionscope = PTHREAD_SCOPE_SYSTEM;
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Pre_ContentionScope_Invalid: {
+      /*
+       * While the `contentionscope` parameter is not a valid thread contention
+       * scope attribute.
+       */
+      ctx->contentionscope = CONTENTIONSCOPE_INVALID;
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Pre_ContentionScope_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrSetscope_Post_Status_Check(
+  CPthreadReqAttrSetscope_Context    *ctx,
   CPthreadReqAttrSetscope_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrSetscope_Post_Status_Ok: {
+    case CPthreadReqAttrSetscope_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_attr_setscope() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_attr_setscope() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Post_Status_ENOTSUP: {
+      /*
+       * The return value of pthread_attr_setscope() shall be equal to ENOTSUP.
+       */
+      T_eq_int( ctx->retval, ENOTSUP );
       break;
     }
 
     case CPthreadReqAttrSetscope_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrSetscope_Post_AttrObj_Check(
+  CPthreadReqAttrSetscope_Context     *ctx,
+  CPthreadReqAttrSetscope_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrSetscope_Post_AttrObj_Set: {
+      /*
+       * The value of the thread contention scope attribute of the thread
+       * attributes object referenced by the `attr` parameter shall be set to
+       * the contention scope specified by the `contentionscope` parameter.
+       */
+      int contentionscope;
+      int eno;
+
+      eno = pthread_attr_getscope( &ctx->attr_obj, &contentionscope );
+      T_eno_success( eno );
+      T_eq_int( contentionscope, ctx->contentionscope );
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Post_AttrObj_Nop: {
+      /*
+       * The thread attributes object referenced by the `attr` parameter shall
+       * not be modified.
+       */
+      T_eq_int( ctx->attr_obj.contentionscope, -1 );
+      break;
+    }
+
+    case CPthreadReqAttrSetscope_Post_AttrObj_NA:
       break;
   }
 }
@@ -184,12 +336,19 @@ static void CPthreadReqAttrSetscope_Action(
 
 static const CPthreadReqAttrSetscope_Entry
 CPthreadReqAttrSetscope_Entries[] = {
-  { 0, 0, CPthreadReqAttrSetscope_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqAttrSetscope_Post_Status_EINVAL,
+    CPthreadReqAttrSetscope_Post_AttrObj_Nop },
+  { 0, 0, 0, CPthreadReqAttrSetscope_Post_Status_EINVAL,
+    CPthreadReqAttrSetscope_Post_AttrObj_NA },
+  { 0, 0, 0, CPthreadReqAttrSetscope_Post_Status_Zero,
+    CPthreadReqAttrSetscope_Post_AttrObj_Set },
+  { 0, 0, 0, CPthreadReqAttrSetscope_Post_Status_ENOTSUP,
+    CPthreadReqAttrSetscope_Post_AttrObj_Nop }
 };
 
 static const uint8_t
 CPthreadReqAttrSetscope_Map[] = {
-  0
+  2, 3, 0, 1, 1, 1, 0, 0, 0
 };
 
 static size_t CPthreadReqAttrSetscope_Scope( void *arg, char *buf, size_t n )
@@ -235,9 +394,17 @@ static void CPthreadReqAttrSetscope_TestVariant(
   CPthreadReqAttrSetscope_Context *ctx
 )
 {
-  CPthreadReqAttrSetscope_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetscope_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrSetscope_Pre_ContentionScope_Prepare(
+    ctx,
+    ctx->Map.pcs[ 1 ]
+  );
   CPthreadReqAttrSetscope_Action( ctx );
-  CPthreadReqAttrSetscope_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrSetscope_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqAttrSetscope_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
+  );
 }
 
 /**
@@ -255,12 +422,18 @@ T_TEST_CASE_FIXTURE(
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetscope_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetscope_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrSetscope_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrSetscope_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqAttrSetscope_PopEntry( ctx );
-    CPthreadReqAttrSetscope_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CPthreadReqAttrSetscope_Pre_ContentionScope_Process;
+      ctx->Map.pcs[ 1 ] < CPthreadReqAttrSetscope_Pre_ContentionScope_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqAttrSetscope_PopEntry( ctx );
+      CPthreadReqAttrSetscope_TestVariant( ctx );
+    }
   }
 }
 
