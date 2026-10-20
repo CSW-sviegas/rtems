@@ -1,10 +1,11 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Create a thread-specific data key, store it in the object referenced by
-  ${.:/params[0]/name}, and associate it with the destructor function specified
-  by ${.:/params[1]/name}.
+  ${.:/params[0]/name}, and associate it with the destructor function
+  ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -25,7 +26,8 @@ links:
   uid: group
 - description: |
     The system lacked the necessary resources to create another thread-specific
-    data key.
+    data key. The number of keys available to the application is configured through
+    the ${/acfg/if/max-posix-keys:/name} application configuration option.
   role: errno
   uid: /c/errno/if/eagain
 name: pthread_key_create
@@ -33,7 +35,9 @@ notes: |
   See [POSIX.1-2024, System Interfaces, pthread_key_create()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_key_create.html).
 params:
 - description: |
-    is the pointer to an object where the created key will be stored.
+    is the pointer to a ${/c/if/pthread_key_t:/name} object. When the directive
+    call is successful, the identifier of the created key will be stored in this
+    object.
   dir: out
   name: key
 - description: |
@@ -44,17 +48,11 @@ return:
   return: null
   return-values:
   - description: |
-      The successful completion returns zero.
+      The requested operation was successful.
     value: 0
   - description: |
-      This error number indicates the following error conditions:
-
-      - The system lacked the necessary resources to create another thread- specific
-        data key.
-      - The system-imposed limit on the total number of keys per process would be
-        exceeded.
+      The system lacked the necessary resources to create another thread-specific
+      data key. The number of keys available to the application is configured through
+      the ${/acfg/if/max-posix-keys:/name} application configuration option.
     value: ${/c/errno/if/eagain:/name}
-  - description: |
-      Insufficient memory exists to create the key.
-    value: ${/c/errno/if/enomem:/name}
 type: interface
