@@ -1,42 +1,113 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/key-delete
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/key-delete:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/key-delete:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
   test-epilogue: null
   test-prologue: null
-pre-conditions:
-- name: Status
+- name: Key
   states:
-  - name: Ok
+  - name: Deleted
     test-code: |
-      /* TODOD */
+      eno = pthread_setspecific( ctx->key_value, NULL );
+      T_eq_int( eno, EINVAL );
+      ctx->key_value = KEY_INVALID;
     text: |
-      TODO
+      The thread-specific data key shall be deleted.
+  - name: Nop
+    test-code: |
+      eno = pthread_setspecific( ctx->key_value, NULL );
+      T_eq_int( eno, 0 );
+    text: |
+      No thread-specific data key shall be deleted by the ${../if/key-delete:/name}
+      call.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+pre-conditions:
+- name: Key
+  states:
+  - name: Valid
+    test-code: |
+      ctx->key = ctx->key_value;
+    text: |
+      While the ${../if/key-delete:/params[0]/name} parameter is associated with a
+      thread-specific data key.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/key-delete:/params[0]/name} parameter is not associated with
+      a thread-specific data key.
   test-epilogue: null
   test-prologue: null
-rationale: null
+- name: Value
+  states:
+  - name: Set
+    test-code: |
+      eno = pthread_setspecific( ctx->key_value, ctx );
+      T_eq_int( eno, 0 );
+    text: |
+      While at least one thread has a value associated with the thread-specific data
+      key.
+  - name: Unset
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While no thread has a value associated with the thread-specific data key.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+rationale: |
+  The ``Value`` pre-condition has no dedicated post-condition.  If a value is
+  associated with the deleted key, then the ${../if/key-delete:/name} call
+  only releases internal resources which were used to store the association.
+  The only effect visible to the application is the deletion of the key
+  itself, which is specified by the ``Key`` post-condition.  No destructor
+  function is called.  The pre-condition ensures that both code paths of the
+  key deletion are exercised.
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_key_delete( ctx->key );
+test-action: |
+  ctx->retval = pthread_key_delete( ctx->key );
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  int eno;
+
+  if ( ctx->key_value != KEY_INVALID ) {
+    eno = pthread_key_delete( ctx->key_value );
+    T_eq_int( eno, 0 );
+  }
 test-context:
-- brief: This member specifies the ${../if/key-delete:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/key-delete:/params[0]/name} parameter
+    value.
   description: null
   member: pthread_key_t key
+- brief: This member provides the key created for the test.
+  description: null
+  member: pthread_key_t key_value
 - brief: This member contains the return value.
   description: null
   member: int retval
@@ -44,19 +115,41 @@ test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
 - pthread.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  int eno;
+
+  eno = pthread_key_create( &ctx->key_value, NULL );
+  T_eq_int( eno, 0 );
 test-setup: null
 test-stop: null
-test-support: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
 test-target: testsuites/validation/tc-pthread-key-delete.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Key: Valid
+      then: Zero
+    - else: EINVAL
+    Key:
+    - if:
+        pre-conditions:
+          Key: Valid
+      then: Deleted
+    - else: Nop
   pre-conditions:
-    Status: all
+    Key: all
+    Value:
+      applicable:
+        pre-conditions:
+          Key: Valid
 type: requirement

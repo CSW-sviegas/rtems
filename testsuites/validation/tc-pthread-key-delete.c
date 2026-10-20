@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +53,7 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
 
 #include <rtems/test.h>
@@ -63,19 +65,35 @@
  */
 
 typedef enum {
-  CPthreadReqKeyDelete_Pre_Status_Ok,
-  CPthreadReqKeyDelete_Pre_Status_NA
-} CPthreadReqKeyDelete_Pre_Status;
+  CPthreadReqKeyDelete_Pre_Key_Valid,
+  CPthreadReqKeyDelete_Pre_Key_Invalid,
+  CPthreadReqKeyDelete_Pre_Key_NA
+} CPthreadReqKeyDelete_Pre_Key;
 
 typedef enum {
-  CPthreadReqKeyDelete_Post_Status_Ok,
+  CPthreadReqKeyDelete_Pre_Value_Set,
+  CPthreadReqKeyDelete_Pre_Value_Unset,
+  CPthreadReqKeyDelete_Pre_Value_NA
+} CPthreadReqKeyDelete_Pre_Value;
+
+typedef enum {
+  CPthreadReqKeyDelete_Post_Status_Zero,
+  CPthreadReqKeyDelete_Post_Status_EINVAL,
   CPthreadReqKeyDelete_Post_Status_NA
 } CPthreadReqKeyDelete_Post_Status;
 
+typedef enum {
+  CPthreadReqKeyDelete_Post_Key_Deleted,
+  CPthreadReqKeyDelete_Post_Key_Nop,
+  CPthreadReqKeyDelete_Post_Key_NA
+} CPthreadReqKeyDelete_Post_Key;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Key_NA : 1;
+  uint8_t Pre_Value_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_Key : 2;
 } CPthreadReqKeyDelete_Entry;
 
 /**
@@ -88,15 +106,26 @@ typedef struct {
   pthread_key_t key;
 
   /**
+   * @brief This member provides the key created for the test.
+   */
+  pthread_key_t key_value;
+
+  /**
    * @brief This member contains the return value.
    */
   int retval;
 
   struct {
     /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
+    /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -124,44 +153,106 @@ typedef struct {
 static CPthreadReqKeyDelete_Context
   CPthreadReqKeyDelete_Instance;
 
-static const char * const CPthreadReqKeyDelete_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqKeyDelete_PreDesc_Key[] = {
+  "Valid",
+  "Invalid",
+  "NA"
+};
+
+static const char * const CPthreadReqKeyDelete_PreDesc_Value[] = {
+  "Set",
+  "Unset",
   "NA"
 };
 
 static const char * const * const CPthreadReqKeyDelete_PreDesc[] = {
-  CPthreadReqKeyDelete_PreDesc_Status,
+  CPthreadReqKeyDelete_PreDesc_Key,
+  CPthreadReqKeyDelete_PreDesc_Value,
   NULL
 };
 
-static void CPthreadReqKeyDelete_Pre_Status_Prepare(
-  CPthreadReqKeyDelete_Pre_Status state
+#define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+static void CPthreadReqKeyDelete_Pre_Key_Prepare(
+  CPthreadReqKeyDelete_Context *ctx,
+  CPthreadReqKeyDelete_Pre_Key  state
 )
 {
   switch ( state ) {
-    case CPthreadReqKeyDelete_Pre_Status_Ok: {
+    case CPthreadReqKeyDelete_Pre_Key_Valid: {
       /*
-       * TODO
+       * While the `key` parameter is associated with a thread-specific data
+       * key.
        */
-      /* TODOD */
+      ctx->key = ctx->key_value;
       break;
     }
 
-    case CPthreadReqKeyDelete_Pre_Status_NA:
+    case CPthreadReqKeyDelete_Pre_Key_Invalid: {
+      /*
+       * While the `key` parameter is not associated with a thread-specific
+       * data key.
+       */
+      ctx->key = KEY_INVALID;
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Pre_Key_NA:
+      break;
+  }
+}
+
+static void CPthreadReqKeyDelete_Pre_Value_Prepare(
+  CPthreadReqKeyDelete_Context  *ctx,
+  CPthreadReqKeyDelete_Pre_Value state
+)
+{
+  int eno;
+
+  switch ( state ) {
+    case CPthreadReqKeyDelete_Pre_Value_Set: {
+      /*
+       * While at least one thread has a value associated with the
+       * thread-specific data key.
+       */
+      eno = pthread_setspecific( ctx->key_value, ctx );
+      T_eq_int( eno, 0 );
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Pre_Value_Unset: {
+      /*
+       * While no thread has a value associated with the thread-specific data
+       * key.
+       */
+      /* Nothing to do */
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Pre_Value_NA:
       break;
   }
 }
 
 static void CPthreadReqKeyDelete_Post_Status_Check(
+  CPthreadReqKeyDelete_Context    *ctx,
   CPthreadReqKeyDelete_Post_Status state
 )
 {
   switch ( state ) {
-    case CPthreadReqKeyDelete_Post_Status_Ok: {
+    case CPthreadReqKeyDelete_Post_Status_Zero: {
       /*
-       * TODO
+       * The return value of pthread_key_delete() shall be equal to zero.
        */
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Post_Status_EINVAL: {
+      /*
+       * The return value of pthread_key_delete() shall be equal to EINVAL.
+       */
+      T_eq_int( ctx->retval, EINVAL );
       break;
     }
 
@@ -170,19 +261,73 @@ static void CPthreadReqKeyDelete_Post_Status_Check(
   }
 }
 
+static void CPthreadReqKeyDelete_Post_Key_Check(
+  CPthreadReqKeyDelete_Context *ctx,
+  CPthreadReqKeyDelete_Post_Key state
+)
+{
+  int eno;
+
+  switch ( state ) {
+    case CPthreadReqKeyDelete_Post_Key_Deleted: {
+      /*
+       * The thread-specific data key shall be deleted.
+       */
+      eno = pthread_setspecific( ctx->key_value, NULL );
+      T_eq_int( eno, EINVAL );
+      ctx->key_value = KEY_INVALID;
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Post_Key_Nop: {
+      /*
+       * No thread-specific data key shall be deleted by the
+       * pthread_key_delete() call.
+       */
+      eno = pthread_setspecific( ctx->key_value, NULL );
+      T_eq_int( eno, 0 );
+      break;
+    }
+
+    case CPthreadReqKeyDelete_Post_Key_NA:
+      break;
+  }
+}
+
+static void CPthreadReqKeyDelete_Prepare( CPthreadReqKeyDelete_Context *ctx )
+{
+  int eno;
+
+  eno = pthread_key_create( &ctx->key_value, NULL );
+  T_eq_int( eno, 0 );
+}
+
 static void CPthreadReqKeyDelete_Action( CPthreadReqKeyDelete_Context *ctx )
 {
   ctx->retval = pthread_key_delete( ctx->key );
 }
 
+static void CPthreadReqKeyDelete_Cleanup( CPthreadReqKeyDelete_Context *ctx )
+{
+  int eno;
+
+  if ( ctx->key_value != KEY_INVALID ) {
+    eno = pthread_key_delete( ctx->key_value );
+    T_eq_int( eno, 0 );
+  }
+}
+
 static const CPthreadReqKeyDelete_Entry
 CPthreadReqKeyDelete_Entries[] = {
-  { 0, 0, CPthreadReqKeyDelete_Post_Status_Ok }
+  { 0, 0, 0, CPthreadReqKeyDelete_Post_Status_Zero,
+    CPthreadReqKeyDelete_Post_Key_Deleted },
+  { 0, 0, 1, CPthreadReqKeyDelete_Post_Status_EINVAL,
+    CPthreadReqKeyDelete_Post_Key_Nop }
 };
 
 static const uint8_t
 CPthreadReqKeyDelete_Map[] = {
-  0
+  0, 0, 1, 1
 };
 
 static size_t CPthreadReqKeyDelete_Scope( void *arg, char *buf, size_t n )
@@ -219,13 +364,28 @@ static inline CPthreadReqKeyDelete_Entry CPthreadReqKeyDelete_PopEntry(
   ];
 }
 
+static void CPthreadReqKeyDelete_SetPreConditionStates(
+  CPthreadReqKeyDelete_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Value_NA ) {
+    ctx->Map.pcs[ 1 ] = CPthreadReqKeyDelete_Pre_Value_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CPthreadReqKeyDelete_TestVariant(
   CPthreadReqKeyDelete_Context *ctx
 )
 {
-  CPthreadReqKeyDelete_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqKeyDelete_Pre_Key_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CPthreadReqKeyDelete_Pre_Value_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CPthreadReqKeyDelete_Action( ctx );
-  CPthreadReqKeyDelete_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqKeyDelete_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqKeyDelete_Post_Key_Check( ctx, ctx->Map.entry.Post_Key );
 }
 
 /**
@@ -240,12 +400,21 @@ T_TEST_CASE_FIXTURE( CPthreadReqKeyDelete, &CPthreadReqKeyDelete_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqKeyDelete_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqKeyDelete_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CPthreadReqKeyDelete_Pre_Key_Valid;
+    ctx->Map.pci[ 0 ] < CPthreadReqKeyDelete_Pre_Key_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CPthreadReqKeyDelete_PopEntry( ctx );
-    CPthreadReqKeyDelete_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CPthreadReqKeyDelete_Pre_Value_Set;
+      ctx->Map.pci[ 1 ] < CPthreadReqKeyDelete_Pre_Value_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CPthreadReqKeyDelete_PopEntry( ctx );
+      CPthreadReqKeyDelete_SetPreConditionStates( ctx );
+      CPthreadReqKeyDelete_Prepare( ctx );
+      CPthreadReqKeyDelete_TestVariant( ctx );
+      CPthreadReqKeyDelete_Cleanup( ctx );
+    }
   }
 }
 
