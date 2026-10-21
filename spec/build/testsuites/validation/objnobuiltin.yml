@@ -30,6 +30,7 @@ source:
 - testsuites/validation/tc-flsl.c
 - testsuites/validation/tc-string-memchr.c
 - testsuites/validation/tc-string-memcmp.c
+- testsuites/validation/tc-string-memcpy.c
 - testsuites/validation/tc-string-memmove.c
 - testsuites/validation/tc-string-strnlen.c
 - testsuites/validation/tc-string-strspn.c
