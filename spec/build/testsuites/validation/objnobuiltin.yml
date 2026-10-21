@@ -30,4 +30,5 @@ source:
 - testsuites/validation/tc-flsl.c
 - testsuites/validation/tc-string-memchr.c
 - testsuites/validation/tc-string-memcmp.c
+- testsuites/validation/tc-string-memmove.c
 type: build
