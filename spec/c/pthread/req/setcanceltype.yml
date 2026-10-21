@@ -1,67 +1,286 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/setcanceltype
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
 post-conditions:
 - name: Status
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/setcanceltype:/name} shall be equal to zero.
+  - name: EPROTO
+    test-code: |
+      T_eq_int( ctx->retval, EPROTO );
+    text: |
+      The return value of ${../if/setcanceltype:/name} shall be equal to
+      ${/c/errno/if/eproto:/name}.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/setcanceltype:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Type
+  states:
+  - name: Deferred
+    test-code: |
+      T_eq_int( GetCancelType(), PTHREAD_CANCEL_DEFERRED );
+    text: |
+      The ${../glossary/thread-cancel-type:/term} of the calling thread shall be
+      ${/c/pthread/if/cancel-deferred:/name} after the return of the
+      ${../if/setcanceltype:/name} call.
+  - name: Async
+    test-code: |
+      T_eq_int( GetCancelType(), PTHREAD_CANCEL_ASYNCHRONOUS );
+    text: |
+      The ${../glossary/thread-cancel-type:/term} of the calling thread shall be
+      ${/c/pthread/if/cancel-asynchronous:/name} after the return of the
+      ${../if/setcanceltype:/name} call.
+  - name: Nop
+    test-code: |
+      T_eq_int( GetCancelType(), ctx->previous_type );
+    text: |
+      The ${../glossary/thread-cancel-type:/term} of the calling thread shall not be
+      changed by the ${../if/setcanceltype:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: OldType
+  states:
+  - name: Deferred
+    test-code: |
+      T_eq_int( ctx->old_type, PTHREAD_CANCEL_DEFERRED );
+    text: |
+      The value of the object referenced by the
+      ${../if/setcanceltype:/params[1]/name} parameter shall be set to
+      ${/c/pthread/if/cancel-deferred:/name}.
+  - name: Async
+    test-code: |
+      T_eq_int( ctx->old_type, PTHREAD_CANCEL_ASYNCHRONOUS );
+    text: |
+      The value of the object referenced by the
+      ${../if/setcanceltype:/params[1]/name} parameter shall be set to
+      ${/c/pthread/if/cancel-asynchronous:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->old_type, INVALID_TYPE );
+    text: |
+      Objects referenced by the ${../if/setcanceltype:/params[1]/name} parameter in
+      past calls to ${../if/setcanceltype:/name} shall not be accessed by the
+      ${../if/setcanceltype:/name} call.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Context
   states:
-  - name: Ok
+  - name: Thread
     test-code: |
-      /* TODOD */
+      ctx->in_isr = false;
     text: |
-      TODO
+      While the ${../if/setcanceltype:/name} call is made from within thread context.
+  - name: Interrupt
+    test-code: |
+      ctx->in_isr = true;
+    text: |
+      While the ${../if/setcanceltype:/name} call is made from within interrupt
+      context.
+  test-epilogue: null
+  test-prologue: null
+- name: Type
+  states:
+  - name: Deferred
+    test-code: |
+      ctx->type = PTHREAD_CANCEL_DEFERRED;
+    text: |
+      While the ${../if/setcanceltype:/params[0]/name} parameter is
+      ${/c/pthread/if/cancel-deferred:/name}.
+  - name: Async
+    test-code: |
+      ctx->type = PTHREAD_CANCEL_ASYNCHRONOUS;
+    text: |
+      While the ${../if/setcanceltype:/params[0]/name} parameter is
+      ${/c/pthread/if/cancel-asynchronous:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->type = INT_MAX;
+    text: |
+      While the ${../if/setcanceltype:/params[0]/name} parameter is neither
+      ${/c/pthread/if/cancel-deferred:/name} nor
+      ${/c/pthread/if/cancel-asynchronous:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: OldType
+  states:
+  - name: Valid
+    test-code: |
+      ctx->oldtype = &ctx->old_type;
+    text: |
+      While the ${../if/setcanceltype:/params[1]/name} parameter references an object
+      of type `int`.
+  - name: 'Null'
+    test-code: |
+      ctx->oldtype = NULL;
+    text: |
+      While the ${../if/setcanceltype:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Previous
+  states:
+  - name: Deferred
+    test-code: |
+      ctx->previous_type = PTHREAD_CANCEL_DEFERRED;
+      (void) pthread_setcanceltype( ctx->previous_type, NULL );
+    text: |
+      While the ${../glossary/thread-cancel-type:/term} of the calling thread is
+      ${/c/pthread/if/cancel-deferred:/name} immediately before the
+      ${../if/setcanceltype:/name} call.
+  - name: Async
+    test-code: |
+      ctx->previous_type = PTHREAD_CANCEL_ASYNCHRONOUS;
+      (void) pthread_setcanceltype( ctx->previous_type, NULL );
+    text: |
+      While the ${../glossary/thread-cancel-type:/term} of the calling thread is
+      ${/c/pthread/if/cancel-asynchronous:/name} immediately before the
+      ${../if/setcanceltype:/name} call.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = pthread_setcanceltype( ctx->type, ctx->oldtype );
+test-action: |
+  if ( ctx->in_isr ) {
+    CallWithinISR( Call, ctx );
+  } else {
+    ctx->retval = pthread_setcanceltype( ctx->type, ctx->oldtype );
+  }
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/setcanceltype:/params[0]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/setcanceltype:/params[0]/name}
+    parameter value.
   description: null
   member: int type
-- brief: This member specifies the ${../if/setcanceltype:/params[1]/name} parameter
-    value.
+- brief: |
+    This member specifies the ${../if/setcanceltype:/params[1]/name}
+    parameter value.
   description: null
   member: int *oldtype
 - brief: This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the object referenced by the
+    ${../if/setcanceltype:/params[1]/name} parameter in case it is not
+    ${/c/if/null:/name}.
+  description: null
+  member: int old_type
+- brief: |
+    This member specifies the ${../glossary/thread-cancel-type:/term} of the
+    calling thread immediately before the ${../if/setcanceltype:/name} call.
+  description: null
+  member: int previous_type
+- brief: |
+    If this member is true, then the ${../if/setcanceltype:/name} call shall
+    be made from within interrupt context.
+  description: null
+  member: bool in_isr
+- brief: |
+    This member contains the ${../glossary/thread-cancel-type:/term} of the
+    calling thread at the begin of the test case.
+  description: null
+  member: int initial_type
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- errno.h
+- limits.h
 - pthread.h
-test-local-includes: []
-test-prepare: null
-test-setup: null
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->old_type = INVALID_TYPE;
+test-setup:
+  brief: null
+  code: |
+    (void) pthread_setcanceltype( PTHREAD_CANCEL_DEFERRED, &ctx->initial_type );
+  description: null
 test-stop: null
-test-support: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define INVALID_TYPE -1
+
+  static int GetCancelType( void )
+  {
+    int type;
+
+    (void) pthread_setcanceltype( PTHREAD_CANCEL_DEFERRED, &type );
+    (void) pthread_setcanceltype( type, NULL );
+
+    return type;
+  }
+
+  static void Call( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ctx->retval = pthread_setcanceltype( ctx->type, ctx->oldtype );
+  }
 test-target: testsuites/validation/tc-pthread-setcanceltype.c
-test-teardown: null
-text: ${.:text-template}
+test-teardown:
+  brief: null
+  code: |
+    (void) pthread_setcanceltype( ctx->initial_type, NULL );
+  description: null
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Context: Interrupt
+      then: EPROTO
+    - if:
+        pre-conditions:
+          Type: Invalid
+      then: EINVAL
+    - else: Zero
+    Type:
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: Type
+    - else: Nop
+    OldType:
+    - if:
+        pre-conditions:
+          OldType: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: Previous
+    - else: Nop
   pre-conditions:
-    Status: all
+    Context: all
+    Type: all
+    OldType: all
+    Previous: all
 type: requirement

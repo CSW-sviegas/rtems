@@ -6,6 +6,7 @@ brief: |
   ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -28,16 +29,22 @@ links:
     The value for ${.:/params[0]/name} is invalid.
   role: errno
   uid: /c/errno/if/einval
+- description: |
+    The ${.:/name} call was made from within interrupt context.
+  role: errno
+  uid: /c/errno/if/eproto
 name: pthread_setcanceltype
 notes: |
   See [POSIX.1-2024, System Interfaces, pthread_setcanceltype()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setcanceltype.html).
 params:
 - description: |
-    is the new cancelability type
+    is the new ${../glossary/thread-cancel-type:/term}.
   dir: null
   name: type
 - description: |
-    is the pointer to store the old cancelability type
+    is the pointer to an object where the previous
+    ${../glossary/thread-cancel-type:/term} will be stored, if it is not
+    ${/c/if/null:/name}.
   dir: out
   name: oldtype
 return:
@@ -51,4 +58,7 @@ return:
       ${/c/pthread/if/cancel-deferred:/name} or
       ${/c/pthread/if/cancel-asynchronous:/name}.
     value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/name} call was made from within interrupt context.
+    value: ${/c/errno/if/eproto:/name}
 type: interface
