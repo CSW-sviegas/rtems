@@ -1,0 +1,49 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Scan the memory area referenced by ${.:/params[0]/name} for the character
+  specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const void *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/memchr
+name: memchr
+notes: |
+  See ${/ref/std/c23/memchr:/name}.
+params:
+- description: |
+    is the pointer to the object to be searched.
+  dir: in
+  name: s
+- description: |
+    is the character to search for.
+  dir: null
+  name: c
+- description: |
+    is the maximum number of bytes to examine.
+  dir: null
+  name: n
+return:
+  return: |
+    Returns a pointer to the matching byte or ${/c/if/null:/name} if the character
+    does not occur.
+  return-values: []
+type: interface

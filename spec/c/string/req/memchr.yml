@@ -1,0 +1,494 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/memchr
+- role: reference
+  uid: /ref/std/c23/memchr
+- role: reference
+  uid: /ref/std/posix-2024/memchr
+post-conditions:
+- name: Result
+  states:
+  - name: First
+    test-code: |
+      T_eq_ptr( ctx->retval, ctx->expected );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/memchr:/name} shall be the
+      address of the first byte which lies in the first
+      ${../if/memchr:/params[2]/name} bytes of the memory area referenced by the
+      ${../if/memchr:/params[0]/name} parameter and in the object which contains it
+      and which is equal to the value of the ${../if/memchr:/params[1]/name}
+      parameter converted to `unsigned char`.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/memchr:/name} shall be
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Area
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->buf, ctx->before, sizeof( ctx->buf ) );
+    text: |
+      The bytes of the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal to zero.
+  - name: One
+    test-code: |
+      ctx->n = 1;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal to one.
+  - name: Short
+    test-code: |
+      ctx->n = 2;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is greater than
+      one, while the size specified by ${../if/memchr:/params[2]/name} is less than
+      the size of type long minus one.
+  - name: BelowWord
+    test-code: |
+      ctx->n = sizeof( long ) - 1;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal to the
+      size of type long minus one.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal to the
+      size of type long.
+  - name: AboveWord
+    test-code: |
+      ctx->n = sizeof( long ) + 1;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal to the
+      size of type long plus one.
+  - name: Long
+    test-code: |
+      ctx->n = 5 * sizeof( long ) + 1;
+      ctx->len = ctx->n;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is greater than the
+      size of type long plus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Bound
+  states:
+  - name: Inside
+    test-code: |
+      /* The N pre-condition sets the size. */
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is less than or
+      equal to the count of bytes from the address specified by the
+      ${../if/memchr:/params[0]/name} parameter to the end of the object which
+      contains it.
+  - name: Beyond
+    test-code: |
+      ctx->n = SIZE_MAX;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is greater than the
+      count of bytes from the address specified by the
+      ${../if/memchr:/params[0]/name} parameter to the end of the object which
+      contains it.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->s = &ctx->buf[ sizeof( long ) ];
+    text: |
+      While the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter starts at an address which is aligned to the size of type long.
+  - name: AboveAligned
+    test-code: |
+      ctx->s = &ctx->buf[ sizeof( long ) + 1 ];
+    text: |
+      While the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter starts one byte above an address which is aligned to the size of type
+      long.
+  - name: Between
+    test-code: |
+      ctx->s = &ctx->buf[ sizeof( long ) + 2 ];
+    text: |
+      While the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter starts more than one byte above an address which is aligned to the
+      size of type long, while the memory area referenced by the
+      ${../if/memchr:/params[0]/name} parameter starts more than one byte below the
+      next address which is aligned to the size of type long.
+  - name: BelowAligned
+    test-code: |
+      ctx->s = &ctx->buf[ sizeof( long ) + sizeof( long ) - 1 ];
+    text: |
+      While the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter starts one byte below an address which is aligned to the size of type
+      long.
+  test-epilogue: null
+  test-prologue: null
+- name: C
+  states:
+  - name: InRange
+    test-code: |
+      ctx->c = TARGET;
+    text: |
+      While the value of the ${../if/memchr:/params[1]/name} parameter is in the
+      range of the type `unsigned char`.
+  - name: Negative
+    test-code: |
+      ctx->c = TARGET - ( UCHAR_MAX + 1 );
+    text: |
+      While the value of the ${../if/memchr:/params[1]/name} parameter is less than
+      zero.
+  - name: Greater
+    test-code: |
+      ctx->c = TARGET + ( UCHAR_MAX + 1 );
+    text: |
+      While the value of the ${../if/memchr:/params[1]/name} parameter is greater
+      than the maximum value of the type `unsigned char`.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: None
+    test-code: |
+      ctx->s[ -1 ] = TARGET;
+      ctx->s[ ctx->len ] = TARGET;
+    text: |
+      While no byte which lies in the first ${../if/memchr:/params[2]/name} bytes of
+      the memory area referenced by the ${../if/memchr:/params[0]/name} parameter and
+      in the object which contains it is equal to the value of the
+      ${../if/memchr:/params[1]/name} parameter converted to `unsigned char`.
+  - name: One
+    test-code: |
+      ctx->s[ ctx->len - 1 ] = TARGET;
+      ctx->expected = &ctx->s[ ctx->len - 1 ];
+    text: |
+      While exactly one byte which lies in the first ${../if/memchr:/params[2]/name}
+      bytes of the memory area referenced by the ${../if/memchr:/params[0]/name}
+      parameter and in the object which contains it is equal to the value of the
+      ${../if/memchr:/params[1]/name} parameter converted to `unsigned char`.
+  - name: Several
+    test-code: |
+      if ( ctx->len > 2 ) {
+        ctx->s[ 1 ] = TARGET;
+        ctx->expected = &ctx->s[ 1 ];
+      } else {
+        ctx->s[ 0 ] = TARGET;
+        ctx->expected = &ctx->s[ 0 ];
+      }
+
+      ctx->s[ ctx->len - 1 ] = TARGET;
+    text: |
+      While more than one byte which lies in the first
+      ${../if/memchr:/params[2]/name} bytes of the memory area referenced by the
+      ${../if/memchr:/params[0]/name} parameter and in the object which contains it
+      is equal to the value of the ${../if/memchr:/params[1]/name} parameter
+      converted to `unsigned char`.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension N covers the size, 7 states. ${/ref/std/c23/memchr:/name} searches
+  the bytes of the memory area. A size of zero leaves no byte to search. The
+  implementation of the pre-qualified library compares the size against zero and
+  the size of type long. The states Zero and One hold the boundary zero and the
+  value above it. The other boundary has a state for the value below it, at it
+  and above it. The states Short and Long hold the values between and after these
+  states.
+
+  Dimension Bound covers the size relative to the end of the object which
+  contains the memory area, 2 states. The search reads the bytes in sequence and
+  stops at the first match. A size beyond the end of the object is therefore
+  defined, if a match precedes that end.
+
+  Dimension Alignment covers the start address of the memory area, 4 states. The
+  implementation searches the bytes before the first aligned address one at a
+  time. The offset of the start address to the preceding aligned address ranges
+  from zero to the size of type long minus one. The states Aligned and
+  AboveAligned hold the boundary zero and the value above it. The state
+  BelowAligned holds the largest offset. The state Between holds the offsets
+  between them.
+
+  Dimension C covers the value of the character, 3 states.
+  ${/ref/std/c23/memchr:/name} converts it to `unsigned char`. The conversion
+  keeps a value of that range. It changes a negative value and a value beyond the
+  maximum of the type.
+
+  Dimension Match covers the count of matching bytes, 3 states.
+  ${/ref/std/c23/memchr:/name} locates the first occurrence. Several matches
+  select one of them. A memory area of size zero holds no match.
+
+  ${/ref/std/posix-2024/memchr:/name} states that the function does not change
+  ${/c/errno/if/errno:/name} on valid input.
+references: []
+requirement-type: functional
+skip-reasons:
+  BeyondNeedsMatch: |
+    A size beyond the end of the object is defined only if a match precedes that
+    end.
+  BeyondStopsAtMatch: |
+    The search stops at the first match, so the bytes beyond the match do not
+    change the result. The Long state covers a size beyond the end of the object.
+  OneByteHoldsOneMatch: |
+    A memory area of size one holds at most one match.
+  ZeroIsInside: |
+    A size of zero does not exceed the count of bytes to the end of the object.
+  ZeroSizeHasNoByte: |
+    A memory area of size zero holds no byte.
+test-action: |
+  memcpy( ctx->before, ctx->buf, sizeof( ctx->buf ) );
+  errno = -1;
+  ctx->retval = memchr( ctx->s, ctx->c, ctx->n );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the memory which holds the memory area.
+  description: null
+  member: |
+    unsigned char buf[ 16 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) )
+- brief: |
+    This member contains the content of the memory which holds the memory area
+    before the ${../if/memchr:/name} call.
+  description: null
+  member: |
+    unsigned char before[ 16 * sizeof( long ) ]
+- brief: |
+    This member specifies the ${../if/memchr:/params[0]/name} parameter value.
+  description: null
+  member: |
+    unsigned char *s
+- brief: |
+    This member specifies the ${../if/memchr:/params[1]/name} parameter value.
+  description: null
+  member: |
+    int c
+- brief: |
+    This member specifies the ${../if/memchr:/params[2]/name} parameter value.
+  description: null
+  member: |
+    size_t n
+- brief: |
+    This member specifies the count of bytes of the memory area which hold the
+    arranged content.
+  description: null
+  member: |
+    size_t len
+- brief: |
+    This member contains the expected ${/glossary/returnvalue:/term}.
+  description: null
+  member: |
+    const unsigned char *expected
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/memchr:/name} call.
+  description: null
+  member: |
+    void *retval
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/memchr:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: |
+  The memory area starts inside a buffer filled with a byte which differs from
+  the byte to locate. Where the memory area holds more than two bytes, the second
+  byte holds a second match. Otherwise the first byte holds it. The second byte
+  lies in the first block of an aligned memory area and starts the first block of
+  a memory area which starts one byte below an aligned address. It lies before
+  the first block of the other memory areas. A memory area without a match has
+  the byte to locate immediately before and after it. A size beyond the object
+  places the matches as the long size does.
+test-header: null
+test-includes:
+- errno.h
+- limits.h
+- rtems.h
+- stdint.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  memset( ctx->buf, FILL, sizeof( ctx->buf ) );
+  ctx->s = NULL;
+  ctx->c = 0;
+  ctx->n = 0;
+  ctx->len = 0;
+  ctx->expected = NULL;
+  ctx->retval = NULL;
+test-setup: null
+test-stop: null
+test-support: |
+  #define FILL 0x11
+
+  #define TARGET 0xa5
+test-target: testsuites/validation/tc-string-memchr.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: 'Null'
+    Area: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    Bound:
+    - Inside
+    Alignment: all
+    C: all
+    Match:
+    - None
+- enabled-by: true
+  post-conditions:
+    Result: First
+    Area: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - One
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Long
+    Bound:
+    - Inside
+    Alignment: all
+    C: all
+    Match:
+    - One
+- enabled-by: true
+  post-conditions:
+    Result: First
+    Area: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Long
+    Bound:
+    - Inside
+    Alignment: all
+    C: all
+    Match:
+    - Several
+- enabled-by: true
+  post-conditions:
+    Result: First
+    Area: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Long
+    Bound:
+    - Beyond
+    Alignment: all
+    C: all
+    Match:
+    - One
+    - Several
+- enabled-by: true
+  post-conditions: ZeroSizeHasNoByte
+  pre-conditions:
+    N:
+    - Zero
+    Bound:
+    - Inside
+    Alignment: all
+    C: all
+    Match:
+    - One
+    - Several
+- enabled-by: true
+  post-conditions: OneByteHoldsOneMatch
+  pre-conditions:
+    N:
+    - One
+    Bound:
+    - Inside
+    Alignment: all
+    C: all
+    Match:
+    - Several
+- enabled-by: true
+  post-conditions: BeyondNeedsMatch
+  pre-conditions:
+    N:
+    - Long
+    Bound:
+    - Beyond
+    Alignment: all
+    C: all
+    Match:
+    - None
+- enabled-by: true
+  post-conditions: ZeroIsInside
+  pre-conditions:
+    N:
+    - Zero
+    Bound:
+    - Beyond
+    Alignment: all
+    C: all
+    Match: all
+- enabled-by: true
+  post-conditions: BeyondNeedsMatch
+  pre-conditions:
+    N:
+    - One
+    Bound:
+    - Beyond
+    Alignment: all
+    C: all
+    Match: all
+- enabled-by: true
+  post-conditions: BeyondStopsAtMatch
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    Bound:
+    - Beyond
+    Alignment: all
+    C: all
+    Match: all
+type: requirement
