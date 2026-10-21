@@ -1,14 +1,377 @@
-SPDX-License-Identifier: CC-BY-SA-4.0
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
-functional-type: function
+functional-type: action
 links:
 - role: interface-function
   uid: ../if/memcpy
-rationale: null
+- role: reference
+  uid: /ref/std/c23/memcpy
+- role: reference
+  uid: /ref/std/posix-2024/memcpy
+post-conditions:
+- name: Result
+  states:
+  - name: Dest
+    test-code: |
+      T_eq_ptr( ctx->retval, ctx->dest );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/memcpy:/name} shall be the value
+      of the ${../if/memcpy:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Dest
+  states:
+  - name: Copy
+    test-code: |
+      T_eq_mem( ctx->dest, ctx->src, ctx->n );
+    text: |
+      The first ${../if/memcpy:/params[2]/name} bytes of the memory area referenced
+      by the ${../if/memcpy:/params[1]/name} parameter shall be copied to the first
+      ${../if/memcpy:/params[2]/name} bytes of the memory area referenced by the
+      ${../if/memcpy:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Outside
+  states:
+  - name: Nop
+    test-code: |
+      CheckOutside( ctx );
+    text: |
+      The bytes outside the first ${../if/memcpy:/params[2]/name} bytes of the memory
+      area referenced by the ${../if/memcpy:/params[0]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Src
+  states:
+  - name: Nop
+    test-code: |
+      CheckSource( ctx );
+    text: |
+      The bytes of the memory area referenced by the ${../if/memcpy:/params[1]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to zero.
+  - name: One
+    test-code: |
+      ctx->n = 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to one.
+  - name: Short
+    test-code: |
+      ctx->n = 2;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is greater than
+      one, while the size specified by ${../if/memcpy:/params[2]/name} is less than
+      the size of type long minus one.
+  - name: BelowWord
+    test-code: |
+      ctx->n = sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
+      size of type long minus one.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
+      size of type long.
+  - name: AboveWord
+    test-code: |
+      ctx->n = sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
+      size of type long plus one.
+  - name: Medium
+    test-code: |
+      ctx->n = sizeof( long ) + 2;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is greater than the
+      size of type long plus one, while the size specified by
+      ${../if/memcpy:/params[2]/name} is less than four times the size of type long
+      minus one.
+  - name: BelowBlock
+    test-code: |
+      ctx->n = 4 * sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
+      times the size of type long minus one.
+  - name: Block
+    test-code: |
+      ctx->n = 4 * sizeof( long );
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
+      times the size of type long.
+  - name: AboveBlock
+    test-code: |
+      ctx->n = 4 * sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
+      times the size of type long plus one.
+  - name: Long
+    test-code: |
+      ctx->n = 9 * sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memcpy:/params[2]/name} is greater than
+      four times the size of type long plus one.
+  test-epilogue: null
+  test-prologue: null
+- name: DestAlignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->dest_offset = 0;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
+      parameter starts at an address which is aligned to the size of type long.
+  - name: AboveAligned
+    test-code: |
+      ctx->dest_offset = 1;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
+      parameter starts one byte above an address which is aligned to the size of type
+      long.
+  - name: Between
+    test-code: |
+      ctx->dest_offset = 2;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
+      parameter starts more than one byte above an address which is aligned to the
+      size of type long, while the memory area referenced by the
+      ${../if/memcpy:/params[0]/name} parameter starts more than one byte below the
+      next address which is aligned to the size of type long.
+  - name: BelowAligned
+    test-code: |
+      ctx->dest_offset = sizeof( long ) - 1;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
+      parameter starts one byte below an address which is aligned to the size of type
+      long.
+  test-epilogue: null
+  test-prologue: null
+- name: SrcAlignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->src_offset = 0;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
+      parameter starts at an address which is aligned to the size of type long.
+  - name: AboveAligned
+    test-code: |
+      ctx->src_offset = 1;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
+      parameter starts one byte above an address which is aligned to the size of type
+      long.
+  - name: Between
+    test-code: |
+      ctx->src_offset = 2;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
+      parameter starts more than one byte above an address which is aligned to the
+      size of type long, while the memory area referenced by the
+      ${../if/memcpy:/params[1]/name} parameter starts more than one byte below the
+      next address which is aligned to the size of type long.
+  - name: BelowAligned
+    test-code: |
+      ctx->src_offset = sizeof( long ) - 1;
+    text: |
+      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
+      parameter starts one byte below an address which is aligned to the size of type
+      long.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension N covers the size, 11 states. ${/ref/std/c23/memcpy:/name} defines
+  the copy for each size. A size of zero copies no byte. The implementation of
+  the pre-qualified library compares the size against zero, the size of type long
+  and four times this size. The states Zero and One hold the boundary zero and
+  the value above it. Each other boundary has a state for the value below it, at
+  it and above it. The states Short, Medium and Long hold the values between and
+  after these states. A size beyond the memory areas is outside the domain, so N
+  has no state for the last value of the type.
+
+  Dimension DestAlignment covers the start address of the destination memory
+  area, 4 states. Dimension SrcAlignment covers the start address of the source
+  memory area, 4 states. The block loops of the implementation need two aligned
+  start addresses. Otherwise the byte loop copies all bytes. The offset of the
+  start address to the preceding aligned address ranges from zero to the size of
+  type long minus one. The states Aligned and AboveAligned hold the boundary zero
+  and the value above it. The state BelowAligned holds the largest offset. The
+  state Between holds the offsets between them. Two overlapping memory areas are
+  outside the domain, so no dimension covers their relative position.
+
+  ${/ref/std/posix-2024/memcpy:/name} states that the function does not change
+  ${/c/errno/if/errno:/name} on valid input.
+references: []
 requirement-type: functional
+skip-reasons: {}
+test-action: |
+  Arrange( ctx );
+  errno = -1;
+  ctx->retval = memcpy( ctx->dest, ctx->src, ctx->n );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the memory which holds the destination memory area.
+  description: null
+  member: |
+    unsigned char dest_buf[ 16 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) )
+- brief: |
+    This member contains the content of the destination memory before the call.
+  description: null
+  member: |
+    unsigned char before[ 16 * sizeof( long ) ]
+- brief: |
+    This member provides the memory which holds the source memory area.
+  description: null
+  member: |
+    unsigned char src_buf[ 16 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) )
+- brief: |
+    This member contains the content of the memory which holds the source memory
+    area before the ${../if/memcpy:/name} call.
+  description: null
+  member: |
+    unsigned char src_before[ 16 * sizeof( long ) ]
+- brief: |
+    This member specifies the offset of the destination memory area from an aligned
+    address.
+  description: null
+  member: |
+    size_t dest_offset
+- brief: |
+    This member specifies the offset of the source memory area from an aligned
+    address.
+  description: null
+  member: |
+    size_t src_offset
+- brief: |
+    This member specifies the ${../if/memcpy:/params[0]/name} parameter value.
+  description: null
+  member: |
+    void *dest
+- brief: |
+    This member specifies the ${../if/memcpy:/params[1]/name} parameter value.
+  description: null
+  member: |
+    const void *src
+- brief: |
+    This member specifies the ${../if/memcpy:/params[2]/name} parameter value.
+  description: null
+  member: |
+    size_t n
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/memcpy:/name} call.
+  description: null
+  member: |
+    void *retval
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/memcpy:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: |
+  The source and the destination memory areas lie in two buffers. The test fills
+  both buffers with different patterns of distinct bytes before each call. The
+  source buffer stays unchanged, so the check compares against it. The long size
+  runs the loop of four blocks twice.
+test-header: null
+test-includes:
+- errno.h
+- rtems.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->n = 0;
+  ctx->dest_offset = 0;
+  ctx->src_offset = 0;
+  ctx->retval = NULL;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Arrange( Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < sizeof( ctx->dest_buf ); ++i ) {
+      ctx->dest_buf[ i ] = (unsigned char) ( i + 1 );
+      ctx->before[ i ] = ctx->dest_buf[ i ];
+      ctx->src_buf[ i ] = (unsigned char) ( i + 0x81 );
+      ctx->src_before[ i ] = ctx->src_buf[ i ];
+    }
+
+    ctx->dest = &ctx->dest_buf[ 2 * sizeof( long ) + ctx->dest_offset ];
+    ctx->src = &ctx->src_buf[ 2 * sizeof( long ) + ctx->src_offset ];
+  }
+
+  static void CheckOutside( const Context *ctx )
+  {
+    size_t i;
+    size_t begin;
+
+    begin = (size_t) ( (unsigned char *) ctx->dest - ctx->dest_buf );
+
+    for ( i = 0; i < sizeof( ctx->dest_buf ); ++i ) {
+      if ( i < begin || i >= begin + ctx->n ) {
+        T_quiet_eq_u8( ctx->dest_buf[ i ], ctx->before[ i ] );
+      }
+    }
+  }
+
+  static void CheckSource( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < sizeof( ctx->src_buf ); ++i ) {
+      T_quiet_eq_u8( ctx->src_buf[ i ], ctx->src_before[ i ] );
+    }
+  }
+test-target: testsuites/validation/tc-string-memcpy.c
+test-teardown: null
 text: |
-  The ${../if/memcpy:/name} function shall be specified by
-  ${/glossary/c11:/term}.
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: N/A
+    - else: Copy
+    Outside: Nop
+    Src: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: all
+    SrcAlignment: all
 type: requirement

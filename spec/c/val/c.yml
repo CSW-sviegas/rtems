@@ -5,50 +5,6 @@ enabled-by: true
 links: []
 test-actions:
 - action-brief: |
-    Call ${/c/string/if/memcpy:/name} for a sample set of buffers.
-  action-code: |
-    uint8_t  src[ sizeof( long ) * 10 ];
-    uint8_t  dst[ sizeof( long ) * 10 ];
-    uint8_t *begin;
-    uint8_t *end;
-    uint8_t *aligned_src;
-    uint8_t *aligned_dst;
-    size_t   offset_src;
-
-    memset( src, 0x85, sizeof( src ) );
-    begin = dst;
-    end = begin + sizeof( dst );
-    aligned_src = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) src, sizeof( long ) );
-    aligned_dst = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) dst, sizeof( long ) );
-
-    for ( offset_src = 0; offset_src < sizeof( long ); ++offset_src ) {
-      size_t offset_dst;
-
-      for ( offset_dst = 0; offset_dst < sizeof( long ); ++offset_dst ) {
-        size_t size;
-
-        for ( size = 0; size < sizeof( long ) * 8; ++size ) {
-          uint8_t *s;
-          uint8_t *p;
-          uint8_t *q;
-
-          s = aligned_src + offset_src;
-          p = aligned_dst + offset_dst;
-          q = p + size;
-
-          Clear( begin, end );
-          memcpy( p, s, size );
-          T_true( Compare( begin, p, 0 ) );
-          T_true( Compare( p, q, 0x85 ) );
-          T_true( Compare( q, end, 0 ) );
-        }
-      }
-    }
-  checks: []
-  links:
-  - role: validation
-    uid: /c/string/req/memcpy
-- action-brief: |
     Call ${/c/string/if/memset:/name} for a sample set of buffers.
   action-code: |
     uint8_t  dst[ sizeof( long ) * 10 ];
