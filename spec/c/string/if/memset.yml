@@ -1,15 +1,48 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Fill the memory area referenced by ${.:/params[0]/name} with the constant byte
+  specified by ${.:/params[1]/name} for the number of bytes specified by
+  ${.:/params[2]/name}.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: void *
+  variants: []
+description: null
 enabled-by: true
 index-entries: []
-interface-type: unspecified-function
+interface-type: function
 links:
 - role: interface-placement
-  uid: /c/string/if/header
+  uid: header
 - role: interface-ingroup
   uid: group
 - role: reference
   uid: /ref/std/posix-2024/memset
 name: memset
+notes: null
+params:
+- description: |
+    is the pointer to the object to be filled.
+  dir: out
+  name: s
+- description: |
+    is the character to fill the object with.
+  dir: null
+  name: c
+- description: |
+    is the number of bytes to fill.
+  dir: null
+  name: n
+return:
+  return: |
+    Returns a pointer to the memory area ${.:/params[0]/name}.
+  return-values: []
 type: interface

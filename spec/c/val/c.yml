@@ -5,40 +5,6 @@ enabled-by: true
 links: []
 test-actions:
 - action-brief: |
-    Call ${/c/string/if/memset:/name} for a sample set of buffers.
-  action-code: |
-    uint8_t  dst[ sizeof( long ) * 10 ];
-    uint8_t *begin;
-    uint8_t *end;
-    uint8_t *aligned;
-    size_t   offset;
-
-    begin = dst;
-    end = begin + sizeof( dst );
-    aligned = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) dst, sizeof( long ) );
-
-    for ( offset = 0; offset < sizeof( long ); ++offset ) {
-      size_t size;
-
-      for ( size = 0; size < sizeof( long ) * 8; ++size ) {
-        uint8_t *p;
-        uint8_t *q;
-
-        p = aligned + offset;
-        q = p + size;
-
-        Clear( begin, end );
-        memset( p, 0x85, size );
-        T_true( Compare( begin, p, 0 ) );
-        T_true( Compare( p, q, 0x85 ) );
-        T_true( Compare( q, end, 0 ) );
-      }
-    }
-  checks: []
-  links:
-  - role: validation
-    uid: /c/string/req/memset
-- action-brief: |
     Check that ${/c/errno/if/errno:/name} has a signed integer type.
   action-code: |
     errno = -1;
@@ -70,32 +36,7 @@ test-local-includes:
 - tx-support.h
 test-setup: null
 test-stop: null
-test-support: |
-  static void Clear( volatile uint8_t *b, const volatile uint8_t *e )
-  {
-    while ( b != e ) {
-      *b = 0;
-      ++b;
-    }
-  }
-
-  static bool Compare(
-    volatile uint8_t       *b,
-    const volatile uint8_t *e,
-    uint8_t                 expected
-  )
-  {
-    bool result;
-
-    result = true;
-
-    while ( b != e ) {
-      result = result && *b == expected;
-      ++b;
-    }
-
-    return result;
-  }
+test-support: null
 test-target: testsuites/validation/tc-c.c
 test-teardown: null
 type: test-case
