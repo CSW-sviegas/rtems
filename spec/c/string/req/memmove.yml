@@ -1,0 +1,1626 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/memmove
+- role: reference
+  uid: /ref/std/c23/memmove
+- role: reference
+  uid: /ref/std/posix-2024/memmove
+post-conditions:
+- name: Result
+  states:
+  - name: Dest
+    test-code: |
+      T_eq_ptr( ctx->retval, ctx->dest );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/memmove:/name} shall be the value
+      of the ${../if/memmove:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Dest
+  states:
+  - name: Copy
+    test-code: |
+      T_eq_mem( ctx->dest, ctx->copy, ctx->n );
+    text: |
+      The first ${../if/memmove:/params[2]/name} bytes which the memory area
+      referenced by the ${../if/memmove:/params[1]/name} parameter held before the
+      call shall be copied to the first ${../if/memmove:/params[2]/name} bytes of the
+      memory area referenced by the ${../if/memmove:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Outside
+  states:
+  - name: Nop
+    test-code: |
+      CheckOutside( ctx );
+    text: |
+      The bytes outside the first ${../if/memmove:/params[2]/name} bytes of the
+      memory area referenced by the ${../if/memmove:/params[0]/name} parameter shall
+      not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to zero.
+  - name: One
+    test-code: |
+      ctx->n = 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to one.
+  - name: Short
+    test-code: |
+      ctx->n = 2;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is greater than
+      one, while the size specified by ${../if/memmove:/params[2]/name} is less than
+      the size of type long minus one.
+  - name: BelowWord
+    test-code: |
+      ctx->n = sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to the
+      size of type long minus one.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to the
+      size of type long.
+  - name: AboveWord
+    test-code: |
+      ctx->n = sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to the
+      size of type long plus one.
+  - name: Medium
+    test-code: |
+      ctx->n = sizeof( long ) + 2;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is greater than
+      the size of type long plus one, while the size specified by
+      ${../if/memmove:/params[2]/name} is less than four times the size of type long
+      minus one.
+  - name: BelowBlock
+    test-code: |
+      ctx->n = 4 * sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
+      times the size of type long minus one.
+  - name: Block
+    test-code: |
+      ctx->n = 4 * sizeof( long );
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
+      times the size of type long.
+  - name: AboveBlock
+    test-code: |
+      ctx->n = 4 * sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
+      times the size of type long plus one.
+  - name: Long
+    test-code: |
+      ctx->n = 9 * sizeof( long ) + 1;
+    text: |
+      While the size specified by ${../if/memmove:/params[2]/name} is greater than
+      four times the size of type long plus one.
+  test-epilogue: null
+  test-prologue: null
+- name: DestAlignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->dest_misalign = 0;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[0]/name}
+      parameter starts at an address which is aligned to the size of type long.
+  - name: AboveAligned
+    test-code: |
+      ctx->dest_misalign = 1;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[0]/name}
+      parameter starts one byte above an address which is aligned to the size of type
+      long.
+  - name: Between
+    test-code: |
+      ctx->dest_misalign = 2;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[0]/name}
+      parameter starts more than one byte above an address which is aligned to the
+      size of type long, while the memory area referenced by the
+      ${../if/memmove:/params[0]/name} parameter starts more than one byte below the
+      next address which is aligned to the size of type long.
+  - name: BelowAligned
+    test-code: |
+      ctx->dest_misalign = sizeof( long ) - 1;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[0]/name}
+      parameter starts one byte below an address which is aligned to the size of type
+      long.
+  test-epilogue: null
+  test-prologue: null
+- name: SrcAlignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->src_misalign = 0;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[1]/name}
+      parameter starts at an address which is aligned to the size of type long.
+  - name: AboveAligned
+    test-code: |
+      ctx->src_misalign = 1;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[1]/name}
+      parameter starts one byte above an address which is aligned to the size of type
+      long.
+  - name: Between
+    test-code: |
+      ctx->src_misalign = 2;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[1]/name}
+      parameter starts more than one byte above an address which is aligned to the
+      size of type long, while the memory area referenced by the
+      ${../if/memmove:/params[1]/name} parameter starts more than one byte below the
+      next address which is aligned to the size of type long.
+  - name: BelowAligned
+    test-code: |
+      ctx->src_misalign = sizeof( long ) - 1;
+    text: |
+      While the memory area referenced by the ${../if/memmove:/params[1]/name}
+      parameter starts one byte below an address which is aligned to the size of type
+      long.
+  test-epilogue: |
+    ctx->dest_misalign = Resolve( ctx->dest_misalign, ctx->src_misalign );
+    ctx->src_misalign = Resolve( ctx->src_misalign, ctx->dest_misalign );
+  test-prologue: null
+- name: Overlap
+  states:
+  - name: DisjointBelow
+    test-code: |
+      ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
+      ctx->src_offset = 14 * sizeof( long ) + ctx->src_misalign;
+    text: |
+      While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
+      ${../if/memmove:/params[1]/name} parameters do not overlap, while the
+      ${../if/memmove:/params[0]/name} parameter is less than the
+      ${../if/memmove:/params[1]/name} parameter.
+  - name: DisjointAbove
+    test-code: |
+      ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
+      ctx->dest_offset = 14 * sizeof( long ) + ctx->dest_misalign;
+    text: |
+      While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
+      ${../if/memmove:/params[1]/name} parameters do not overlap, while the
+      ${../if/memmove:/params[0]/name} parameter is greater than the
+      ${../if/memmove:/params[1]/name} parameter.
+  - name: Same
+    test-code: |
+      ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
+      ctx->src_offset = ctx->dest_offset;
+    text: |
+      While the ${../if/memmove:/params[0]/name} parameter is equal to the
+      ${../if/memmove:/params[1]/name} parameter.
+  - name: DestBelow
+    test-code: |
+      ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
+      ctx->src_offset = ctx->dest_offset +
+                        Distance( ctx->src_misalign, ctx->dest_misalign );
+    text: |
+      While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
+      ${../if/memmove:/params[1]/name} parameters overlap, while the
+      ${../if/memmove:/params[0]/name} parameter is less than the
+      ${../if/memmove:/params[1]/name} parameter.
+  - name: DestAbove
+    test-code: |
+      ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
+      ctx->dest_offset = ctx->src_offset +
+                         Distance( ctx->dest_misalign, ctx->src_misalign );
+    text: |
+      While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
+      ${../if/memmove:/params[1]/name} parameters overlap, while the
+      ${../if/memmove:/params[0]/name} parameter is greater than the
+      ${../if/memmove:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension N covers the size, 11 states. ${/ref/std/c23/memmove:/name} defines
+  the copy for each size. A size of zero copies no byte. The implementation of
+  the pre-qualified library compares the size against zero, the size of type long
+  and four times this size. The states Zero and One hold the boundary zero and
+  the value above it. Each other boundary has a state for the value below it, at
+  it and above it. The states Short, Medium and Long hold the values between and
+  after these states. A size beyond the memory areas is outside the domain, so N
+  has no state for the last value of the type.
+
+  Dimension DestAlignment covers the start address of the destination memory
+  area, 4 states. Dimension SrcAlignment covers the start address of the source
+  memory area, 4 states. The block loops of the implementation need aligned
+  addresses of both memory areas at the side where the copy starts. Otherwise the
+  byte loop copies all bytes. A copy towards lower addresses starts at the end of
+  the memory areas. The offset of the start address to the preceding aligned
+  address ranges from zero to the size of type long minus one. The states Aligned
+  and AboveAligned hold the boundary zero and the value above it. The state
+  BelowAligned holds the largest offset. The state Between holds the offsets
+  between them.
+
+  Dimension Overlap covers the relative position of the two memory areas, 5
+  states. ${/ref/std/c23/memmove:/name} defines the copy also for overlapping
+  areas. Two disjoint areas and two overlapping areas differ by the side of the
+  destination. Two equal pointers overlap in every byte.
+
+  ${/ref/std/posix-2024/memmove:/name} states that the function does not change
+  ${/c/errno/if/errno:/name} on valid input.
+references: []
+requirement-type: functional
+skip-reasons:
+  OverlapNeedsDistance: |
+    The alignment of the start addresses sets the least distance between two
+    overlapping memory areas. A size which is less than or equal to this distance
+    leaves the memory areas disjoint.
+  SameNeedsEqualAlignment: |
+    Two equal pointers have the same alignment.
+test-action: |
+  Arrange( ctx );
+  errno = -1;
+  ctx->retval = memmove( ctx->dest, ctx->src, ctx->n );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the memory which holds both memory areas.
+  description: null
+  member: |
+    unsigned char buf[ 24 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) )
+- brief: |
+    This member contains the content of the memory before the call.
+  description: null
+  member: |
+    unsigned char before[ 24 * sizeof( long ) ]
+- brief: |
+    This member contains the bytes of the source memory area before the call.
+  description: null
+  member: |
+    unsigned char copy[ 24 * sizeof( long ) ]
+- brief: |
+    This member specifies the offset of the destination memory area from the next
+    lower aligned address.
+  description: null
+  member: |
+    size_t dest_misalign
+- brief: |
+    This member specifies the offset of the source memory area from the next lower
+    aligned address.
+  description: null
+  member: |
+    size_t src_misalign
+- brief: |
+    This member specifies the offset of the destination memory area.
+  description: null
+  member: |
+    size_t dest_offset
+- brief: |
+    This member specifies the offset of the source memory area.
+  description: null
+  member: |
+    size_t src_offset
+- brief: |
+    This member specifies the ${../if/memmove:/params[0]/name} parameter value.
+  description: null
+  member: |
+    void *dest
+- brief: |
+    This member specifies the ${../if/memmove:/params[1]/name} parameter value.
+  description: null
+  member: |
+    const void *src
+- brief: |
+    This member specifies the ${../if/memmove:/params[2]/name} parameter value.
+  description: null
+  member: |
+    size_t n
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/memmove:/name} call.
+  description: null
+  member: |
+    void *retval
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/memmove:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: |
+  The memory areas lie in one buffer, so the offsets of the two areas arrange
+  their relative position. Two overlapping areas differ by the least distance
+  which the alignment of their start addresses permits. A memory area of the
+  state Between starts two bytes above an aligned address. It starts two bytes
+  below an aligned address if the other memory area starts one byte below an
+  aligned address. The least distance of each pair of alignment states then gives
+  the same overlapping sizes for each size of type long. Memory areas which start
+  one byte below an aligned address and have a size of one more than a multiple
+  of the size of type long end at aligned addresses, so the copy towards lower
+  addresses runs its block loop. The long size runs the loop of four blocks
+  twice. The test fills the buffer with a pattern of distinct bytes before each
+  call and records the source bytes with a loop of its own.
+test-header: null
+test-includes:
+- errno.h
+- rtems.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->n = 0;
+  ctx->dest_misalign = 0;
+  ctx->src_misalign = 0;
+  ctx->dest_offset = 0;
+  ctx->src_offset = 0;
+  ctx->retval = NULL;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static size_t Distance( size_t upper_misalign, size_t lower_misalign )
+  {
+    size_t distance;
+
+    distance = ( upper_misalign - lower_misalign ) % sizeof( long );
+
+    if ( distance == 0 ) {
+      distance = sizeof( long );
+    }
+
+    return distance;
+  }
+
+  static size_t Resolve( size_t misalign, size_t other_misalign )
+  {
+    if ( misalign == 2 && other_misalign == sizeof( long ) - 1 ) {
+      return sizeof( long ) - 2;
+    }
+
+    return misalign;
+  }
+
+  static void Arrange( Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < sizeof( ctx->buf ); ++i ) {
+      ctx->buf[ i ] = (unsigned char) ( i + 1 );
+      ctx->before[ i ] = ctx->buf[ i ];
+    }
+
+    ctx->dest = &ctx->buf[ ctx->dest_offset ];
+    ctx->src = &ctx->buf[ ctx->src_offset ];
+
+    for ( i = 0; i < ctx->n; ++i ) {
+      ctx->copy[ i ] = ctx->buf[ ctx->src_offset + i ];
+    }
+  }
+
+  static void CheckOutside( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < sizeof( ctx->buf ); ++i ) {
+      if ( i < ctx->dest_offset || i >= ctx->dest_offset + ctx->n ) {
+        T_quiet_eq_u8( ctx->buf[ i ], ctx->before[ i ] );
+      }
+    }
+  }
+test-target: testsuites/validation/tc-string-memmove.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: &id001
+    - if:
+        pre-conditions:
+          N: Zero
+      then: N/A
+    - else: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: all
+    SrcAlignment: all
+    Overlap:
+    - DisjointBelow
+    - DisjointAbove
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: *id001
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: &id002
+    - Aligned
+    SrcAlignment: &id003
+    - Aligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id002
+    SrcAlignment: *id003
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id002
+    SrcAlignment: *id003
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id002
+    SrcAlignment: *id003
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id002
+    SrcAlignment: *id003
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id004
+    - Aligned
+    SrcAlignment: &id005
+    - AboveAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id004
+    SrcAlignment: *id005
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id004
+    SrcAlignment: *id005
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id004
+    SrcAlignment: *id005
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id004
+    SrcAlignment: *id005
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id006
+    - Aligned
+    SrcAlignment: &id007
+    - Between
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id006
+    SrcAlignment: *id007
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id006
+    SrcAlignment: *id007
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id006
+    SrcAlignment: *id007
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id006
+    SrcAlignment: *id007
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id008
+    - Aligned
+    SrcAlignment: &id009
+    - BelowAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id008
+    SrcAlignment: *id009
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id008
+    SrcAlignment: *id009
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id008
+    SrcAlignment: *id009
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id008
+    SrcAlignment: *id009
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id010
+    - AboveAligned
+    SrcAlignment: &id011
+    - Aligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id010
+    SrcAlignment: *id011
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id010
+    SrcAlignment: *id011
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id010
+    SrcAlignment: *id011
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id010
+    SrcAlignment: *id011
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: *id001
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: &id012
+    - AboveAligned
+    SrcAlignment: &id013
+    - AboveAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id012
+    SrcAlignment: *id013
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id012
+    SrcAlignment: *id013
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id012
+    SrcAlignment: *id013
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id012
+    SrcAlignment: *id013
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id014
+    - AboveAligned
+    SrcAlignment: &id015
+    - Between
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id014
+    SrcAlignment: *id015
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id014
+    SrcAlignment: *id015
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id014
+    SrcAlignment: *id015
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id014
+    SrcAlignment: *id015
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id016
+    - AboveAligned
+    SrcAlignment: &id017
+    - BelowAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id016
+    SrcAlignment: *id017
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id016
+    SrcAlignment: *id017
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id016
+    SrcAlignment: *id017
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id016
+    SrcAlignment: *id017
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id018
+    - Between
+    SrcAlignment: &id019
+    - Aligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id018
+    SrcAlignment: *id019
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id018
+    SrcAlignment: *id019
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id018
+    SrcAlignment: *id019
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id018
+    SrcAlignment: *id019
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id020
+    - Between
+    SrcAlignment: &id021
+    - AboveAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id020
+    SrcAlignment: *id021
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id020
+    SrcAlignment: *id021
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id020
+    SrcAlignment: *id021
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id020
+    SrcAlignment: *id021
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: *id001
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: &id022
+    - Between
+    SrcAlignment: &id023
+    - Between
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id022
+    SrcAlignment: *id023
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id022
+    SrcAlignment: *id023
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id022
+    SrcAlignment: *id023
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id022
+    SrcAlignment: *id023
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id024
+    - Between
+    SrcAlignment: &id025
+    - BelowAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id024
+    SrcAlignment: *id025
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id024
+    SrcAlignment: *id025
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id024
+    SrcAlignment: *id025
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id024
+    SrcAlignment: *id025
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id026
+    - BelowAligned
+    SrcAlignment: &id027
+    - Aligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id026
+    SrcAlignment: *id027
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id026
+    SrcAlignment: *id027
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id026
+    SrcAlignment: *id027
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id026
+    SrcAlignment: *id027
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id028
+    - BelowAligned
+    SrcAlignment: &id029
+    - AboveAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id028
+    SrcAlignment: *id029
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id028
+    SrcAlignment: *id029
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id028
+    SrcAlignment: *id029
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    DestAlignment: *id028
+    SrcAlignment: *id029
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: SameNeedsEqualAlignment
+  pre-conditions:
+    N: all
+    DestAlignment: &id030
+    - BelowAligned
+    SrcAlignment: &id031
+    - Between
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id030
+    SrcAlignment: *id031
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    DestAlignment: *id030
+    SrcAlignment: *id031
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - Short
+    - BelowWord
+    - Word
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id030
+    SrcAlignment: *id031
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    DestAlignment: *id030
+    SrcAlignment: *id031
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: *id001
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N: all
+    DestAlignment: &id032
+    - BelowAligned
+    SrcAlignment: &id033
+    - BelowAligned
+    Overlap:
+    - Same
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id032
+    SrcAlignment: *id033
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id032
+    SrcAlignment: *id033
+    Overlap:
+    - DestBelow
+- enabled-by: true
+  post-conditions:
+    Result: Dest
+    Dest: Copy
+    Outside: Nop
+    Errno: Nop
+  pre-conditions:
+    N:
+    - AboveWord
+    - Medium
+    - BelowBlock
+    - Block
+    - AboveBlock
+    - Long
+    DestAlignment: *id032
+    SrcAlignment: *id033
+    Overlap:
+    - DestAbove
+- enabled-by: true
+  post-conditions: OverlapNeedsDistance
+  pre-conditions:
+    N:
+    - Zero
+    - One
+    - Short
+    - BelowWord
+    - Word
+    DestAlignment: *id032
+    SrcAlignment: *id033
+    Overlap:
+    - DestAbove
+type: requirement
