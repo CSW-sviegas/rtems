@@ -34,6 +34,7 @@ source:
 - cpukit/libc/string/memchr.c
 - cpukit/libc/string/memcmp.c
 - cpukit/libc/string/memcpy.c
+- cpukit/libc/string/memmove.c
 - cpukit/libc/string/memrchr.c
 - cpukit/libc/string/memset.c
 - cpukit/libc/string/strchr.c
