@@ -28,4 +28,5 @@ source:
 - testsuites/validation/tc-ctype-tolower.c
 - testsuites/validation/tc-ctype-toupper.c
 - testsuites/validation/tc-flsl.c
+- testsuites/validation/tc-string-memchr.c
 type: build
