@@ -4,6 +4,7 @@ brief: |
   ${.:/params[0]/name} to the name specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 definition:
   default:
     attributes: null
@@ -27,16 +28,20 @@ links:
     limit.
   role: errno
   uid: /c/errno/if/erange
+- description: |
+    The ${.:/params[0]/name} parameter is not associated with a thread.
+  role: errno
+  uid: /c/errno/if/esrch
 name: pthread_setname_np
 notes: |
   See [FreeBSD Manual Pages, pthread_setname_np()](https://man.freebsd.org/cgi/man.cgi?query=pthread_setname_np&sektion=3).
 params:
 - description: |
-    is the thread
+    is the thread to set the name of.
   dir: null
   name: thread
 - description: |
-    is the thread name
+    is the new name for the thread.
   dir: in
   name: name
 return:
@@ -49,4 +54,7 @@ return:
       The length of the string pointed to by ${.:/params[1]/name} exceeds the maximum
       allowed length.
     value: ${/c/errno/if/erange:/name}
+  - description: |
+      The ${.:/params[0]/name} parameter is not associated with a thread.
+    value: ${/c/errno/if/esrch:/name}
 type: interface
