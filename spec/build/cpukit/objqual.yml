@@ -17,6 +17,7 @@ source:
 - cpukit/libc/ctype/isalnum.c
 - cpukit/libc/ctype/isalpha.c
 - cpukit/libc/ctype/isascii.c
+- cpukit/libc/ctype/isblank.c
 - cpukit/libc/misc/errno.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/flsl.c
