@@ -22,6 +22,7 @@ source:
 - cpukit/libc/ctype/isdigit.c
 - cpukit/libc/ctype/islower.c
 - cpukit/libc/ctype/isprint.c
+- cpukit/libc/ctype/ispunct.c
 - cpukit/libc/misc/errno.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/flsl.c
