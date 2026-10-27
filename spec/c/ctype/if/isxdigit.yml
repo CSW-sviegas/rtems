@@ -1,0 +1,45 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Check whether the value of ${.:/params[0]/name} is a ${../glossary/digit:/term}
+  or a ${../glossary/hex-letter:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/value
+- role: reference
+  uid: /ref/std/c23/isxdigit
+name: isxdigit
+notes: |
+  See ${/ref/std/c23/isxdigit:/name}.
+params:
+- description: |
+    is the value to be classified.
+  dir: null
+  name: c
+return:
+  return: |
+    Returns a non-zero value, if the value of ${.:/params[0]/name} is a
+    ${../glossary/digit:/term} or a ${../glossary/hex-letter:/term}.
+  return-values:
+  - description: |
+      The value of ${.:/params[0]/name} is neither a ${../glossary/digit:/term} nor a
+      ${../glossary/hex-letter:/term}.
+    value: 0
+type: interface
