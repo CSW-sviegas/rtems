@@ -12,5 +12,6 @@ install: []
 links: []
 source:
 - testsuites/validation/tc-c.c
+- testsuites/validation/tc-ctype-isalpha.c
 - testsuites/validation/tc-flsl.c
 type: build
