@@ -21,5 +21,6 @@ source:
 - testsuites/validation/tc-ctype-isgraph.c
 - testsuites/validation/tc-ctype-islower.c
 - testsuites/validation/tc-ctype-isprint.c
+- testsuites/validation/tc-ctype-ispunct.c
 - testsuites/validation/tc-flsl.c
 type: build
