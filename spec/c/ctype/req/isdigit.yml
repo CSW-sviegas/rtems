@@ -1,0 +1,213 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/isdigit
+- role: reference
+  uid: /ref/std/c23/ctype-general
+- role: reference
+  uid: /ref/std/c23/isdigit
+post-conditions:
+- name: Result
+  states:
+  - name: NonZero
+    test-code: |
+      CheckNonZero( ctx );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/isdigit:/name} shall be non-zero.
+  - name: Zero
+    test-code: |
+      CheckZero( ctx );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/isdigit:/name} shall be equal to
+      zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Form
+  states:
+  - name: Macro
+    test-code: |
+      ctx->macro = true;
+    text: |
+      While the call of ${../if/isdigit:/name} uses the macro definition of
+      ${../if/header:/path}.
+  - name: Function
+    test-code: |
+      ctx->macro = false;
+    text: |
+      While the call of ${../if/isdigit:/name} suppresses the macro definition of
+      ${../if/header:/path}.
+  test-epilogue: null
+  test-prologue: null
+- name: C
+  states:
+  - name: Digit
+    test-code: |
+      AddSet( ctx, digit );
+    text: |
+      While the value of the ${../if/isdigit:/params[0]/name} parameter is a
+      ${../glossary/digit:/term}.
+  - name: Other
+    test-code: |
+      AddOther( ctx );
+    text: |
+      While the value of the ${../if/isdigit:/params[0]/name} parameter is a value of
+      the type `unsigned char`, while the value is not a ${../glossary/digit:/term}.
+  - name: EOF
+    test-code: |
+      Add( ctx, EOF );
+    text: |
+      While the value of the ${../if/isdigit:/params[0]/name} parameter is equal to
+      ${/c/if/eof:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Form covers the way of the call, 2 states. A call either uses the
+  macro definition or suppresses it, which reaches the function.
+
+  Dimension C covers the value of the character, 3 states.
+  ${/ref/std/c23/ctype-general:/name} defines the call for each value of the type
+  `unsigned char` and for ${/c/if/eof:/name}. Any other value is outside the
+  domain. The pre-qualified library provides the "C" locale only. According to
+  ${/ref/std/c23/isdigit:/name}, the class holds the digits in this locale.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  size_t i;
+
+  for ( i = 0; i < ctx->count; ++i ) {
+    if ( ctx->macro ) {
+      ctx->results[ i ] = isdigit( ctx->values[ i ] );
+    } else {
+      ctx->results[ i ] = ( isdigit )( ctx->values[ i ] );
+    }
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    If this member is true, then the call uses the macro definition, otherwise the
+    call reaches the function.
+  description: null
+  member: |
+    bool macro
+- brief: |
+    This member contains the ${../if/isdigit:/params[0]/name} parameter values.
+  description: null
+  member: |
+    int values[ UCHAR_MAX + 2 ]
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of each call.
+  description: null
+  member: |
+    int results[ UCHAR_MAX + 2 ]
+- brief: |
+    This member contains the count of parameter values.
+  description: null
+  member: |
+    size_t count
+test-context-support: null
+test-description: |
+  Each state of the character dimension provides a set of parameter values. The
+  action calls the function once for each value of the set. The set of the other
+  values contains each value of the type `unsigned char` which no other state of
+  the dimension holds. The test case is compiled without the builtin functions of
+  the compiler, so a call which suppresses the macro definition reaches the
+  function of the library.
+test-header: null
+test-includes:
+- ctype.h
+- limits.h
+- stdio.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->count = 0;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const char digit[] = "0123456789";
+
+  static void Add( Context *ctx, int c )
+  {
+    ctx->values[ ctx->count ] = c;
+    ++ctx->count;
+  }
+
+  static void AddSet( Context *ctx, const char *set )
+  {
+    while ( *set != '\0' ) {
+      Add( ctx, (unsigned char) *set );
+      ++set;
+    }
+  }
+
+  static bool InSet( const char *set, int c )
+  {
+    return c != '\0' && strchr( set, c ) != NULL;
+  }
+
+  static bool IsNamed( int c )
+  {
+    return InSet( digit, c );
+  }
+
+  static void AddOther( Context *ctx )
+  {
+    int c;
+
+    for ( c = 0; c <= UCHAR_MAX; ++c ) {
+      if ( !IsNamed( c ) ) {
+        Add( ctx, c );
+      }
+    }
+  }
+
+  static void CheckNonZero( const Context *ctx )
+  {
+    size_t i;
+
+    T_gt_sz( ctx->count, 0 );
+
+    for ( i = 0; i < ctx->count; ++i ) {
+      T_quiet_ne_int( ctx->results[ i ], 0 );
+    }
+  }
+
+  static void CheckZero( const Context *ctx )
+  {
+    size_t i;
+
+    T_gt_sz( ctx->count, 0 );
+
+    for ( i = 0; i < ctx->count; ++i ) {
+      T_quiet_eq_int( ctx->results[ i ], 0 );
+    }
+  }
+test-target: testsuites/validation/tc-ctype-isdigit.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: NonZero
+  pre-conditions:
+    Form: all
+    C:
+    - Digit
+- enabled-by: true
+  post-conditions:
+    Result: Zero
+  pre-conditions:
+    Form: all
+    C:
+    - Other
+    - EOF
+type: requirement
