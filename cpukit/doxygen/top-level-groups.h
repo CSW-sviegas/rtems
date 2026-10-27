@@ -131,6 +131,132 @@
  */
 
 /**
+ * @file cpukit/libc/ctype/isalnum.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isalnum()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isalpha.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isalpha()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isascii.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isascii()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isblank.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isblank()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/iscntrl.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the iscntrl()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isdigit.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isdigit()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/islower.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the islower()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isprint.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isgraph() and
+ *   isprint() functions.
+ */
+
+/**
+ * @file cpukit/libc/ctype/ispunct.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ispunct()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isspace.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isspace()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isupper.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isupper()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/isxdigit.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the isxdigit()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/tolower.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the tolower()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/toupper.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the toupper()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/search/qsort.c
  *
  * @ingroup libcsupport
