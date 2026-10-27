@@ -14,5 +14,6 @@ source:
 - testsuites/validation/tc-c.c
 - testsuites/validation/tc-ctype-isalnum.c
 - testsuites/validation/tc-ctype-isalpha.c
+- testsuites/validation/tc-ctype-isascii.c
 - testsuites/validation/tc-flsl.c
 type: build
