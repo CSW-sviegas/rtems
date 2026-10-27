@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: thread inherit scheduler attribute
+text: |
+  An attribute of a ${thread:/term} that specifies whether its scheduling
+  attributes are inherited from the creator or explicitly set. See
+  [POSIX.1-2024, System Interfaces, pthread_attr_getinheritsched](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_getinheritsched.html).
+  This attribute can be set to ${../if/inherit-sched:/name} or
+  ${../if/explicit-sched:/name}.
+type: glossary
