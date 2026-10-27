@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: scheduling parameter
+text: |
+  An attribute that controls the scheduling behavior of a thread or process. See
+  [POSIX.1-2024, System Interfaces, sched_getparam](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sched_getparam.html).
+  Depending on the ${policy:/term}, it can include the ${priority:/term},
+  ${ss-low-priority:/term}, ${ss-repl-period:/term}, ${ss-init-budget:/term}, or
+  ${ss-max-repl:/term}.
+type: glossary
