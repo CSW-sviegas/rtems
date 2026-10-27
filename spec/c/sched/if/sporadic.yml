@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Represents the ${../glossary/sporadic-server:/term}
+  ${../glossary/policy:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: _ImplementationDefined
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: SCHED_SPORADIC
+notes: |
+  See
+  [POSIX.1-2024, Base Definitions, \<stddef.h>](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/stddef.h.html).
+type: interface
