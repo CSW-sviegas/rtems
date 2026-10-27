@@ -24,5 +24,6 @@ source:
 - testsuites/validation/tc-ctype-ispunct.c
 - testsuites/validation/tc-ctype-isspace.c
 - testsuites/validation/tc-ctype-isupper.c
+- testsuites/validation/tc-ctype-isxdigit.c
 - testsuites/validation/tc-flsl.c
 type: build
