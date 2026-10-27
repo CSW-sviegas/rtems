@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/thread-inherit-scheduler:/term} of the
+  ${../glossary/thread:/term} attributes object referenced by
+  ${.:/params[0]/name} to the indicator specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+    - The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter is not initialized.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The value specified by ${.:/params[1]/name} is not a valid
+    ${../glossary/thread-inherit-scheduler:/term}.
+  role: errno
+  uid: /c/errno/if/enotsup
+name: pthread_attr_setinheritsched
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, pthread_attr_setinheritsched()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setinheritsched.html).
+params:
+- description: |
+    is the pointer to the thread attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the new ${../glossary/thread-inherit-scheduler:/term}.
+  dir: null
+  name: inheritsched
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+      - The ${../glossary/thread:/term} attributes object referenced by the
+        ${.:/params[0]/name} parameter is not initialized.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The value specified by ${.:/params[1]/name} is not a valid
+      ${../glossary/thread-inherit-scheduler:/term}.
+    value: ${/c/errno/if/enotsup:/name}
+type: interface
