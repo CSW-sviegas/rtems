@@ -25,6 +25,7 @@ source:
 - cpukit/libc/ctype/ispunct.c
 - cpukit/libc/ctype/isspace.c
 - cpukit/libc/ctype/isupper.c
+- cpukit/libc/ctype/isxdigit.c
 - cpukit/libc/misc/errno.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/flsl.c
