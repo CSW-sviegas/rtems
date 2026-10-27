@@ -1,0 +1,44 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Check whether the value of ${.:/params[0]/name} is a
+  ${../glossary/lowercase:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/value
+- role: reference
+  uid: /ref/std/c23/islower
+name: islower
+notes: |
+  See ${/ref/std/c23/islower:/name}.
+params:
+- description: |
+    is the value to be classified.
+  dir: null
+  name: c
+return:
+  return: |
+    Returns a non-zero value, if the value of ${.:/params[0]/name} is a
+    ${../glossary/lowercase:/term}.
+  return-values:
+  - description: |
+      The value of ${.:/params[0]/name} is not a ${../glossary/lowercase:/term}.
+    value: 0
+type: interface

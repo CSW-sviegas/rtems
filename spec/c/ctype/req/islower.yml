@@ -1,0 +1,224 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/islower
+- role: reference
+  uid: /ref/std/c23/ctype-general
+- role: reference
+  uid: /ref/std/c23/islower
+post-conditions:
+- name: Result
+  states:
+  - name: NonZero
+    test-code: |
+      CheckNonZero( ctx );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/islower:/name} shall be non-zero.
+  - name: Zero
+    test-code: |
+      CheckZero( ctx );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/islower:/name} shall be equal to
+      zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Form
+  states:
+  - name: Macro
+    test-code: |
+      ctx->macro = true;
+    text: |
+      While the call of ${../if/islower:/name} uses the macro definition of
+      ${../if/header:/path}.
+  - name: Function
+    test-code: |
+      ctx->macro = false;
+    text: |
+      While the call of ${../if/islower:/name} suppresses the macro definition of
+      ${../if/header:/path}.
+  test-epilogue: null
+  test-prologue: null
+- name: C
+  states:
+  - name: Lower
+    test-code: |
+      AddSet( ctx, lower );
+    text: |
+      While the value of the ${../if/islower:/params[0]/name} parameter is a
+      ${../glossary/lowercase:/term}.
+  - name: Upper
+    test-code: |
+      AddSet( ctx, upper );
+    text: |
+      While the value of the ${../if/islower:/params[0]/name} parameter is an
+      ${../glossary/uppercase:/term}.
+  - name: Other
+    test-code: |
+      AddOther( ctx );
+    text: |
+      While the value of the ${../if/islower:/params[0]/name} parameter is a value of
+      the type `unsigned char`, while the value is neither a
+      ${../glossary/lowercase:/term} nor an ${../glossary/uppercase:/term}.
+  - name: EOF
+    test-code: |
+      Add( ctx, EOF );
+    text: |
+      While the value of the ${../if/islower:/params[0]/name} parameter is equal to
+      ${/c/if/eof:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Form covers the way of the call, 2 states. A call either uses the
+  macro definition or suppresses it, which reaches the function.
+
+  Dimension C covers the value of the character, 4 states.
+  ${/ref/std/c23/ctype-general:/name} defines the call for each value of the type
+  `unsigned char` and for ${/c/if/eof:/name}. Any other value is outside the
+  domain. The pre-qualified library provides the "C" locale only. According to
+  ${/ref/std/c23/islower:/name}, the class holds the lowercase letters in this
+  locale. The uppercase letters are the letters outside the class.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  size_t i;
+
+  for ( i = 0; i < ctx->count; ++i ) {
+    if ( ctx->macro ) {
+      ctx->results[ i ] = islower( ctx->values[ i ] );
+    } else {
+      ctx->results[ i ] = ( islower )( ctx->values[ i ] );
+    }
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    If this member is true, then the call uses the macro definition, otherwise the
+    call reaches the function.
+  description: null
+  member: |
+    bool macro
+- brief: |
+    This member contains the ${../if/islower:/params[0]/name} parameter values.
+  description: null
+  member: |
+    int values[ UCHAR_MAX + 2 ]
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of each call.
+  description: null
+  member: |
+    int results[ UCHAR_MAX + 2 ]
+- brief: |
+    This member contains the count of parameter values.
+  description: null
+  member: |
+    size_t count
+test-context-support: null
+test-description: |
+  Each state of the character dimension provides a set of parameter values. The
+  action calls the function once for each value of the set. The set of the other
+  values contains each value of the type `unsigned char` which no other state of
+  the dimension holds. The test case is compiled without the builtin functions of
+  the compiler, so a call which suppresses the macro definition reaches the
+  function of the library.
+test-header: null
+test-includes:
+- ctype.h
+- limits.h
+- stdio.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->count = 0;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const char upper[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  static const char lower[] = "abcdefghijklmnopqrstuvwxyz";
+
+  static void Add( Context *ctx, int c )
+  {
+    ctx->values[ ctx->count ] = c;
+    ++ctx->count;
+  }
+
+  static void AddSet( Context *ctx, const char *set )
+  {
+    while ( *set != '\0' ) {
+      Add( ctx, (unsigned char) *set );
+      ++set;
+    }
+  }
+
+  static bool InSet( const char *set, int c )
+  {
+    return c != '\0' && strchr( set, c ) != NULL;
+  }
+
+  static bool IsNamed( int c )
+  {
+    return InSet( lower, c ) || InSet( upper, c );
+  }
+
+  static void AddOther( Context *ctx )
+  {
+    int c;
+
+    for ( c = 0; c <= UCHAR_MAX; ++c ) {
+      if ( !IsNamed( c ) ) {
+        Add( ctx, c );
+      }
+    }
+  }
+
+  static void CheckNonZero( const Context *ctx )
+  {
+    size_t i;
+
+    T_gt_sz( ctx->count, 0 );
+
+    for ( i = 0; i < ctx->count; ++i ) {
+      T_quiet_ne_int( ctx->results[ i ], 0 );
+    }
+  }
+
+  static void CheckZero( const Context *ctx )
+  {
+    size_t i;
+
+    T_gt_sz( ctx->count, 0 );
+
+    for ( i = 0; i < ctx->count; ++i ) {
+      T_quiet_eq_int( ctx->results[ i ], 0 );
+    }
+  }
+test-target: testsuites/validation/tc-ctype-islower.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: NonZero
+  pre-conditions:
+    Form: all
+    C:
+    - Lower
+- enabled-by: true
+  post-conditions:
+    Result: Zero
+  pre-conditions:
+    Form: all
+    C:
+    - Upper
+    - Other
+    - EOF
+type: requirement
