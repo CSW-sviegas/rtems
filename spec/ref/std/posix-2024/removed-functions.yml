@@ -1,0 +1,12 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: reference-location
+  uid: ../posix-2024
+location: B.1.1
+name: POSIX.1-2024, Rationale, Section B.1.1 Change History, Removed Functions in
+  Issue 8
+path: xrat/V4_xsh_chap01.html#tag_22_01_01_04
+type: reference-location
