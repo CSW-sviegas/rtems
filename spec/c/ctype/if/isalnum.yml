@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Check whether the value of ${.:/params[0]/name} is an
+  ${../glossary/uppercase:/term}, a ${../glossary/lowercase:/term}, or a
+  ${../glossary/digit:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/value
+- role: reference
+  uid: /ref/std/c23/isalnum
+name: isalnum
+notes: |
+  See ${/ref/std/c23/isalnum:/name}.
+params:
+- description: |
+    is the value to be classified.
+  dir: null
+  name: c
+return:
+  return: |
+    Returns a non-zero value, if the value of ${.:/params[0]/name} is an
+    ${../glossary/uppercase:/term}, a ${../glossary/lowercase:/term}, or a
+    ${../glossary/digit:/term}.
+  return-values:
+  - description: |
+      The value of ${.:/params[0]/name} is neither an ${../glossary/uppercase:/term},
+      a ${../glossary/lowercase:/term} nor a ${../glossary/digit:/term}.
+    value: 0
+type: interface
