@@ -14,6 +14,7 @@ install: []
 links: []
 source:
 - cpukit/libc/ctype/ctype_.c
+- cpukit/libc/ctype/isalpha.c
 - cpukit/libc/misc/errno.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/flsl.c
