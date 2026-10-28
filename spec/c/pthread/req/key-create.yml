@@ -1,0 +1,242 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/key-create
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/key-create:/name} shall be equal to zero.
+  - name: EAGAIN
+    test-code: |
+      T_eq_int( ctx->retval, EAGAIN );
+    text: |
+      The return value of ${../if/key-create:/name} shall be equal to
+      ${/c/errno/if/eagain:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Destructor
+  states:
+  - name: Called
+    test-code: |
+      RunWorker( ctx );
+      T_eq_u32( ctx->destructor_calls, 1 );
+    text: |
+      When a thread which has a value other than ${/c/if/null:/name} associated with
+      the created thread-specific data key terminates, the destructor function
+      specified by the ${../if/key-create:/params[1]/name} parameter shall be called
+      once with this value as its argument.
+  - name: NotCalled
+    test-code: |
+      RunWorker( ctx );
+      T_eq_u32( ctx->destructor_calls, 0 );
+    text: |
+      When a thread which has a value associated with the created thread-specific
+      data key terminates, no destructor function shall be called for this value.
+  test-epilogue: null
+  test-prologue: null
+- name: Key
+  states:
+  - name: Valid
+    test-code: |
+      T_ne_u32( ctx->key, KEY_UNSET );
+      T_eq_int( pthread_key_delete( ctx->key ), 0 );
+    text: |
+      The value of the object referenced by the ${../if/key-create:/params[0]/name}
+      parameter shall identify the created thread-specific data key.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->key, KEY_UNSET );
+    text: |
+      The object referenced by the ${../if/key-create:/params[0]/name} parameter
+      shall not be modified by the ${../if/key-create:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: KeyResources
+  states:
+  - name: Available
+    test-code: |
+      /* Ensured by the test suite configuration */
+    text: |
+      While the system has resources to create another thread-specific data key.
+  - name: Exhausted
+    test-code: |
+      while (
+        ctx->used < RTEMS_ARRAY_SIZE( ctx->keys ) &&
+        pthread_key_create( &ctx->keys[ ctx->used ], NULL ) == 0
+      ) {
+        ++ctx->used;
+      }
+
+      T_lt_sz( ctx->used, RTEMS_ARRAY_SIZE( ctx->keys ) );
+    text: |
+      While the system has no resources to create another thread-specific data key.
+  test-epilogue: null
+  test-prologue: null
+- name: Destructor
+  states:
+  - name: Valid
+    test-code: |
+      ctx->destructor = Destructor;
+    text: |
+      While the ${../if/key-create:/params[1]/name} parameter references a destructor
+      function.
+  - name: 'Null'
+    test-code: |
+      ctx->destructor = NULL;
+    text: |
+      While the ${../if/key-create:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The invocation of the destructor function is observed through a worker task
+  which associates a value with the created key and is then deleted. The
+  destructors are run by the thread terminate extension of the POSIX keys
+  support, so this works for Classic API tasks and requires no POSIX thread
+  configuration.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = pthread_key_create( &ctx->key, ctx->destructor );
+test-brief: null
+test-cleanup: |
+  while ( ctx->used > 0 ) {
+    --ctx->used;
+    T_eq_int( pthread_key_delete( ctx->keys[ ctx->used ] ), 0 );
+  }
+test-context:
+- brief: |
+    This member contains the key created by the action.
+  description: null
+  member: pthread_key_t key
+- brief: |
+    This member contains the keys created to use up the available ones.
+  description: null
+  member: pthread_key_t keys[ 32 ]
+- brief: |
+    This member contains the count of valid elements of the keys member.
+  description: null
+  member: size_t used
+- brief: |
+    This member specifies the ${../if/key-create:/params[1]/name} parameter value.
+  description: null
+  member: void ( *destructor )( void * )
+- brief: |
+    This member contains the count of destructor function calls.
+  description: null
+  member: uint32_t destructor_calls
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->key = KEY_UNSET;
+  ctx->used = 0;
+  ctx->destructor_calls = 0;
+  ctx->runner_id = rtems_task_self();
+test-setup: null
+test-stop: null
+test-support: |
+  #define KEY_UNSET 0xffffffff
+
+  typedef ${.:/test-context-type} Context;
+
+  static void Destructor( void *value )
+  {
+    Context *ctx;
+
+    ctx = value;
+    ++ctx->destructor_calls;
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = (Context *) arg;
+
+    eno = pthread_setspecific( ctx->key, ctx );
+    T_eq_int( eno, 0 );
+
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
+
+  static void RunWorker( Context *ctx )
+  {
+    rtems_id worker_id;
+
+    worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( worker_id, Worker, ctx );
+    (void) ReceiveAnyEvents();
+
+    /*
+     * The task deletion waits until the worker terminated, so the
+     * destructors were run when DeleteTask() returns.
+     */
+    DeleteTask( worker_id );
+  }
+test-target: testsuites/validation/tc-pthread-key-create.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          KeyResources: Available
+      then: Zero
+    - else: EAGAIN
+    Destructor:
+    - if:
+        and:
+        - pre-conditions:
+            Destructor: Valid
+        - post-conditions:
+            Status: Zero
+      then: Called
+    - if:
+        post-conditions:
+          Status: Zero
+      then: NotCalled
+    - else: N/A
+    Key:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Valid
+    - else: Nop
+  pre-conditions:
+    KeyResources: all
+    Destructor: all
+type: requirement

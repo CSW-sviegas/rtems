@@ -1,0 +1,39 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the thread-specific data value associated with the key specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_key_t:/name} ${.:/params[0]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_getspecific
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, pthread_getspecific()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_getspecific.html).
+params:
+- description: |
+    is the thread-specific data key.
+  dir: null
+  name: key
+return:
+  return: |
+    Returns the thread-specific data value associated with the given
+    ${.:/params[0]/name}. If no thread-specific data value is associated with
+    ${.:/params[0]/name}, then the value ${/c/if/null:/name} is returned.
+  return-values: []
+type: interface
