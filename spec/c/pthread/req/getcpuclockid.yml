@@ -1,0 +1,105 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getcpuclockid
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/getcpuclockid:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: ENOSYS
+    test-code: |
+      T_eq_int( errno, ENOSYS );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enosys:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ClockId
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->clock_id_obj, -1 );
+    text: |
+      The value of the object referenced by the
+      ${../if/getcpuclockid:/params[1]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Parameters
+  states:
+  - name: Arbitrary
+    test-code: |
+      ctx->thread = pthread_self();
+      ctx->clock_id_obj = -1;
+      ctx->clock_id = &ctx->clock_id_obj;
+    text: |
+      While the ${../if/getcpuclockid:/params[0]/name} parameter has an arbitrary
+      value, while the ${../if/getcpuclockid:/params[1]/name} parameter references an
+      object of type ${/c/if/clockid_t:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: ctx->retval = pthread_getcpuclockid( ctx->thread, ctx->clock_id );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/getcpuclockid:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_t thread
+- brief: |
+    This member specifies the ${../if/getcpuclockid:/params[1]/name} parameter
+    value.
+  description: null
+  member: clockid_t *clock_id
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+- brief: |
+    This member contains the object referenced by the
+    ${../if/getcpuclockid:/params[1]/name} parameter.
+  description: null
+  member: clockid_t clock_id_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- errno.h
+test-local-includes: []
+test-prepare: |
+  errno = -1;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-getcpuclockid.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: MinusOne
+    Errno: ENOSYS
+    ClockId: Nop
+  pre-conditions:
+    Parameters: all
+type: requirement

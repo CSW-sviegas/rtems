@@ -1,0 +1,54 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the CPU-time clock of the ${../glossary/thread:/term} specified by
+  ${.:/params[0]/name} and store it in the object referenced by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - ${/c/if/clockid_t:/name} *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/no-impl
+- description: |
+    The directive is not supported by the implementation.
+  role: errno
+  uid: /c/errno/if/enosys
+name: pthread_getcpuclockid
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, pthread_getcpuclockid()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_getcpuclockid.html).
+params:
+- description: |
+    is the thread to get the CPU clock ID for.
+  dir: null
+  name: thread
+- description: |
+    is the pointer to a ${/c/if/clockid_t:/name} object. The object is not modified
+    by the call.
+  dir: out
+  name: clock_id
+return:
+  return: null
+  return-values:
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+      The value -1 is always returned since the directive is not supported by the
+      implementation.
+    value: -1
+type: interface
