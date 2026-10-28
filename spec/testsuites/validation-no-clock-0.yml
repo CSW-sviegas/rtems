@@ -16,6 +16,10 @@ test-code: |
 
   #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
 
+  #define CONFIGURE_MAXIMUM_POSIX_KEYS 8
+
+  #define CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS 8
+
   #include "ts-default.h"
 test-description: |
   In SMP configurations, up to three scheduler instances using the SMP EDF
