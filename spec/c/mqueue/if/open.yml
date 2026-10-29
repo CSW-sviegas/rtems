@@ -1,0 +1,106 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Open a ${/glossary/messagequeue:/term} with the name specified by
+  ${.:/params[0]/name} and the access modes specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - '...'
+    return: ${/c/if/mqd_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${/glossary/messagequeue:/term} exists, but the caller does not have
+      permission to open it in the specified mode.
+    - ${.:/params[0]/name} contained more than one slash.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    A ${/glossary/messagequeue:/term} with this name already exists.
+  role: errno
+  uid: /c/errno/if/eexist
+- description: |
+    This error number indicates the following error conditions:
+
+    - ${.:/params[0]/name} was invalid.
+    - ${/c/fcntl/if/o-creat:/name} was specified in ${.:/params[1]/name}, and the
+      attributes were invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The per-process limit on the number of open file and
+    ${/glossary/messagequeue:/term} descriptors has been reached.
+  role: errno
+  uid: /c/errno/if/emfile
+- description: |
+    ${.:/params[0]/name} was too long.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    The system-wide limit on the total number of open file and
+    ${/glossary/messagequeue:/term} descriptors has been reached.
+  role: errno
+  uid: /c/errno/if/enfile
+- description: |
+    The ${/c/fcntl/if/o-creat:/name} flag was not specified in
+    ${.:/params[1]/name}, and no ${/glossary/messagequeue:/term} with this name
+    exists.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    Insufficient memory.
+  role: errno
+  uid: /c/errno/if/enomem
+- description: |
+    Insufficient space for the creation of a new ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/enospc
+name: mq_open
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, mq_open()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_open.html).
+params:
+- description: |
+    is the name of the message queue.
+  dir: in
+  name: name
+- description: |
+    is the flag that determines the access modes.
+  dir: null
+  name: oflag
+- description: |
+    is the list of optional arguments. If ${.:/params[1]/name} specifies
+    ${/c/fcntl/if/o-creat:/name} and the ${/glossary/messagequeue:/term} does not
+    exist, the first optional argument is the ${/c/if/mode_t:/name} permission
+    mode, which is ignored, and the second optional argument is a pointer to a
+    ${/c/if/mq_attr:/name} object with the ${../glossary/mqattr:/term}s of the new
+    ${/glossary/messagequeue:/term}. If this pointer is ${/c/if/null:/name}, the
+    default ${../glossary/mqattr:/term}s are used.
+  dir: null
+  name: '...'
+return:
+  return: |
+    On success, returns a ${../glossary/mqdes:/term} for use by other
+    ${/glossary/messagequeue:/term} functions.
+  return-values:
+  - description: |
+      An error occurred. The value is returned cast to ${/c/if/mqd_t:/name}. The
+      ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

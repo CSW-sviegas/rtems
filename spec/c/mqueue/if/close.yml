@@ -1,0 +1,50 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Close the ${../glossary/mqdes:/term} specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
+    - The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+      open.
+  role: errno
+  uid: /c/errno/if/ebadf
+name: mq_close
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, mq_close()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_close.html).
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
+type: interface

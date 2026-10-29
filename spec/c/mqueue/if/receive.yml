@@ -1,0 +1,83 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Receive a ${/glossary/message:/term} from the ${/glossary/messagequeue:/term}
+  specified by ${.:/params[0]/name} and store it in the buffer referenced by
+  ${.:/params[1]/name} bounded by the size in bytes specified by
+  ${.:/params[2]/name}, and store the ${../glossary/msgprio:/term} in the object
+  referenced by ${.:/params[3]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - char *${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    - unsigned int *${.:/params[3]/name}
+    return: ${/c/if/ssize_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${/glossary/messagequeue:/term} was empty, and the
+    ${/c/fcntl/if/o-nonblock:/name} flag was set for the
+    ${/glossary/messagequeue:/term} description.
+  role: errno
+  uid: /c/errno/if/eagain
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was not
+      opened for reading.
+    - The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+      open.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    ${.:/params[2]/name} was less than the
+    ${/c/if/mq_attr:/definition[2]/default/name} attribute of the
+    ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/emsgsize
+name: mq_receive
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, mq_receive()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_receive.html).
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to the buffer where the received message will be stored.
+  dir: out
+  name: msg_ptr
+- description: |
+    is the length of the message buffer.
+  dir: null
+  name: msg_len
+- description: |
+    is the pointer to the location where the ${../glossary/msgprio:/term} will be
+    stored. If this parameter is ${/c/if/null:/name}, then the
+    ${../glossary/msgprio:/term} is not stored.
+  dir: out
+  name: msg_prio
+return:
+  return: |
+    On success, the number of bytes in the received ${/glossary/message:/term} is
+    returned.
+  return-values:
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

@@ -1,0 +1,98 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Send the ${/glossary/message:/term} referenced by ${.:/params[1]/name} bounded
+  by the size in bytes specified by ${.:/params[2]/name} to the
+  ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} with the
+  ${../glossary/msgprio:/term} specified by ${.:/params[3]/name} and a
+  ${/glossary/timeout:/term} referenced by ${.:/params[4]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    - unsigned int ${.:/params[3]/name}
+    - const ${/c/if/timespec:/name} *${.:/params[4]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${/glossary/messagequeue:/term} was full, and the
+    ${/c/fcntl/if/o-nonblock:/name} flag was set for the
+    ${/glossary/messagequeue:/term} description.
+  role: errno
+  uid: /c/errno/if/eagain
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was invalid.
+    - The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} was not
+      opened for writing.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    This error number indicates the following error conditions:
+
+    - The value specified by ${.:/params[3]/name} was greater than
+      ${/c/limits/if/mq-prio-max:/name}.
+    - The call was blocked, and the ${.:/params[4]/name} parameter was invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The value specified by ${.:/params[2]/name} was greater than the
+    ${/c/if/mq_attr:/definition[2]/default/name} attribute of the
+    ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/emsgsize
+- description: |
+    The call timed out before the ${/glossary/message:/term} could be sent.
+  role: errno
+  uid: /c/errno/if/etimedout
+name: mq_timedsend
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, mq_timedsend()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_timedsend.html).
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to the message to be sent.
+  dir: in
+  name: msg_ptr
+- description: |
+    is the length of the message to be sent.
+  dir: null
+  name: msg_len
+- description: |
+    is the ${../glossary/msgprio:/term}.
+  dir: null
+  name: msg_prio
+- description: |
+    is the absolute time at which the send operation will time out.
+  dir: in
+  name: abstime
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
+type: interface

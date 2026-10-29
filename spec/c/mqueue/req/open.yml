@@ -1,0 +1,580 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/open
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Mqdes
+    test-code: |
+      T_ne_u32( ctx->retval, MQ_OPEN_FAILED );
+    text: |
+      The return value of ${../if/open:/name} shall be a ${../glossary/mqdes:/term}.
+  - name: MinusOne
+    test-code: |
+      T_eq_u32( ctx->retval, MQ_OPEN_FAILED );
+    text: |
+      The return value of ${../if/open:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the ${../if/open:/name}
+      call.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( errno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/einval:/name}.
+  - name: ENAMETOOLONG
+    test-code: |
+      T_eq_int( errno, ENAMETOOLONG );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to
+      ${/c/errno/if/enametoolong:/name}.
+  - name: ENOENT
+    test-code: |
+      T_eq_int( errno, ENOENT );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enoent:/name}.
+  - name: EEXIST
+    test-code: |
+      T_eq_int( errno, EEXIST );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/eexist:/name}.
+  - name: ENFILE
+    test-code: |
+      T_eq_int( errno, ENFILE );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enfile:/name}.
+  - name: ENOMEM
+    test-code: |
+      T_eq_int( errno, ENOMEM );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enomem:/name}.
+  - name: ENOSPC
+    test-code: |
+      T_eq_int( errno, ENOSPC );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/enospc:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Attr
+  states:
+  - name: Default
+    test-code: |
+      rv = mq_getattr( ctx->retval, &attr );
+      T_psx_success( rv );
+      T_eq_long( attr.mq_maxmsg, DEFAULT_MAXMSG );
+      T_eq_long( attr.mq_msgsize, DEFAULT_MSGSIZE );
+    text: |
+      The ${../glossary/mqattr:/term}s of the ${/glossary/messagequeue:/term}
+      specified by the returned ${../glossary/mqdes:/term} shall be the default
+      ${../glossary/mqattr:/term}s of ${../if/open:/name}.
+  - name: Given
+    test-code: |
+      rv = mq_getattr( ctx->retval, &attr );
+      T_psx_success( rv );
+      T_eq_long( attr.mq_maxmsg, ctx->attr_obj.mq_maxmsg );
+      T_eq_long( attr.mq_msgsize, ctx->attr_obj.mq_msgsize );
+    text: |
+      The ${../glossary/mqattr:/term}s of the ${/glossary/messagequeue:/term}
+      specified by the returned ${../glossary/mqdes:/term} shall be the
+      ${../glossary/mqattr:/term}s specified by the optional argument of
+      ${../if/open:/name}.
+  - name: Existing
+    test-code: |
+      rv = mq_getattr( ctx->retval, &attr );
+      T_psx_success( rv );
+      T_eq_long( attr.mq_maxmsg, EXISTING_MAXMSG );
+      T_eq_long( attr.mq_msgsize, EXISTING_MSGSIZE );
+    text: |
+      The ${../glossary/mqattr:/term}s of the ${/glossary/messagequeue:/term}
+      specified by the returned ${../glossary/mqdes:/term} shall be the
+      ${../glossary/mqattr:/term}s of the existing ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: |
+    struct mq_attr attr;
+    int            rv;
+- name: Linked
+  states:
+  - name: 'Yes'
+    test-code: |
+      rv = mq_unlink( NAME );
+      T_psx_success( rv );
+    text: |
+      A ${/glossary/messagequeue:/term} with the name specified by
+      ${../if/open:/params[0]/name} shall exist after the ${../if/open:/name} call.
+  - name: 'No'
+    test-code: |
+      rv = mq_unlink( NAME );
+      T_psx_error( rv, ENOENT );
+    text: |
+      No ${/glossary/messagequeue:/term} with the name specified by
+      ${../if/open:/params[0]/name} shall exist after the ${../if/open:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    int rv;
+pre-conditions:
+- name: Name
+  states:
+  - name: Valid
+    test-code: |
+      ctx->name = NAME;
+    text: |
+      While the ${../if/open:/params[0]/name} parameter references a valid string
+      which is not longer than the maximum name length.
+  - name: 'Null'
+    test-code: |
+      ctx->name = NULL;
+    text: |
+      While the ${../if/open:/params[0]/name} parameter is ${/c/if/null:/name}.
+  - name: TooLong
+    test-code: |
+      memset( ctx->long_name, 'a', sizeof( ctx->long_name ) - 1 );
+      ctx->long_name[ 0 ] = '/';
+      ctx->long_name[ sizeof( ctx->long_name ) - 1 ] = '\0';
+      ctx->name = ctx->long_name;
+    text: |
+      While the ${../if/open:/params[0]/name} parameter references a string which is
+      longer than the maximum name length.
+  test-epilogue: null
+  test-prologue: null
+- name: Exists
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->mqd_obj = mq_open(
+        NAME,
+        O_RDWR | O_CREAT | O_EXCL,
+        0600,
+        &existing_attr
+      );
+      T_ne_u32( ctx->mqd_obj, MQ_OPEN_FAILED );
+    text: |
+      While a ${/glossary/messagequeue:/term} with the name specified by
+      ${../if/open:/params[0]/name} exists.
+  - name: 'No'
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While no ${/glossary/messagequeue:/term} with the name specified by
+      ${../if/open:/params[0]/name} exists.
+  test-epilogue: null
+  test-prologue: null
+- name: Creat
+  states:
+  - name: Set
+    test-code: |
+      ctx->oflag |= O_CREAT;
+    text: |
+      While the ${/c/fcntl/if/o-creat:/name} flag is set in the
+      ${../if/open:/params[1]/name} parameter.
+  - name: Unset
+    test-code: |
+      ctx->oflag &= ~O_CREAT;
+    text: |
+      While the ${/c/fcntl/if/o-creat:/name} flag is not set in the
+      ${../if/open:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Excl
+  states:
+  - name: Set
+    test-code: |
+      ctx->oflag |= O_EXCL;
+    text: |
+      While the ${/c/fcntl/if/o-excl:/name} flag is set in the
+      ${../if/open:/params[1]/name} parameter.
+  - name: Unset
+    test-code: |
+      ctx->oflag &= ~O_EXCL;
+    text: |
+      While the ${/c/fcntl/if/o-excl:/name} flag is not set in the
+      ${../if/open:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Attr
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the optional ${../glossary/mqattr:/term}s argument is
+      ${/c/if/null:/name}.
+  - name: Valid
+    test-code: |
+      ctx->attr_obj.mq_maxmsg = 5;
+      ctx->attr_obj.mq_msgsize = 12;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the optional ${../glossary/mqattr:/term}s argument references valid
+      ${../glossary/mqattr:/term}s.
+  - name: InvMaxMsg
+    test-code: |
+      ctx->attr_obj.mq_maxmsg = 0;
+      ctx->attr_obj.mq_msgsize = 12;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the optional ${../glossary/mqattr:/term}s argument references
+      ${../glossary/mqattr:/term}s with a ${../glossary/maxmsgs:/term} which is not
+      positive.
+  - name: InvMsgSize
+    test-code: |
+      ctx->attr_obj.mq_maxmsg = 5;
+      ctx->attr_obj.mq_msgsize = 0;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the optional ${../glossary/mqattr:/term}s argument references
+      ${../glossary/mqattr:/term}s with a ${../glossary/msgsize:/term} which is not
+      positive.
+  - name: Huge
+    test-code: |
+      ctx->attr_obj.mq_maxmsg = INT_MAX;
+      ctx->attr_obj.mq_msgsize = 12;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the optional ${../glossary/mqattr:/term}s argument references
+      ${../glossary/mqattr:/term}s which require more message buffer storage than the
+      system can provide.
+  test-epilogue: null
+  test-prologue: null
+- name: Free
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* Ensured by the test suite configuration */
+    text: |
+      While the system has at least one inactive message queue object available.
+  - name: 'No'
+    test-code: |
+      ctx->seized_objects = T_seize_objects( Create, NULL );
+    text: |
+      While the system has no inactive message queue object available.
+  test-epilogue: null
+  test-prologue: null
+- name: Memory
+  states:
+  - name: Available
+    test-code: |
+      /* Nothing to do */
+    text: |
+      While the system has enough memory to store a copy of the name.
+  - name: None
+    test-code: |
+      ctx->greedy = rtems_workspace_greedy_allocate( NULL, 0 );
+    text: |
+      While the system has no memory available to store a copy of the name.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = mq_open( ctx->name, ctx->oflag, ctx->mode, ctx->attr );
+test-brief: null
+test-cleanup: |
+  size_t i;
+
+  if ( ctx->greedy != NULL ) {
+    rtems_workspace_greedy_free( ctx->greedy );
+    ctx->greedy = NULL;
+  }
+
+  if ( ctx->retval != MQ_OPEN_FAILED ) {
+    int rv;
+
+    rv = mq_close( ctx->retval );
+    T_psx_success( rv );
+  }
+
+  if ( ctx->mqd_obj != MQ_OPEN_FAILED ) {
+    int rv;
+
+    rv = mq_close( ctx->mqd_obj );
+    T_psx_success( rv );
+  }
+
+  (void) mq_unlink( NAME );
+
+  for ( i = 0; i < ctx->seized_count; ++i ) {
+    char seized_name[ SEIZED_NAME_SIZE ];
+
+    SeizedName( seized_name, i );
+    (void) mq_unlink( seized_name );
+  }
+
+  T_surrender_objects( &ctx->seized_objects, Delete );
+test-context:
+- brief: |
+    This member specifies the ${../if/open:/params[0]/name} parameter value.
+  description: null
+  member: const char *name
+- brief: |
+    This member specifies the ${../if/open:/params[1]/name} parameter value.
+  description: null
+  member: int oflag
+- brief: |
+    This member specifies the mode argument value.
+  description: null
+  member: mode_t mode
+- brief: |
+    This member specifies the message queue attributes argument value.
+  description: null
+  member: const struct mq_attr *attr
+- brief: |
+    This member contains the return value.
+  description: null
+  member: mqd_t retval
+- brief: |
+    This member contains the message queue attributes.
+  description: null
+  member: struct mq_attr attr_obj
+- brief: |
+    This member contains the message queue descriptor of the existing message
+    queue.
+  description: null
+  member: mqd_t mqd_obj
+- brief: |
+    This member contains a name which is too long.
+  description: null
+  member: char long_name[ _POSIX_PATH_MAX + 2 ]
+- brief: |
+    This member contains the seized message queue objects.
+  description: null
+  member: void *seized_objects
+- brief: |
+    This member contains the count of seized message queue objects.
+  description: null
+  member: size_t seized_count
+- brief: |
+    This member contains the greedy workspace allocation.
+  description: null
+  member: void *greedy
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- rtems.h
+- stdio.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  errno = -1;
+  ctx->oflag = O_RDWR;
+  ctx->mode = 0600;
+  ctx->attr = NULL;
+  ctx->retval = MQ_OPEN_FAILED;
+  ctx->mqd_obj = MQ_OPEN_FAILED;
+  ctx->seized_objects = NULL;
+  ctx->seized_count = 0;
+  ctx->greedy = NULL;
+  memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define NAME "/mq"
+
+  #define MQ_OPEN_FAILED ( ( mqd_t ) - 1 )
+
+  #define DEFAULT_MAXMSG 10
+
+  #define DEFAULT_MSGSIZE 16
+
+  #define EXISTING_MAXMSG 3
+
+  #define EXISTING_MSGSIZE 8
+
+  #define SEIZED_NAME_SIZE 16
+
+  static const struct mq_attr existing_attr = {
+    .mq_maxmsg = EXISTING_MAXMSG,
+    .mq_msgsize = EXISTING_MSGSIZE
+  };
+
+  static const struct mq_attr seized_attr = { .mq_maxmsg = 1, .mq_msgsize = 1 };
+
+  static void SeizedName( char *name, size_t i )
+  {
+    (void) snprintf( name, SEIZED_NAME_SIZE, "/seized%zu", i );
+  }
+
+  static rtems_status_code Create( void *arg, uint32_t *id )
+  {
+    Context *ctx;
+    char     name[ SEIZED_NAME_SIZE ];
+    mqd_t    mqd;
+
+    (void) arg;
+    ctx = T_fixture_context();
+    SeizedName( name, ctx->seized_count );
+    mqd = mq_open( name, O_RDWR | O_CREAT | O_EXCL, 0600, &seized_attr );
+
+    if ( mqd == MQ_OPEN_FAILED ) {
+      T_quiet_psx_error( (int) mqd, ENFILE );
+      return RTEMS_TOO_MANY;
+    }
+
+    ++ctx->seized_count;
+    *id = mqd;
+    return RTEMS_SUCCESSFUL;
+  }
+
+  static rtems_status_code Delete( uint32_t id )
+  {
+    int rv;
+
+    rv = mq_close( id );
+    T_quiet_psx_success( rv );
+    return RTEMS_SUCCESSFUL;
+  }
+test-target: testsuites/validation/tc-posix-mq-open.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+      - pre-conditions:
+          Name:
+          - 'Null'
+          - TooLong
+      - pre-conditions:
+          Creat: Unset
+          Exists: 'No'
+      - pre-conditions:
+          Creat: Set
+          Excl: Set
+          Exists: 'Yes'
+      - pre-conditions:
+          Attr:
+          - InvMaxMsg
+          - InvMsgSize
+          - Huge
+      - pre-conditions:
+          Free: 'No'
+      - pre-conditions:
+          Memory: None
+      then: MinusOne
+    - else: Mqdes
+    Errno:
+    - if:
+        post-conditions:
+          Status: Mqdes
+      then: Unchanged
+    - if:
+        pre-conditions:
+          Name: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Name: TooLong
+      then: ENAMETOOLONG
+    - if:
+        pre-conditions:
+          Creat: Unset
+          Exists: 'No'
+      then: ENOENT
+    - if:
+        pre-conditions:
+          Exists: 'Yes'
+      then: EEXIST
+    - if:
+        pre-conditions:
+          Attr:
+          - InvMaxMsg
+          - InvMsgSize
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Free: 'No'
+      then: ENFILE
+    - if:
+        pre-conditions:
+          Memory: None
+      then: ENOMEM
+    - else: ENOSPC
+    Attr:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: N/A
+    - if:
+        pre-conditions:
+          Exists: 'Yes'
+      then: Existing
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Default
+    - else: Given
+    Linked:
+    - if:
+        pre-conditions:
+          Name:
+          - 'Null'
+          - TooLong
+      then: N/A
+    - if:
+        pre-conditions:
+          Exists: 'Yes'
+      then: 'Yes'
+    - if:
+        post-conditions:
+          Status: Mqdes
+      then: 'Yes'
+    - else: 'No'
+  pre-conditions:
+    Name: all
+    Exists:
+      applicable:
+        pre-conditions:
+          Name: Valid
+    Creat:
+      applicable:
+        pre-conditions:
+          Name: Valid
+    Excl:
+      applicable:
+        pre-conditions:
+          Creat: Set
+          Exists: 'Yes'
+          Name: Valid
+    Attr:
+      applicable:
+        pre-conditions:
+          Creat: Set
+          Exists: 'No'
+          Name: Valid
+    Free:
+      applicable:
+        pre-conditions:
+          Creat: Set
+          Exists: 'No'
+          Name: Valid
+    Memory:
+      applicable:
+        pre-conditions:
+          Creat: Set
+          Exists: 'No'
+          Name: Valid
+type: requirement

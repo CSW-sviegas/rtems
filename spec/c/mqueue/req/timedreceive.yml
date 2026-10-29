@@ -1,0 +1,534 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/timedreceive
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Length
+    test-code: |
+      T_eq_long( ctx->retval, MESSAGE_SIZE );
+    text: |
+      The return value of ${../if/timedreceive:/name} shall be equal to the number of
+      bytes in the received ${/glossary/message:/term}.
+  - name: MinusOne
+    test-code: |
+      T_eq_long( ctx->retval, -1 );
+    text: |
+      The return value of ${../if/timedreceive:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( ctx->eno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/timedreceive:/name} call.
+  - name: EAGAIN
+    test-code: |
+      T_eq_int( ctx->eno, EAGAIN );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/eagain:/name}.
+  - name: EBADF
+    test-code: |
+      T_eq_int( ctx->eno, EBADF );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/ebadf:/name}.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->eno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/einval:/name}.
+  - name: EMSGSIZE
+    test-code: |
+      T_eq_int( ctx->eno, EMSGSIZE );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/emsgsize:/name}.
+  - name: ETIMEDOUT
+    test-code: |
+      T_eq_int( ctx->eno, ETIMEDOUT );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be set to ${/c/errno/if/etimedout:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Msg
+  states:
+  - name: Set
+    test-code: |
+      T_eq_mem( ctx->buf, message, MESSAGE_SIZE );
+    text: |
+      The first bytes of the buffer referenced by the
+      ${../if/timedreceive:/params[1]/name} parameter shall contain a copy of the
+      received ${/glossary/message:/term}.
+  - name: Nop
+    test-code: |
+      for ( i = 0; i < MSG_SIZE; ++i ) {
+        T_eq_u8( ctx->buf[ i ], UINT8_MAX );
+      }
+    text: |
+      The buffer referenced by the ${../if/timedreceive:/params[1]/name} parameter
+      shall not be changed by the ${../if/timedreceive:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    int i;
+- name: Prio
+  states:
+  - name: Set
+    test-code: |
+      T_eq_u32( ctx->prio_obj, MESSAGE_PRIO );
+    text: |
+      The object referenced by the ${../if/timedreceive:/params[3]/name} parameter
+      shall be set to the ${../glossary/msgprio:/term} of the received
+      ${/glossary/message:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->prio_obj, UINT_MAX );
+    text: |
+      The object referenced by the ${../if/timedreceive:/params[3]/name} parameter
+      shall not be changed by the ${../if/timedreceive:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Timer
+  states:
+  - name: Inactive
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_INACTIVE );
+    text: |
+      The timer of the calling task shall be inactive.
+  - name: Realtime
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_REALTIME );
+    text: |
+      The timer of the calling task shall be active using the
+      ${/glossary/clock-realtime:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Removed
+    test-code: |
+      T_eq_long( attr.mq_curmsgs, 0 );
+    text: |
+      The received ${/glossary/message:/term} shall be removed from the
+      ${/glossary/messagequeue:/term} specified by the
+      ${../if/timedreceive:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_long( attr.mq_curmsgs, ctx->curmsgs );
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be changed by the
+      ${../if/timedreceive:/name} call.
+  test-epilogue: |
+    T_eq_int( mq_close( mq ), 0 );
+  test-prologue: |
+    mqd_t          mq;
+    struct mq_attr attr;
+
+    mq = mq_open( QUEUE_NAME, O_RDWR );
+    T_ne_u32( mq, (mqd_t) -1 );
+    T_eq_int( mq_getattr( mq, &attr ), 0 );
+pre-conditions:
+- name: Flags
+  states:
+  - name: Blocking
+    test-code: |
+      ctx->mq = mq_open( QUEUE_NAME, O_CREAT | O_RDWR, S_IRWXU, &queue_attr );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for reading without the
+      ${/c/fcntl/if/o-nonblock:/name} flag.
+  - name: NonBlock
+    test-code: |
+      ctx->mq = mq_open(
+        QUEUE_NAME,
+        O_CREAT | O_RDWR | O_NONBLOCK,
+        S_IRWXU,
+        &queue_attr
+      );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for reading with the
+      ${/c/fcntl/if/o-nonblock:/name} flag.
+  - name: WriteOnly
+    test-code: |
+      ctx->mq = mq_open( QUEUE_NAME, O_CREAT | O_WRONLY, S_IRWXU, &queue_attr );
+      T_ne_u32( ctx->mq, (mqd_t) -1 );
+    text: |
+      While the ${/glossary/messagequeue:/term} was opened for writing only.
+  test-epilogue: null
+  test-prologue: null
+- name: Messages
+  states:
+  - name: None
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the ${/glossary/messagequeue:/term} is empty.
+  - name: One
+    test-code: |
+      T_eq_int( mq_send( ctx->mq, message, MESSAGE_SIZE, MESSAGE_PRIO ), 0 );
+      ctx->curmsgs = 1;
+    text: |
+      While the ${/glossary/messagequeue:/term} contains a
+      ${/glossary/message:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Mqdes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/timedreceive:/params[0]/name} parameter specifies a
+      ${../glossary/mqdes:/term} of an open ${/glossary/messagequeue:/term}.
+  - name: Closed
+    test-code: |
+      T_eq_int( mq_close( ctx->mq ), 0 );
+      ctx->mqdes = ctx->mq;
+    text: |
+      While the ${../if/timedreceive:/params[0]/name} parameter specifies a
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term} which was
+      closed and not unlinked.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = INVALID_ID;
+    text: |
+      While the ${../if/timedreceive:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgLen
+  states:
+  - name: Enough
+    test-code: |
+      ctx->msg_len = MSG_SIZE;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is greater than or
+      equal to the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term}.
+  - name: TooSmall
+    test-code: |
+      ctx->msg_len = MSG_SIZE - 1;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is less than the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgPrio
+  states:
+  - name: Valid
+    test-code: |
+      ctx->msg_prio = &ctx->prio_obj;
+    text: |
+      While the ${../if/timedreceive:/params[3]/name} parameter references an object
+      of type `unsigned int`.
+  - name: 'Null'
+    test-code: |
+      ctx->msg_prio = NULL;
+    text: |
+      While the ${../if/timedreceive:/params[3]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Abstime
+  states:
+  - name: Future
+    test-code: |
+      ctx->abstime_obj.tv_sec = 1621322302;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} specifying a valid time point which is after
+      the current time of the ${/glossary/clock-realtime:/term}.
+  - name: Past
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} specifying a valid time point which is before
+      or at the current time of the ${/glossary/clock-realtime:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->abstime_obj.tv_sec = 1621322302;
+      ctx->abstime_obj.tv_nsec = -1;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} whose nanoseconds value is invalid.
+  - name: 'Null'
+    test-code: |
+      ctx->abs_timeout = NULL;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ResumeTask( ctx->worker_id );
+  GetTaskTimerInfo( ctx->worker_id, &ctx->timer_info );
+  FinalClockTick();
+test-brief: null
+test-cleanup: |
+  (void) mq_close( ctx->mq );
+  (void) mq_unlink( QUEUE_NAME );
+test-context:
+- brief: |
+    This member contains the worker task identifier.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member contains the timer information of the worker task.
+  description: null
+  member: |
+    TaskTimerInfo timer_info
+- brief: |
+    This member contains the descriptor of the message queue created for the test
+    variant.
+  description: null
+  member: |
+    mqd_t mq
+- brief: |
+    This member contains the number of messages in the message queue before the
+    ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    long curmsgs
+- brief: |
+    This member provides the buffer referenced by the
+    ${../if/timedreceive:/params[1]/name} parameter.
+  description: null
+  member: |
+    char buf[ MSG_SIZE ]
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timedreceive:/params[3]/name} parameter.
+  description: null
+  member: |
+    unsigned int prio_obj
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timedreceive:/params[4]/name} parameter.
+  description: null
+  member: |
+    struct timespec abstime_obj
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    char *msg_ptr
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[2]/name} parameter
+    value.
+  description: null
+  member: |
+    size_t msg_len
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[3]/name} parameter
+    value.
+  description: null
+  member: |
+    unsigned int *msg_prio
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[4]/name} parameter
+    value.
+  description: null
+  member: |
+    const struct timespec *abs_timeout
+- brief: |
+    This member contains the return value of the ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    ssize_t retval
+- brief: |
+    This member contains the ${/c/errno/if/errno:/name} value after the
+    ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    int eno
+test-context-support: |
+  #define MSG_SIZE 4
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- rtems.h
+- string.h
+- sys/stat.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->retval = -1;
+  ctx->eno = 0;
+  ctx->curmsgs = 0;
+  memset( ctx->buf, UINT8_MAX, sizeof( ctx->buf ) );
+  ctx->prio_obj = UINT_MAX;
+  ctx->msg_ptr = ctx->buf;
+  ctx->abs_timeout = &ctx->abstime_obj;
+  ctx->abstime_obj.tv_sec = 1621322302;
+  ctx->abstime_obj.tv_nsec = 0;
+test-setup:
+  brief: null
+  code: |
+    rtems_time_of_day now = { 1988, 1, 1, 0, 0, 0, 0 };
+
+    T_rsc_success( rtems_clock_set( &now ) );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( ctx->worker_id, Worker, ctx );
+  description: null
+test-stop: null
+test-support: |
+  #define QUEUE_NAME "mq"
+
+  #define MESSAGE_SIZE 3
+
+  #define MESSAGE_PRIO 5
+
+  static const struct mq_attr queue_attr = { 0, 1, MSG_SIZE, 0 };
+
+  static const char message[] = "xyz";
+
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      SuspendSelf();
+      errno = -1;
+      ctx->retval = mq_timedreceive(
+        ctx->mqdes,
+        ctx->msg_ptr,
+        ctx->msg_len,
+        ctx->msg_prio,
+        ctx->abs_timeout
+      );
+      ctx->eno = errno;
+    }
+  }
+test-target: testsuites/validation/tc-posix-mq-timedreceive.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+      - pre-conditions:
+          Mqdes:
+          - Closed
+          - Invalid
+      - pre-conditions:
+          Flags: WriteOnly
+      - pre-conditions:
+          MsgLen: TooSmall
+      - pre-conditions:
+          Messages: None
+      then: MinusOne
+    - else: Length
+    Errno:
+    - if:
+      - pre-conditions:
+          Mqdes: Invalid
+      - pre-conditions:
+          Flags: WriteOnly
+      then: EBADF
+    - if:
+        pre-conditions:
+          MsgLen: TooSmall
+      then: EMSGSIZE
+    - if:
+        pre-conditions:
+          Mqdes: Closed
+      then: EBADF
+    - if:
+        pre-conditions:
+          Flags: NonBlock
+          Messages: None
+      then: EAGAIN
+    - if:
+        pre-conditions:
+          Abstime:
+          - Invalid
+          - 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Messages: None
+      then: ETIMEDOUT
+    - else: Unchanged
+    Msg:
+    - if:
+        post-conditions:
+          Status: Length
+      then: Set
+    - else: Nop
+    Prio:
+    - if:
+        pre-conditions:
+          MsgPrio: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Length
+      then: Set
+    - else: Nop
+    Timer:
+    - if:
+        pre-conditions:
+          Abstime: Future
+      then: Realtime
+    - else: Inactive
+    Queue:
+    - if:
+        post-conditions:
+          Status: Length
+      then: Removed
+    - else: Nop
+  pre-conditions:
+    Flags: all
+    Messages: all
+    Mqdes: all
+    MsgLen: all
+    MsgPrio: all
+    Abstime:
+      applicable:
+        pre-conditions:
+          Flags: Blocking
+          Messages: None
+          Mqdes: Valid
+          MsgLen: Enough
+type: requirement
