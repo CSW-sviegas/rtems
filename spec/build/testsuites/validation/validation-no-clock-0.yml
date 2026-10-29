@@ -69,6 +69,15 @@ source:
 - testsuites/validation/tc-part-ident.c
 - testsuites/validation/tc-part-return.c
 - testsuites/validation/tc-part.c
+- testsuites/validation/tc-posix-mq-close.c
+- testsuites/validation/tc-posix-mq-getattr.c
+- testsuites/validation/tc-posix-mq-open.c
+- testsuites/validation/tc-posix-mq-receive.c
+- testsuites/validation/tc-posix-mq-send.c
+- testsuites/validation/tc-posix-mq-setattr.c
+- testsuites/validation/tc-posix-mq-timedreceive.c
+- testsuites/validation/tc-posix-mq-timedsend.c
+- testsuites/validation/tc-posix-mq-unlink.c
 - testsuites/validation/tc-pthread-cancel.c
 - testsuites/validation/tc-pthread-detach.c
 - testsuites/validation/tc-pthread-exit.c
