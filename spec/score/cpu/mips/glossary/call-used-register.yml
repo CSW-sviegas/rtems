@@ -11,7 +11,7 @@ links:
   uid: /ref/arch/mips/psabi
 term: MIPS call-used register
 text: |
-  A register which a called function can destroy. These are 1 to 15, 24 and 25.
-  The psABI states no rule for hi and lo, and the compiler marks both
-  call-clobbered.
+  A register which a called function can destroy. These are 1 to 15, 24, 25 and
+  the return address register 31. The psABI states no rule for hi and lo, and the
+  compiler marks both call-clobbered.
 type: glossary
