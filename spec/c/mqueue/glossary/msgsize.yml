@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: message size
+text: |
+  The size of a message in bytes. It must be less than or equal to the maximum
+  message size attribute of the message queue. See
+  [POSIX.1-2024, System Interfaces, mq_getattr](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_getattr.html).
+type: glossary

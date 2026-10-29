@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: message queue attribute
+text: |
+  A set of attributes defining the behavior and limits of a message queue,
+  including the ${maxmsgs:/term}, the maximum ${msgsize:/term}, and blocking
+  behavior flags. See
+  [POSIX.1-2024, System Interfaces, mq_getattr](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_getattr.html).
+type: glossary

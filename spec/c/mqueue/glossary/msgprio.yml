@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: message priority
+text: |
+  An unsigned integer indicating the priority of a message. Messages with higher
+  priority values are inserted into the queue before messages with lower priority
+  values. See
+  [POSIX.1-2024, System Interfaces, mq_send](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_send.html).
+type: glossary

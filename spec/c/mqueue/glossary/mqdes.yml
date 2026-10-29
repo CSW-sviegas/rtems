@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: message queue descriptor
+text: |
+  An opaque descriptor representing an open POSIX message queue, used to
+  reference the queue in subsequent operations. See
+  [POSIX.1-2024, Base Definitions, Section 3.245 Message Queue Descriptor](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html#tag_04_245).
+type: glossary
