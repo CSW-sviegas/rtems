@@ -1,0 +1,89 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Wait on the ${../glossary/condition-variable:/term} object referenced by
+  ${.:/params[0]/name} or until the absolute time point referenced by
+  ${.:/params[2]/name} is reached.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_cond_t:/name} *restrict ${.:/params[0]/name}
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[1]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The object referenced by ${.:/params[0]/name} is invalid.
+    - Another thread waits on the object referenced by ${.:/params[0]/name} using a
+      mutex object different from the one referenced by ${.:/params[1]/name}.
+    - The ${.:/params[2]/name} parameter is ${/c/if/null:/name} or its nanoseconds
+      value is out of range.
+    - The mutex object referenced by ${.:/params[1]/name} is invalid when
+      reacquired.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The mutex object referenced by ${.:/params[1]/name} is ${/c/if/null:/name},
+    invalid, or not owned by the calling thread when the call would block.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    The time point referenced by ${.:/params[2]/name} has passed.
+  role: errno
+  uid: /c/errno/if/etimedout
+name: pthread_cond_timedwait
+notes: |
+  See
+  [POSIX.1-2024, System Interfaces, pthread_cond_timedwait()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_cond_timedwait.html).
+params:
+- description: |
+    is the condition variable object to wait on.
+  dir: inout
+  name: cond
+- description: |
+    is the mutex object to release and reacquire.
+  dir: inout
+  name: mutex
+- description: |
+    is the absolute timeout.
+  dir: in
+  name: abstime
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The time point referenced by ${.:/params[2]/name} has passed.
+    value: ${/c/errno/if/etimedout:/name}
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The object referenced by ${.:/params[0]/name} is invalid.
+      - Another thread waits on the object referenced by ${.:/params[0]/name} using a
+        mutex object different from the one referenced by ${.:/params[1]/name}.
+      - The ${.:/params[2]/name} parameter is ${/c/if/null:/name} or its nanoseconds
+        value is out of range.
+      - The mutex object referenced by ${.:/params[1]/name} is invalid when
+        reacquired.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The mutex object referenced by ${.:/params[1]/name} is ${/c/if/null:/name},
+      invalid, or not owned by the calling thread when the call would block.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

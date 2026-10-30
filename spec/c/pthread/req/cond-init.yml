@@ -1,0 +1,220 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/cond-init
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/cond-init:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/cond-init:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      T_eq_int(
+        _POSIX_Condition_variables_Get_clock( ctx->cond_obj._flags ),
+        CLOCK_REALTIME
+      );
+    text: |
+      The ${../glossary/cond-clock:/term} of the condition variable object referenced
+      by ${../if/cond-init:/params[0]/name} shall be
+      ${/c/time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      T_eq_int(
+        _POSIX_Condition_variables_Get_clock( ctx->cond_obj._flags ),
+        CLOCK_MONOTONIC
+      );
+    text: |
+      The ${../glossary/cond-clock:/term} of the condition variable object referenced
+      by ${../if/cond-init:/params[0]/name} shall be
+      ${/c/time/if/clock-monotonic:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: CondObj
+  states:
+  - name: Initialized
+    test-code: |
+      T_eq_int( pthread_cond_destroy( &ctx->cond_obj ), 0 );
+    text: |
+      The condition variable object referenced by ${../if/cond-init:/params[0]/name}
+      shall be initialized.
+  - name: Nop
+    test-code: |
+      T_eq_int(
+        memcmp( &ctx->cond_obj, &ctx->cond_ref, sizeof( ctx->cond_obj ) ),
+        0
+      );
+    text: |
+      The condition variable object referenced by ${../if/cond-init:/params[0]/name}
+      shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Cond
+  states:
+  - name: Valid
+    test-code: |
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-init:/params[0]/name} parameter references an object of
+      type ${/c/if/pthread_cond_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->cond = NULL;
+    text: |
+      While the ${../if/cond-init:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Attr
+  states:
+  - name: Default
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/cond-init:/params[1]/name} parameter is ${/c/if/null:/name}.
+  - name: Valid
+    test-code: |
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the condition variable attributes object referenced by
+      ${../if/cond-init:/params[1]/name} is initialized.
+  - name: Monotonic
+    test-code: |
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      T_eq_int( pthread_condattr_setclock( &ctx->attr_obj, CLOCK_MONOTONIC ), 0 );
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../glossary/cond-clock:/term} of the condition variable attributes
+      object referenced by ${../if/cond-init:/params[1]/name} is
+      ${/c/time/if/clock-monotonic:/name}.
+  - name: Uninitialized
+    test-code: |
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the condition variable attributes object referenced by
+      ${../if/cond-init:/params[1]/name} is not initialized.
+  - name: InvalidPshared
+    test-code: |
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+      ctx->attr_obj.process_shared = -1;
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../glossary/process-shared:/term} of the condition variable
+      attributes object referenced by ${../if/cond-init:/params[1]/name} is invalid.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = pthread_cond_init( ctx->cond, ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/cond-init:/params[0]/name} parameter value.
+  description: null
+  member: pthread_cond_t *cond
+- brief: |
+    This member specifies the ${../if/cond-init:/params[1]/name} parameter value.
+  description: null
+  member: const pthread_condattr_t *attr
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+- brief: |
+    This member contains the condition variable object.
+  description: null
+  member: pthread_cond_t cond_obj
+- brief: |
+    This member contains the reference copy of the condition variable object.
+  description: null
+  member: pthread_cond_t cond_ref
+- brief: |
+    This member contains the attributes object.
+  description: null
+  member: pthread_condattr_t attr_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+- time.h
+- rtems/posix/condimpl.h
+test-local-includes: []
+test-prepare: |
+  memset( &ctx->cond_obj, 0xa5, sizeof( ctx->cond_obj ) );
+  memcpy( &ctx->cond_ref, &ctx->cond_obj, sizeof( ctx->cond_ref ) );
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-cond-init.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Cond: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Attr:
+          - Uninitialized
+          - InvalidPshared
+      then: EINVAL
+    - else: Zero
+    Clock:
+    - if:
+        and:
+        - post-conditions:
+            Status: Zero
+        - pre-conditions:
+            Attr: Monotonic
+      then: Monotonic
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Realtime
+    - else: N/A
+    CondObj:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Initialized
+    - if:
+        pre-conditions:
+          Cond: 'Null'
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Cond: all
+    Attr: all
+type: requirement

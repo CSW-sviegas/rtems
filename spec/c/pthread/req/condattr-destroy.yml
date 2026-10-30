@@ -1,0 +1,132 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/condattr-destroy
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/condattr-destroy:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/condattr-destroy:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: AttrObj
+  states:
+  - name: Destroyed
+    test-code: |
+      T_eq_int( pthread_condattr_destroy( &ctx->attr_obj ), EINVAL );
+    text: |
+      The condition variable attributes object referenced by the
+      ${../if/condattr-destroy:/params[0]/name} parameter shall be invalid.
+  - name: Nop
+    test-code: |
+      T_eq_int(
+        memcmp( &ctx->attr_obj, &ctx->attr_copy, sizeof( ctx->attr_obj ) ),
+        0
+      );
+    text: |
+      The condition variable attributes object referenced by the
+      ${../if/condattr-destroy:/params[0]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Valid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      T_eq_int( pthread_condattr_init( &ctx->attr_obj ), 0 );
+    text: |
+      While the condition variable attributes object referenced by the
+      ${../if/condattr-destroy:/params[0]/name} parameter is valid.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+    text: |
+      While the ${../if/condattr-destroy:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+    text: |
+      While the condition variable attributes object referenced by the
+      ${../if/condattr-destroy:/params[0]/name} parameter is invalid.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->attr_copy = ctx->attr_obj;
+  ctx->retval = pthread_condattr_destroy( ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/condattr-destroy:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_condattr_t *attr
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+- brief: |
+    This member contains the attribute object.
+  description: null
+  member: pthread_condattr_t attr_obj
+- brief: |
+    This member contains a copy of the attribute object taken before the action.
+  description: null
+  member: pthread_condattr_t attr_copy
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-condattr-destroy.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: Valid
+      then: Zero
+    - else: EINVAL
+    AttrObj:
+    - if:
+        pre-conditions:
+          Attr: Valid
+      then: Destroyed
+    - else: Nop
+  pre-conditions:
+    Attr: all
+type: requirement

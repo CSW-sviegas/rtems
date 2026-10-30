@@ -1,0 +1,401 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/cond-wait
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/cond-wait:/name} shall be equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The return value of ${../if/cond-wait:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  - name: EPERM
+    test-code: |
+      T_eq_int( ctx->retval, EPERM );
+    text: |
+      The return value of ${../if/cond-wait:/name} shall be equal to
+      ${/c/errno/if/eperm:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Caller
+    test-code: |
+      eno = pthread_mutex_unlock( ctx->mutex );
+      T_eq_int( eno, 0 );
+    text: |
+      The mutex object shall be owned by the calling thread.
+  - name: Nobody
+    test-code: |
+      eno = pthread_mutex_unlock( ctx->mutex );
+      T_eq_int( eno, EPERM );
+    text: |
+      The mutex object shall not be owned by any thread.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+pre-conditions:
+- name: Cond
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->cond = NULL;
+    text: |
+      While the ${../if/cond-wait:/params[0]/name} parameter is ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      memset( &ctx->cond_obj, 0xff, sizeof( ctx->cond_obj ) );
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-wait:/params[0]/name} parameter references an object
+      which is neither initialized nor filled with zero bytes.
+  - name: Zeroed
+    test-code: |
+      memset( &ctx->cond_obj, 0, sizeof( ctx->cond_obj ) );
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-wait:/params[0]/name} parameter references an object
+      filled with zero bytes.
+  - name: Valid
+    test-code: |
+      eno = pthread_cond_init( &ctx->cond_obj, NULL );
+      T_eq_int( eno, 0 );
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-wait:/params[0]/name} parameter references an
+      initialized condition variable object.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+- name: Waiters
+  states:
+  - name: 'No'
+    test-code: |
+      /* Nothing to prepare */
+    text: |
+      While no thread waits on the condition variable object.
+  - name: OtherMutex
+    test-code: |
+      ctx->worker_mutex = &ctx->other_mutex_obj;
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id, Worker, ctx );
+      WaitForExecutionStop( ctx->worker_id );
+    text: |
+      While a thread waits on the condition variable object using a mutex other than
+      the one referenced by the ${../if/cond-wait:/params[1]/name} parameter.
+  - name: SameMutex
+    test-code: |
+      eno = pthread_mutex_init( &ctx->mutex_obj, NULL );
+      T_eq_int( eno, 0 );
+      ctx->worker_mutex = &ctx->mutex_obj;
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id, Worker, ctx );
+      WaitForExecutionStop( ctx->worker_id );
+    text: |
+      While a thread waits on the condition variable object using the mutex
+      referenced by the ${../if/cond-wait:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+- name: Mutex
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->mutex = NULL;
+    text: |
+      While the ${../if/cond-wait:/params[1]/name} parameter is ${/c/if/null:/name}.
+  - name: Invalid
+    test-code: |
+      memset( &ctx->mutex_obj, 0xff, sizeof( ctx->mutex_obj ) );
+      ctx->mutex = &ctx->mutex_obj;
+    text: |
+      While the ${../if/cond-wait:/params[1]/name} parameter references an object
+      which is neither initialized nor filled with zero bytes.
+  - name: Unlocked
+    test-code: |
+      eno = pthread_mutex_init( &ctx->mutex_obj, NULL );
+      T_eq_int( eno, 0 );
+      ctx->mutex = &ctx->mutex_obj;
+    text: |
+      While the ${../if/cond-wait:/params[1]/name} parameter references an
+      initialized mutex object which is not owned by any thread.
+  - name: Owned
+    test-code: |
+      eno = pthread_mutex_init( &ctx->mutex_obj, NULL );
+      T_eq_int( eno, 0 );
+      eno = pthread_mutex_lock( &ctx->mutex_obj );
+      T_eq_int( eno, 0 );
+      ctx->mutex = &ctx->mutex_obj;
+    text: |
+      While the ${../if/cond-wait:/params[1]/name} parameter references an
+      initialized mutex object which is owned by the calling thread.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+- name: Wakeup
+  states:
+  - name: Broadcast
+    test-code: |
+      ctx->waker_id = CreateTask( "WAKE", PRIO_LOW );
+      StartTask( ctx->waker_id, Waker, ctx );
+    text: |
+      While the condition variable object is broadcast after the calling thread
+      started to wait.
+  - name: MutexDestroyed
+    test-code: |
+      ctx->destroy_mutex = true;
+      ctx->waker_id = CreateTask( "WAKE", PRIO_LOW );
+      StartTask( ctx->waker_id, Waker, ctx );
+    text: |
+      While the mutex object is destroyed and then the condition variable object is
+      broadcast after the calling thread started to wait.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = pthread_cond_wait( ctx->cond, ctx->mutex );
+test-brief: null
+test-cleanup: |
+  if ( ctx->worker_id != 0 ) {
+    DeleteTask( ctx->worker_id );
+  }
+
+  if ( ctx->waker_id != 0 ) {
+    DeleteTask( ctx->waker_id );
+  }
+
+  (void) pthread_cond_destroy( &ctx->cond_obj );
+  (void) pthread_mutex_destroy( &ctx->mutex_obj );
+test-context:
+- brief: |
+    This member provides the condition variable object.
+  description: null
+  member: |
+    pthread_cond_t cond_obj
+- brief: |
+    This member provides the mutex object used by the calling thread.
+  description: null
+  member: |
+    pthread_mutex_t mutex_obj
+- brief: |
+    This member provides the mutex object used by the worker.
+  description: null
+  member: |
+    pthread_mutex_t other_mutex_obj
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: |
+    rtems_id runner_id
+- brief: |
+    This member references the mutex object used by the worker.
+  description: null
+  member: |
+    pthread_mutex_t *worker_mutex
+- brief: |
+    This member contains the identifier of the worker task.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member contains the identifier of the waker task.
+  description: null
+  member: |
+    rtems_id waker_id
+- brief: |
+    This member indicates if the waker task destroys the mutex object before it
+    signals the condition variable object.
+  description: null
+  member: |
+    bool destroy_mutex
+- brief: |
+    This member specifies the ${../if/cond-wait:/params[0]/name} parameter value.
+  description: null
+  member: pthread_cond_t *cond
+- brief: |
+    This member specifies the ${../if/cond-wait:/params[1]/name} parameter value.
+  description: null
+  member: pthread_mutex_t *mutex
+- brief: |
+    This member contains the return value.
+  description: null
+  member: int retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- stdbool.h
+- string.h
+- rtems/score/statesimpl.h
+- rtems/score/threadimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->cond = NULL;
+  ctx->mutex = NULL;
+  ctx->worker_mutex = NULL;
+  ctx->worker_id = 0;
+  ctx->waker_id = 0;
+  ctx->destroy_mutex = false;
+  ctx->retval = -1;
+test-setup:
+  brief: null
+  code: |
+    int eno;
+
+    memset( ctx, 0, sizeof( *ctx ) );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->runner_id = rtems_task_self();
+    eno = pthread_mutex_init( &ctx->other_mutex_obj, NULL );
+    T_eq_int( eno, 0 );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = (Context *) arg;
+
+    eno = pthread_mutex_lock( ctx->worker_mutex );
+    T_eq_int( eno, 0 );
+
+    (void) pthread_cond_wait( &ctx->cond_obj, ctx->worker_mutex );
+    (void) pthread_mutex_unlock( ctx->worker_mutex );
+
+    SuspendSelf();
+  }
+
+  static void Waker( rtems_task_argument arg )
+  {
+    Context        *ctx;
+    Thread_Control *runner;
+    int             eno;
+
+    ctx = (Context *) arg;
+    runner = GetThread( ctx->runner_id );
+
+    while (
+      ( runner->current_state & STATES_WAITING_FOR_CONDITION_VARIABLE ) == 0
+    ) {
+      /* Wait */
+    }
+
+    if ( ctx->destroy_mutex ) {
+      do {
+        eno = pthread_mutex_destroy( &ctx->mutex_obj );
+      } while ( eno == EBUSY );
+
+      T_eq_int( eno, 0 );
+    }
+
+    eno = pthread_cond_broadcast( &ctx->cond_obj );
+    T_eq_int( eno, 0 );
+
+    SuspendSelf();
+  }
+test-target: testsuites/validation/tc-pthread-cond-wait.c
+test-teardown:
+  brief: null
+  code: |
+    (void) pthread_mutex_destroy( &ctx->other_mutex_obj );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: EINVAL
+    Owner: N/A
+  pre-conditions:
+    Cond:
+    - 'Null'
+    - Invalid
+    Waiters: N/A
+    Mutex: N/A
+    Wakeup: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Waiters: OtherMutex
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Mutex:
+          - 'Null'
+          - Invalid
+          - Unlocked
+      then: EPERM
+    - if:
+        pre-conditions:
+          Wakeup: MutexDestroyed
+      then: EINVAL
+    - else: Zero
+    Owner:
+    - if:
+      - pre-conditions:
+          Mutex:
+          - 'Null'
+          - Invalid
+      - pre-conditions:
+          Wakeup: MutexDestroyed
+      then: N/A
+    - if:
+        pre-conditions:
+          Mutex: Owned
+      then: Caller
+    - else: Nobody
+  pre-conditions:
+    Cond:
+    - Zeroed
+    - Valid
+    Waiters:
+      applicable:
+      - pre-conditions:
+          Cond: Valid
+          Waiters:
+          - 'No'
+          - OtherMutex
+      - pre-conditions:
+          Cond: Valid
+          Mutex:
+          - Unlocked
+          - Owned
+          Waiters: SameMutex
+    Mutex: all
+    Wakeup:
+      applicable:
+      - pre-conditions:
+          Cond: Zeroed
+          Mutex: Owned
+      - pre-conditions:
+          Cond: Valid
+          Mutex: Owned
+          Waiters:
+          - 'No'
+          - SameMutex
+type: requirement
