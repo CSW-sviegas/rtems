@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: condition variable clock attribute
+text: |
+  An attribute of a ${condition-variable:/term} that specifies the clock used to
+  measure timeouts. See
+  [POSIX.1-2024, System Interfaces, pthread_condattr_getclock](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_condattr_getclock.html).
+  This attribute can be set to ${../../time/if/clock-realtime:/name} or
+  ${../../time/if/clock-monotonic:/name}.
+type: glossary

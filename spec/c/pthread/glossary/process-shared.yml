@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: process-shared attribute
+text: |
+  An attribute that indicates whether an object can be operated upon by any
+  thread that has access to the memory where the object is allocated, even if the
+  object is allocated in memory that is shared by multiple processes. See
+  [POSIX.1-2024, System Interfaces, pthread_mutexattr_getpshared](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutexattr_getpshared.html).
+  This attribute can be set to ${../if/process-private:/name} or
+  ${../if/process-shared:/name}.
+type: glossary

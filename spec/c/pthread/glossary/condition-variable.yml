@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: condition variable
+text: |
+  A synchronization object which allows a thread to suspend execution,
+  repeatedly, until some associated condition becomes true. See
+  [POSIX.1-2024, Base Definitions, Section 3.79 Condition Variable](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html#tag_04_79).
+type: glossary
