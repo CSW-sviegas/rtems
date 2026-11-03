@@ -213,4 +213,6 @@ SECTIONS
 
   /* Addition to let linker know about custom section for GDB pretty-printing support. */
   .debug_gdb_scripts 0 : { *(.debug_gdb_scripts) }
+
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

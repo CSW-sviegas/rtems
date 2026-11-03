@@ -471,6 +471,8 @@ SECTIONS {
 	
 	.gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
 	.PPC.EMB.apuinfo 0 : { *(.PPC.EMB.apuinfo) }
+	.note.rtems 0 : { KEEP (*(.note.rtems)) }
+
 	/DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 
 	/*

@@ -240,6 +240,8 @@ content: |
     RamEnd = RamBase + RamSize;
     WorkAreaBase = bsp_section_work_begin;
     HeapSize = 0;
+
+    .note.rtems 0 : { KEEP (*(.note.rtems)) }
   }
 copyrights:
 - Copyright (C) 2021 On-Line Applications Research Corporation (OAR)
