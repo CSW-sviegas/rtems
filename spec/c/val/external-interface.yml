@@ -59,6 +59,8 @@ links:
 - role: validation
   uid: /c/if/false
 - role: validation
+  uid: /c/sched/if/fifo
+- role: validation
   uid: /c/pthread/if/inherit-sched
 - role: validation
   uid: /c/if/int16_t
