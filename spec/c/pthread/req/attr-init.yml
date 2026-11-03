@@ -1,0 +1,303 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/attr-init
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-attr-destroy
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-init:/name} shall be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-init:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_true( ctx->attr_obj.is_initialized );
+    text: |
+      The object referenced by the ${../if/attr-init:/params[0]/name} parameter shall
+      be an initialized ${../glossary/thread:/term} attributes object.
+  test-epilogue: null
+  test-prologue: null
+- name: StackAddr
+  states:
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->attr_obj.stackaddr );
+    text: |
+      The ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-init:/params[0]/name} parameter shall be ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: StackSize
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->attr_obj.stacksize, 0 );
+    text: |
+      The ${../glossary/thread-stack-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-init:/params[0]/name}
+      parameter shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: ContentionScope
+  states:
+  - name: Process
+    test-code: |
+      T_eq_int( ctx->attr_obj.contentionscope, PTHREAD_SCOPE_PROCESS );
+    text: |
+      The ${../glossary/thread-contention-scope:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-init:/params[0]/name} parameter shall be
+      ${../if/scope-process:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: InheritSched
+  states:
+  - name: Inherit
+    test-code: |
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_INHERIT_SCHED );
+    text: |
+      The ${../glossary/thread-inherit-scheduler:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-init:/params[0]/name} parameter shall be
+      ${../if/inherit-sched:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: SchedPolicy
+  states:
+  - name: Fifo
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_FIFO );
+    text: |
+      The ${/c/sched/glossary/policy:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-init:/params[0]/name}
+      parameter shall be ${/c/sched/if/fifo:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: SchedParam
+  states:
+  - name: Default
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedparam.sched_priority, 2 );
+      T_eq_int( ctx->attr_obj.schedparam.sched_ss_low_priority, 0 );
+      T_eq_i64( ctx->attr_obj.schedparam.sched_ss_repl_period.tv_sec, 0 );
+      T_eq_long( ctx->attr_obj.schedparam.sched_ss_repl_period.tv_nsec, 0 );
+      T_eq_i64( ctx->attr_obj.schedparam.sched_ss_init_budget.tv_sec, 0 );
+      T_eq_long( ctx->attr_obj.schedparam.sched_ss_init_budget.tv_nsec, 0 );
+      T_eq_int( ctx->attr_obj.schedparam.sched_ss_max_repl, 0 );
+    text: |
+      The scheduling parameters of the ${../glossary/thread:/term} attributes object
+      referenced by the ${../if/attr-init:/params[0]/name} parameter shall specify a
+      ${/glossary/priority:/term} of two and zero for each other parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: GuardSize
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->attr_obj.guardsize, 0 );
+    text: |
+      The ${../glossary/thread-guard-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-init:/params[0]/name}
+      parameter shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: DetachState
+  states:
+  - name: Joinable
+    test-code: |
+      T_eq_int( ctx->attr_obj.detachstate, PTHREAD_CREATE_JOINABLE );
+    text: |
+      The ${../glossary/thread-detach-state:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-init:/params[0]/name}
+      parameter shall be ${../if/create-joinable:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Affinity
+  states:
+  - name: All
+    test-code: |
+      T_eq_ptr(
+        ctx->attr_obj.affinityset,
+        &ctx->attr_obj.affinitysetpreallocated
+      );
+      T_eq_sz(
+        ctx->attr_obj.affinitysetsize,
+        sizeof( ctx->attr_obj.affinitysetpreallocated )
+      );
+      T_true( CPU_ISFULLSET( ctx->attr_obj.affinityset ) );
+    text: |
+      The processor affinity set of the ${../glossary/thread:/term} attributes object
+      referenced by the ${../if/attr-init:/params[0]/name} parameter shall be a
+      ${/c/if/cpu_set_t:/name} object which contains every processor.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.is_initialized = false;
+    text: |
+      While the ${../if/attr-init:/params[0]/name} parameter references an object of
+      type ${/c/if/pthread_attr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/attr-init:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-attr-destroy:/name} specifies that
+  ${../if/attr-init:/name} initializes the ${../glossary/thread:/term} attributes
+  object with the default value of each attribute. It defines the default
+  ${../glossary/thread-detach-state:/term} as ${../if/create-joinable:/name} and
+  leaves the default ${../glossary/thread-guard-size:/term} to the
+  implementation. Each post-condition other than Status specifies the default of
+  one attribute in RTEMS.
+
+  The standard requires ${/c/errno/if/enomem:/name} where not enough memory
+  exists to initialize the object. ${../if/attr-init:/name} allocates no memory,
+  so RTEMS never returns this error.
+
+  The standard leaves the result undefined where the object is already
+  initialized and recommends ${/c/errno/if/ebusy:/name} for that case.
+  ${../if/attr-init:/name} reads only the ${../if/attr-init:/params[0]/name}
+  parameter and initializes the object in each case, so the item has no
+  pre-condition for the object. The standard does not define the behaviour where
+  the ${../if/attr-init:/params[0]/name} parameter is ${/c/if/null:/name}. State
+  Null of pre-condition Attr specifies the behaviour of RTEMS which returns
+  ${/c/errno/if/einval:/name}.
+
+  The ${../glossary/thread:/term} attributes object of RTEMS contains further
+  data which no function of RTEMS reads. The item does not specify it.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_attr_init( ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/attr-init:/params[0]/name} parameter value.
+  description: null
+  member: pthread_attr_t *attr
+- brief: |
+    This member contains the return value of the ${../if/attr-init:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- sched.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-attr-init.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - else: Ok
+    Initialized:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: 'Yes'
+    StackAddr:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: 'Null'
+    StackSize:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Zero
+    ContentionScope:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Process
+    InheritSched:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Inherit
+    SchedPolicy:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Fifo
+    SchedParam:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Default
+    GuardSize:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Zero
+    DetachState:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Joinable
+    Affinity:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: All
+  pre-conditions:
+    Attr: all
+type: requirement
