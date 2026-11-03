@@ -1,5 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
+- Copyright (C) 2026 Critical Software S.A.
 - Copyright (C) 2023 embedded brains GmbH & Co. KG
 enabled-by: true
 links:
@@ -28,6 +29,10 @@ links:
 - role: validation
   uid: /c/if/cpu_set_t
 - role: validation
+  uid: /c/pthread/if/create-detached
+- role: validation
+  uid: /c/pthread/if/create-joinable
+- role: validation
   uid: /c/errno/if/eagain
 - role: validation
   uid: /c/errno/if/ebusy
@@ -50,7 +55,11 @@ links:
 - role: validation
   uid: /c/errno/if/etimedout
 - role: validation
+  uid: /c/pthread/if/explicit-sched
+- role: validation
   uid: /c/if/false
+- role: validation
+  uid: /c/pthread/if/inherit-sched
 - role: validation
   uid: /c/if/int16_t
 - role: validation
@@ -68,7 +77,13 @@ links:
 - role: validation
   uid: /c/if/offsetof
 - role: validation
+  uid: /c/if/pthread_attr_t
+- role: validation
   uid: /c/if/pthread_t
+- role: validation
+  uid: /c/pthread/if/scope-process
+- role: validation
+  uid: /c/pthread/if/scope-system
 - role: validation
   uid: /c/if/size_max
 - role: validation
