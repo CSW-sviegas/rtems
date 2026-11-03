@@ -113,6 +113,7 @@ install:
   - cpukit/include/rtems/dosfs.h
   - cpukit/include/rtems/dumpbuf.h
   - cpukit/include/rtems/endian.h
+  - cpukit/include/rtems/elfnotes.h
   - cpukit/include/rtems/error.h
   - cpukit/include/rtems/extension.h
   - cpukit/include/rtems/extensiondata.h
