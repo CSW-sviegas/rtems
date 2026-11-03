@@ -18,6 +18,8 @@ links:
 - role: build-dependency
   uid: optabi
 - role: build-dependency
+  uid: optarchbsp
+- role: build-dependency
   uid: optasflags
 - role: build-dependency
   uid: optbsp
