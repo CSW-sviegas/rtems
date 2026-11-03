@@ -42,8 +42,8 @@
 #include "fstest.h"
 #include "fs_config.h"
 
-const char             rtems_test_name[] = "FSSCANDIR " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSSCANDIR " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 #define FILE_NAME "aaa"
 

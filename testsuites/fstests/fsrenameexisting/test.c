@@ -42,8 +42,8 @@
 #include "fs_config.h"
 #include <tmacros.h>
 
-const char             rtems_test_name[] = "FSRENAMEEXISTING " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSRENAMEEXISTING " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static void rename_error( void )
 {

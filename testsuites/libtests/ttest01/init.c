@@ -138,16 +138,7 @@ static void case_late( const char *name )
 
 static const char censored_init[] = "A:ttest01\n"
                                     "S:Platform:RTEMS\n"
-                                    "S:Compiler:*"
-                                    "S:Version:*"
-                                    "S:BSP:*"
-                                    "S:BuildLabel:*"
-                                    "S:TargetHash:SHA256:*"
-                                    "S:RTEMS_DEBUG:*"
-                                    "S:RTEMS_MULTIPROCESSING:*"
-                                    "S:RTEMS_POSIX_API:*"
-                                    "S:RTEMS_PROFILING:*"
-                                    "S:RTEMS_SMP:*";
+                                    "S:TargetHash:SHA256:*";
 
 static void censor_putchar( int c, void *arg )
 {
@@ -203,7 +194,7 @@ static void run_initialize( void )
 
 static const char expected_final[] =
   "Z:ttest01:C:344:N:1340:F:795:D:0.691999\n"
-  "Y:ReportHash:SHA256:uVoW7Ez5Oo_ceaQhTHBgo45hk4eIrsxXAHPs11nyqgY=\n";
+  "Y:ReportHash:SHA256:vGlO7Xmh7T8WS1ffIdwYIpRoRUWrOlun-GmrWQqjWmI=\n";
 
 static void run_finalize( void )
 {

@@ -46,8 +46,8 @@
 #include "fs_config.h"
 #include <tmacros.h>
 
-const char             rtems_test_name[] = "FSTIME " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSTIME " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 #else
 #include <assert.h>
 #define rtems_test_assert( x ) assert( x )

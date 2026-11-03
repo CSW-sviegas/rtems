@@ -37,6 +37,7 @@
 #define _RTEMS_TEST_H
 
 #include <rtems.h>
+#include <rtems/elfnotes.h>
 #include <rtems/score/atomic.h>
 #include <rtems/score/smpbarrier.h>
 
@@ -103,16 +104,49 @@ typedef enum {
 #endif
 
 #if TEST_STATE_EXPECTED_FAIL
-  #define TEST_STATE RTEMS_TEST_STATE_FAIL
+  #define _TEST_STATE_VALUE RTEMS_TEST_STATE_FAIL
+  #define _TEST_STATE_NAME  "EXPECTED_FAIL"
 #elif TEST_STATE_USER_INPUT
-  #define TEST_STATE RTEMS_TEST_STATE_USER_INPUT
+  #define _TEST_STATE_VALUE RTEMS_TEST_STATE_USER_INPUT
+  #define _TEST_STATE_NAME  "USER_INPUT"
 #elif TEST_STATE_INDETERMINATE
-  #define TEST_STATE RTEMS_TEST_STATE_INDETERMINATE
+  #define _TEST_STATE_VALUE RTEMS_TEST_STATE_INDETERMINATE
+  #define _TEST_STATE_NAME  "INDETERMINATE"
 #elif TEST_STATE_BENCHMARK
-  #define TEST_STATE RTEMS_TEST_STATE_BENCHMARK
+  #define _TEST_STATE_VALUE RTEMS_TEST_STATE_BENCHMARK
+  #define _TEST_STATE_NAME  "BENCHMARK"
 #else
-  #define TEST_STATE RTEMS_TEST_STATE_PASS
+  #define _TEST_STATE_VALUE RTEMS_TEST_STATE_PASS
+  #define _TEST_STATE_NAME  "EXPECTED_PASS"
 #endif
+
+#define _TEST_STATE_NOTE                                   \
+  RTEMS_ELF_NOTE_BEGIN_STRING( RTEMS_ELF_NOTE_TEST_STATE ) \
+  ".ascii \"" _TEST_STATE_NAME "\"\n" RTEMS_ELF_NOTE_END_STRING
+
+/**
+ * @brief This define expands to the test state of the test program.
+ *
+ * The expansion emits the ELF note of the test state in the translation unit
+ * which uses it.
+ */
+#define TEST_STATE             \
+  __extension__( {             \
+  __asm__( _TEST_STATE_NOTE ); \
+  _TEST_STATE_VALUE;           \
+  } )
+
+/**
+ * @brief This define expands to the definition of a constant with the test
+ *   state of the test program.
+ *
+ * The expansion emits the ELF note of the test state.  Use it at file scope.
+ *
+ * @param _name is the name of the constant.
+ */
+#define RTEMS_TEST_STATE_DEFINE( _name ) \
+  __asm__( _TEST_STATE_NOTE );           \
+  const RTEMS_TEST_STATE _name = _TEST_STATE_VALUE
 
 /**
  * @brief Prints a begin of test message using printf().
