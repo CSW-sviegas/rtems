@@ -38,7 +38,6 @@
 #include <bsp.h>
 #include <bsp/bootcard.h>
 #include <rtems/bspIo.h>
-#include <rtems/version.h>
 #include <rtems/score/heap.h>
 #include <rtems/score/smpimpl.h>
 #include <rtems/score/threadimpl.h>
@@ -171,12 +170,7 @@ void bsp_fatal_extension(
       );
     }
 
-    printk(
-      "RTEMS version: %s\n"
-      "RTEMS tools: %s\n",
-      rtems_version(),
-      __VERSION__
-    );
+    printk( "RTEMS tools: %s\n", __VERSION__ );
 
     executing = _Thread_Get_executing();
 
