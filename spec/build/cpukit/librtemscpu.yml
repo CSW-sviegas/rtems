@@ -98,7 +98,9 @@ install:
 - destination: ${BSP_INCLUDEDIR}/rtems/posix
   source:
   - cpukit/include/rtems/posix/posixapi.h
+  - cpukit/include/rtems/posix/priorityimpl.h
   - cpukit/include/rtems/posix/pthread.h
+  - cpukit/include/rtems/posix/pthreadattrimpl.h
   - cpukit/include/rtems/posix/spinlockimpl.h
   - cpukit/include/rtems/posix/threadsup.h
 - destination: ${BSP_INCLUDEDIR}/rtems/rtems
@@ -345,6 +347,21 @@ source:
 - cpukit/libmisc/cpuuse/cpuusagereset.c
 - cpukit/posix/src/cancel.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/pthreadattrdefault.c
+- cpukit/posix/src/pthreadattrdestroy.c
+- cpukit/posix/src/pthreadattrgetdetachstate.c
+- cpukit/posix/src/pthreadattrgetguardsize.c
+- cpukit/posix/src/pthreadattrgetscope.c
+- cpukit/posix/src/pthreadattrgetstack.c
+- cpukit/posix/src/pthreadattrgetstackaddr.c
+- cpukit/posix/src/pthreadattrgetstacksize.c
+- cpukit/posix/src/pthreadattrinit.c
+- cpukit/posix/src/pthreadattrsetdetachstate.c
+- cpukit/posix/src/pthreadattrsetguardsize.c
+- cpukit/posix/src/pthreadattrsetscope.c
+- cpukit/posix/src/pthreadattrsetstack.c
+- cpukit/posix/src/pthreadattrsetstackaddr.c
+- cpukit/posix/src/pthreadattrsetstacksize.c
 - cpukit/posix/src/pthreaddetach.c
 - cpukit/posix/src/pthreadexit.c
 - cpukit/posix/src/pthreadgetnamenp.c
