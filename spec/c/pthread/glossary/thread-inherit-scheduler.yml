@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/pthread-attr-getinheritsched
+term: thread inherit scheduler attribute
+text: |
+  An attribute of a ${thread:/term} that specifies whether its scheduling
+  attributes are inherited from the creator or explicitly set. See
+  ${/ref/std/posix-2024/pthread-attr-getinheritsched:/name}. This attribute can
+  be set to ${../if/inherit-sched:/name} or ${../if/explicit-sched:/name}.
+type: glossary
