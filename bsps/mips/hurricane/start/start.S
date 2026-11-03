@@ -34,6 +34,7 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 #include <rtems/asm.h>
 
 #include <bsp.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if 0
 	.extern _fdata,4		/* this is defined by the linker */
@@ -339,3 +340,5 @@ __sizemem:
 	j	ra
 	nop
 	.end	__sizemem
+
+	RTEMS_ELF_NOTES

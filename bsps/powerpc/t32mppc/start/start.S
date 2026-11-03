@@ -30,6 +30,7 @@
 #include <rtems/score/percpu.h>
 #include <libcpu/powerpc-utility.h>
 #include <bsp/vectors.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	.globl _start
 	.globl bsp_exc_vector_base
@@ -208,3 +209,5 @@ bsp_exc_vector_base:
 	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
 	li	r3, 35
 	b	ppc_exc_fatal_normal
+
+	RTEMS_ELF_NOTES

@@ -42,6 +42,7 @@
 #include <rtems/asm.h>
 #include <rtems/score/cpu.h>
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /*----------------------------------------------------------------------------+
 | Size of heap and stack:
@@ -337,3 +338,5 @@ SYM (no_sse3_msg) :
 END_DATA
 
 END
+
+	RTEMS_ELF_NOTES

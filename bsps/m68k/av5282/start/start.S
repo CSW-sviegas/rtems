@@ -37,6 +37,7 @@
 
 #include <bsp.h>
 #include <rtems/asm.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #define SRAM_SIZE (64*1024)
 #define DEFAULT_IPSBAR  0x40000000
@@ -411,3 +412,4 @@ END_DATA_DCL
 
 END
 
+    RTEMS_ELF_NOTES

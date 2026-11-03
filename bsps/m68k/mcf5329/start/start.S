@@ -34,6 +34,7 @@
  */
 
 #include <rtems/asm.h>
+#include <rtems/score/elfnotesbuild.h>
 
 BEGIN_CODE
 
@@ -394,3 +395,4 @@ END_DATA_DCL
 
 END
 
+    RTEMS_ELF_NOTES

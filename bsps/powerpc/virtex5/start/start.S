@@ -62,6 +62,7 @@
 #include <rtems/asm.h>
 #include <rtems/powerpc/powerpc.h>
 #include <rtems/powerpc/registers.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #define   V_TS_SZ_I    0x0290      // V,TS=0(Inst),SIZE=9,TID=0
 #define   V_TS_SZ_D    0x0390      // V,TS=1(Data),SIZE=9,TID=0
@@ -453,3 +454,5 @@ tlbSetup:
         bne     2b
 
         blr
+
+        RTEMS_ELF_NOTES

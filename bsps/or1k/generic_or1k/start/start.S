@@ -26,6 +26,7 @@
  */
 
 #include <bsp/linker-symbols.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /* The following macro defines the first instructions every exception
  * should execute before jumping to its handler function from the
@@ -199,3 +200,5 @@ _end_clear_bss:
 
 unhandled_exception:
   l.nop
+
+  RTEMS_ELF_NOTES

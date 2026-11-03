@@ -30,6 +30,7 @@
 #include <bspopts.h>
 
 #include <libcpu/powerpc-utility.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	.globl _start
 	.globl virtex_exc_vector_base
@@ -125,3 +126,5 @@ jump_to_start:
 	mtctr	r3
 	bctr
 	b	jump_to_start
+
+	RTEMS_ELF_NOTES

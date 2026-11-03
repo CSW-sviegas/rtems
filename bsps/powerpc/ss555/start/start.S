@@ -56,6 +56,7 @@
 #include <rtems/powerpc/registers.h>
 
 #include <bsp.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /*
  *  The initial stack is set to the top of the internal RAM.
@@ -394,3 +395,5 @@ initregs:
 	blr			/* return */
 
 .L_text_e:
+
+	RTEMS_ELF_NOTES

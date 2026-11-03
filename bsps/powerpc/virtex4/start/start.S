@@ -64,6 +64,7 @@
 
 #include <rtems/asm.h>
 #include <rtems/powerpc/powerpc.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /*
  *  The virtex ELF link scripts support some special sections:
@@ -328,3 +329,5 @@ startupBL:
         li      r3,0                /* argc */
         .extern SYM (boot_card)
         b       SYM (boot_card)
+
+        RTEMS_ELF_NOTES

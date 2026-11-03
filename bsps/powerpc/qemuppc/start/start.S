@@ -1,5 +1,6 @@
 #include <rtems/score/cpu.h>
 #include <rtems/powerpc/powerpc.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	.global _start
 
@@ -38,3 +39,5 @@ __eabi:
 _reset:
 	b _start
 	.size _reset, . - _reset
+
+	RTEMS_ELF_NOTES

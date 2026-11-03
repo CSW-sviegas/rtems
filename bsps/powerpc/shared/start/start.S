@@ -36,6 +36,7 @@
 #include <libcpu/io.h>
 #include <libcpu/bat.h>
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #define SYNC \
 	sync; \
@@ -217,3 +218,5 @@ flush_tlbs:
 	bgt	1b
 	sync
 	blr
+
+	RTEMS_ELF_NOTES

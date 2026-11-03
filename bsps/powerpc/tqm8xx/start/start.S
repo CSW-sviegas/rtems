@@ -36,6 +36,7 @@
 #include <rtems/powerpc/cache.h>
 #include <bsp.h>
 #include <mpc8xx.h>
+#include <rtems/score/elfnotesbuild.h>
 
 .extern boot_card
 
@@ -300,3 +301,5 @@ mpc8xx_zero_4_tail:
 	blr
 
 end_reloc_startup:
+
+	RTEMS_ELF_NOTES

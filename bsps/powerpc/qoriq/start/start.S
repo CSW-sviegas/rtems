@@ -40,6 +40,7 @@
 #include <libcpu/powerpc-utility.h>
 
 #include <bsp/vectors.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if (QORIQ_INITIAL_MSR & MSR_FP) != 0
 #define INITIALIZE_FPU
@@ -555,3 +556,5 @@ bsp_exc_vector_base:
 
 /* Symbol provided for debugging and tracing */
 bsp_exc_vector_end:
+
+	RTEMS_ELF_NOTES
