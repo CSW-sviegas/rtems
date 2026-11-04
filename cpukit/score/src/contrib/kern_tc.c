@@ -1523,7 +1523,6 @@ unlock:
 #endif /* __rtems__ */
 }
 
-#ifdef RTEMS_PPS_SYNC
 /* Report the frequency of the current timecounter. */
 uint64_t
 tc_getfrequency(void)
@@ -1531,7 +1530,6 @@ tc_getfrequency(void)
 
 	return (timehands->th_counter->tc_frequency);
 }
-#endif
 
 #ifndef __rtems__
 static bool
