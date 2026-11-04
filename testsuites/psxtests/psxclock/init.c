@@ -375,11 +375,11 @@ static rtems_task Init( rtems_task_argument argument )
   rtems_test_assert( sc == -1 );
   rtems_test_assert( errno == EINVAL );
 
-  puts( "Init: clock_getres - EINVAL (NULL resolution)" );
+  puts( "Init: clock_getres - SUCCESSFUL (NULL resolution)" );
   errno = 0;
   sc = clock_getres( CLOCK_REALTIME, NULL );
-  rtems_test_assert( sc == -1 );
-  rtems_test_assert( errno == EINVAL );
+  rtems_test_assert( sc == 0 );
+  rtems_test_assert( errno == 0 );
 
   puts( "Init: clock_getres - SUCCESSFUL" );
   sc = clock_getres( CLOCK_REALTIME, &tv );
