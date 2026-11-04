@@ -27976,6 +27976,81 @@ archive-patches:
     \ (EN=1) */\n+      res = 0x80000000;\n+      break;\n     case 4:\n       /*\
     \ Status */\n       res = 0x00502803;\n-- \n2.53.0\n\n"
   type: inline
+- enabled-by: true
+  patch: "From c96b46d0dc14af7507fb5621b911c81a10f4277d Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Wed, 4 Nov 2026\
+    \ 02:39:08 +0100\nSubject: [PATCH 90/91] l2c: Report the scrubber workaround set\n\
+    \nThe access control register of the L2 cache read with the SH and DSC\nfields\
+    \ cleared.  The GR740 manual requires both fields set for correct\noperation,\
+    \ see erratum 43.2.3.  A GR740 test which checks that the boot\nloader set them\
+    \ cannot pass on the simulator.\n\nAnswer the access control register with SH\
+    \ and DSC set, as the boot\nloader of a GR740 leaves it.\n\nAssisted-by: Claude:claude-opus-5-5\
+    \ claude-code\nSigned-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n\
+    ---\n grlib.c | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\n\ndiff\
+    \ --git a/grlib.c b/grlib.c\nindex 8f5d935..df4c3fd 100644\n--- a/grlib.c\n+++\
+    \ b/grlib.c\n@@ -268,8 +268,8 @@ grlib_l2c_read (uint32 addr, uint32 *data)\n\
+    \       res = 0x00502803;\n       break;\n     case 0x3C:\n-      /* Access control\
+    \ (128WF=1, SPLIT=1) */\n-      res = 0x00000012;\n+      /* Access control (DSC=1,\
+    \ SH=1, 128WF=1, SPLIT=1) */\n+      res = 0x00006012;\n       break;\n     default:\n\
+    \       res = 0;\n-- \n2.53.0\n\n"
+  type: inline
+- enabled-by: true
+  patch: "From 0f5f23d2281c28564df7719e8d4abea141bc1aa6 Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Wed, 4 Nov 2026\
+    \ 02:40:07 +0100\nSubject: [PATCH 91/91] leon3: Model the FTMCTRL configuration\
+    \ registers\n\nThe LEON3 machine had no memory controller registers.  A read of\
+    \ MCFG2\nat 0x80000004 returned zero.  A GR712RC test which checks that the boot\n\
+    loader set the MCFG2.TRP workaround of erratum 1.7.9 cannot pass on the\nsimulator.\n\
+    \nAdd the four configuration registers of the FTMCTRL at APB address\n0x80000000\
+    \ with a plug and play entry.  MCFG2 holds the value which a\nGR712RC boot loader\
+    \ leaves.  The RISC-V variant of the machine stays\nunchanged.\n\nAssisted-by:\
+    \ Claude:claude-opus-5-5 claude-code\nSigned-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n\
+    ---\n grlib.c | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\
+    \ grlib.h |  4 +++-\n leon3.c |  4 ++++\n 3 files changed, 69 insertions(+), 1\
+    \ deletion(-)\n\ndiff --git a/grlib.c b/grlib.c\nindex df4c3fd..bb9801a 100644\n\
+    --- a/grlib.c\n+++ b/grlib.c\n@@ -1330,6 +1330,68 @@ const struct grlib_ipcore\
+    \ apbuart = { apbuart_init, apbuart_reset,\n \t\t\t\t      apbuart_read, apbuart_write,\n\
+    \ \t\t\t\t      apbuart_add };\n \n+/* ------------------- FTMCTRL -----------------------*/\n\
+    +\n+/* MCFG2 as a GR712RC boot loader leaves it.  It enables the SDRAM refresh,\n\
+    +   the SDRAM and the read-modify-write cycles.  It disables the SRAM.  The RAM\n\
+    +   width is 32 bits.  The tRP is three clocks, which is the workaround of\n+\
+    \   GR712RC erratum 1.7.9. */\n+#define FTMCTRL_MCFG2_BOOT 0xC0006060\n+\n+/*\
+    \ Configuration registers MCFG1 to MCFG4.  The memory itself is modelled by\n\
+    +   SDCTRL and SRCTRL.  The simulator resets the cores before it adds them, so\n\
+    +   the initializer holds the boot values as well. */\n+static uint32 ftmctrl_regs[4]\
+    \ = { 0, FTMCTRL_MCFG2_BOOT, 0, 0 };\n+\n+static void\n+ftmctrl_reset (void)\n\
+    +{\n+  ftmctrl_regs[0] = 0;\n+  ftmctrl_regs[1] = FTMCTRL_MCFG2_BOOT;\n+  ftmctrl_regs[2]\
+    \ = 0;\n+  ftmctrl_regs[3] = 0;\n+}\n+\n+static int\n+ftmctrl_read (uint32 addr,\
+    \ uint32 *data)\n+{\n+  if (addr < sizeof (ftmctrl_regs))\n+    *data = ftmctrl_regs[addr\
+    \ >> 2];\n+  else\n+    *data = 0;\n+\n+  return 1;\n+}\n+\n+static int\n+ftmctrl_write\
+    \ (uint32 addr, uint32 *data, uint32 sz)\n+{\n+  if (addr < sizeof (ftmctrl_regs))\n\
+    +    {\n+      uint32 value = *data;\n+\n+      /* The SDRAM command field of\
+    \ MCFG2 reads zero after the command */\n+      if (addr == 4)\n+\tvalue &= ~0x00180000U;\n\
+    +\n+      ftmctrl_regs[addr >> 2] = value;\n+    }\n+\n+  return 1;\n+}\n+\n+static\
+    \ void\n+ftmctrl_add (int irq, uint32 addr, uint32 mask)\n+{\n+  grlib_apbpp_add\
+    \ (GRLIB_PP_ID (VENDOR_GAISLER, GAISLER_FTMCTRL, 0, 0),\n+\t\t   GRLIB_PP_APBADDR\
+    \ (addr, mask));\n+  if (sis_verbose)\n+    printf (\" FTMCTRL memory controller\
+    \          0x%08x\\n\", addr);\n+}\n+\n+const struct grlib_ipcore ftmctrl = {\
+    \ NULL, ftmctrl_reset, ftmctrl_read,\n+\t\t\t\t      ftmctrl_write, ftmctrl_add\
+    \ };\n+\n /* ------------------- SDCTRL -----------------------*/\n \n /* Store\
+    \ data in host byte order.  MEM points to the beginning of the\ndiff --git a/grlib.h\
+    \ b/grlib.h\nindex a1720e2..95c9437 100644\n--- a/grlib.h\n+++ b/grlib.h\n@@ -42,6\
+    \ +42,7 @@\n #define GAISLER_GPTIMER 0x011\n #define GAISLER_GRETH\t0x01D\n #define\
+    \ GAISLER_L2C\t0x04B\n+#define GAISLER_FTMCTRL 0x054\n #define ESA_MCTRL\t0x00F\n\
+    \ #define CONTRIB_NS16550 0x050\n #define CONTRIB_CLINT\t0x051\n@@ -114,4 +115,5\
+    \ @@ extern void plic_irq (int irq);\n extern void plic_configure (int sources,\
+    \ int contexts_per_hart,\n \t\t\t    uint32 prio_mask);\n extern const struct\
+    \ grlib_ipcore gptimer, irqmp, apbuart, apbmst, dsu, greth,\n-    l2c, leon3s,\
+    \ leon5s, srctrl, ns16550, clint, plic, sdctrl, s5test;\n+    l2c, leon3s, leon5s,\
+    \ srctrl, ns16550, clint, plic, sdctrl, s5test,\n+    ftmctrl;\ndiff --git a/leon3.c\
+    \ b/leon3.c\nindex 6273ebd..3d50056 100644\n--- a/leon3.c\n+++ b/leon3.c\n@@ -76,6\
+    \ +76,10 @@ init_sim (void)\n   grlib_ahbs_add (&sdctrl, 0, RAM_START, RAM_MASKPP);\n\
+    \   grlib_ahbs_add (&dsu, 0, 0x90000000, 0xFFF);\n \n+  /* The memory controller\
+    \ of the GR712RC */\n+  if (archtype == CPU_SPARC)\n+    grlib_apb_add (&ftmctrl,\
+    \ 0, APBSTART, 0xFFF);\n+\n   grlib_apb_add (&apbuart, 3, APBSTART + 0x100, 0xFFF);\n\
+    \   grlib_apb_add (&irqmp, 0, APBSTART + 0x200, 0xFFF);\n   grlib_apb_add (&gptimer,\
+    \ 8, APBSTART + 0x300, 0xFFF);\n-- \n2.53.0\n\n"
+  type: inline
 archive-url: https://gitlab.rtems.org/rtems/tools/rtems-sis/-/archive/551bdcd4bcda1d1795b3a19a8cbe192c960d7b84/sis-551bdcd4bcda1d1795b3a19a8cbe192c960d7b84.tar.bz2
 copyrights:
 - Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
