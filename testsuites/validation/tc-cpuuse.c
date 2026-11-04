@@ -35,8 +35,10 @@
 #include "config.h"
 #endif
 
+#include <time.h>
 #include <rtems/cpuuse.h>
 #include <rtems/score/threadimpl.h>
+#include <rtems/score/todimpl.h>
 
 #include "tx-support.h"
 
@@ -55,6 +57,10 @@
  *
  *   - Check that we have a non-zero CPU usage. Reset the CPU usage. Check that
  *     it was cleared to zero.
+ *
+ *   - Reset the CPU usage. Check that clock_gettime() measures the time of the
+ *     CLOCK_PROCESS_CPUTIME_ID clock from the CPU usage reset point which the
+ *     reset established.
  *
  *   - Clean up all used resources.
  *
@@ -138,6 +144,33 @@ static void RtemsCpuuseValCpuuse_Action_0( void )
 
   T_eq_i64( _Thread_Get_CPU_time_used_after_last_reset( other ), 0 );
   T_eq_i64( _Thread_Get_CPU_time_used( other ), cpu_usage_other );
+
+  /*
+   * Reset the CPU usage. Check that clock_gettime() measures the time of the
+   * CLOCK_PROCESS_CPUTIME_ID clock from the CPU usage reset point which the
+   * reset established.
+   */
+  struct timespec   ts;
+  struct timespec   expected;
+  Timestamp_Control reset_point;
+  Timestamp_Control uptime;
+  Timestamp_Control elapsed;
+  uint32_t          counter;
+
+  counter = GetTimecountCounter();
+  _TOD_Get_uptime( &reset_point );
+  SetTimecountCounter( counter );
+  rtems_cpu_usage_reset();
+
+  counter = GetTimecountCounter();
+  _TOD_Get_uptime( &uptime );
+  SetTimecountCounter( counter );
+  T_eq_int( clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &ts ), 0 );
+
+  _Timestamp_Subtract( &reset_point, &uptime, &elapsed );
+  _Timestamp_To_timespec( &elapsed, &expected );
+  T_eq_i64( ts.tv_sec, expected.tv_sec );
+  T_eq_long( ts.tv_nsec, expected.tv_nsec );
 
   /*
    * Clean up all used resources.
