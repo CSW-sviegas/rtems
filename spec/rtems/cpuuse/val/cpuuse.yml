@@ -74,6 +74,35 @@ test-actions:
     - role: validation
       uid: ../req/reset
   - brief: |
+      Reset the CPU usage. Check that ${/c/time/if/clock-gettime:/name} measures the
+      time of the ${/c/time/if/clock-process-cputime-id:/name} clock from the CPU
+      usage reset point which the reset established.
+    code: |
+      struct timespec   ts;
+      struct timespec   expected;
+      Timestamp_Control reset_point;
+      Timestamp_Control uptime;
+      Timestamp_Control elapsed;
+      uint32_t          counter;
+
+      counter = GetTimecountCounter();
+      _TOD_Get_uptime( &reset_point );
+      SetTimecountCounter( counter );
+      rtems_cpu_usage_reset();
+
+      counter = GetTimecountCounter();
+      _TOD_Get_uptime( &uptime );
+      SetTimecountCounter( counter );
+      T_eq_int( clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &ts ), 0 );
+
+      _Timestamp_Subtract( &reset_point, &uptime, &elapsed );
+      _Timestamp_To_timespec( &elapsed, &expected );
+      T_eq_i64( ts.tv_sec, expected.tv_sec );
+      T_eq_long( ts.tv_nsec, expected.tv_nsec );
+    links:
+    - role: validation
+      uid: ../req/reset-point-directive
+  - brief: |
       Clean up all used resources.
     code: |
       DeleteTask( id );
@@ -88,6 +117,8 @@ test-header: null
 test-includes:
 - rtems/cpuuse.h
 - rtems/score/threadimpl.h
+- rtems/score/todimpl.h
+- time.h
 test-local-includes:
 - tx-support.h
 test-setup: null
