@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  Each processor shall start to account processor time to the threads which it
+  executes at the time point from which ${/rtems/clock/if/get-uptime:/name}
+  measures the elapsed time.
+type: requirement
