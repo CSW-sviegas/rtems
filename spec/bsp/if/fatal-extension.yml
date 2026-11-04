@@ -6,7 +6,7 @@ index-entries: []
 interface-type: unspecified-function
 links:
 - role: interface-placement
-  uid: fatal-extension-header
+  uid: default-initial-extension-header
 - role: interface-ingroup
   uid: group-fatal
 name: bsp_fatal_extension
