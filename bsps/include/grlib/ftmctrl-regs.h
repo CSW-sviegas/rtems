@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -163,6 +163,139 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBFTMCTRLMCFG2 \
+ *   Memory configuration register 2 (MCFG2)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define FTMCTRL_MCFG2_SDRF 0x80000000U
+
+#define FTMCTRL_MCFG2_TRP 0x40000000U
+
+#define FTMCTRL_MCFG2_SDRAM_TRFC_SHIFT 27
+#define FTMCTRL_MCFG2_SDRAM_TRFC_MASK  0x38000000U
+#define FTMCTRL_MCFG2_SDRAM_TRFC_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_SDRAM_TRFC_MASK ) >> \
+    FTMCTRL_MCFG2_SDRAM_TRFC_SHIFT )
+#define FTMCTRL_MCFG2_SDRAM_TRFC_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_SDRAM_TRFC_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_TRFC_SHIFT ) & \
+      FTMCTRL_MCFG2_SDRAM_TRFC_MASK ) )
+#define FTMCTRL_MCFG2_SDRAM_TRFC( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_TRFC_SHIFT ) & \
+    FTMCTRL_MCFG2_SDRAM_TRFC_MASK )
+
+#define FTMCTRL_MCFG2_TCAS 0x4000000U
+
+#define FTMCTRL_MCFG2_SDRAM_BANKSZ_SHIFT 23
+#define FTMCTRL_MCFG2_SDRAM_BANKSZ_MASK  0x3800000U
+#define FTMCTRL_MCFG2_SDRAM_BANKSZ_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_SDRAM_BANKSZ_MASK ) >> \
+    FTMCTRL_MCFG2_SDRAM_BANKSZ_SHIFT )
+#define FTMCTRL_MCFG2_SDRAM_BANKSZ_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_SDRAM_BANKSZ_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_BANKSZ_SHIFT ) & \
+      FTMCTRL_MCFG2_SDRAM_BANKSZ_MASK ) )
+#define FTMCTRL_MCFG2_SDRAM_BANKSZ( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_BANKSZ_SHIFT ) & \
+    FTMCTRL_MCFG2_SDRAM_BANKSZ_MASK )
+
+#define FTMCTRL_MCFG2_SDRAM_COLSZ_SHIFT 21
+#define FTMCTRL_MCFG2_SDRAM_COLSZ_MASK  0x600000U
+#define FTMCTRL_MCFG2_SDRAM_COLSZ_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_SDRAM_COLSZ_MASK ) >> \
+    FTMCTRL_MCFG2_SDRAM_COLSZ_SHIFT )
+#define FTMCTRL_MCFG2_SDRAM_COLSZ_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_SDRAM_COLSZ_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_COLSZ_SHIFT ) & \
+      FTMCTRL_MCFG2_SDRAM_COLSZ_MASK ) )
+#define FTMCTRL_MCFG2_SDRAM_COLSZ( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_COLSZ_SHIFT ) & \
+    FTMCTRL_MCFG2_SDRAM_COLSZ_MASK )
+
+#define FTMCTRL_MCFG2_SDRAM_CMD_SHIFT 19
+#define FTMCTRL_MCFG2_SDRAM_CMD_MASK  0x180000U
+#define FTMCTRL_MCFG2_SDRAM_CMD_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_SDRAM_CMD_MASK ) >> \
+    FTMCTRL_MCFG2_SDRAM_CMD_SHIFT )
+#define FTMCTRL_MCFG2_SDRAM_CMD_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_SDRAM_CMD_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_CMD_SHIFT ) & \
+      FTMCTRL_MCFG2_SDRAM_CMD_MASK ) )
+#define FTMCTRL_MCFG2_SDRAM_CMD( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_SDRAM_CMD_SHIFT ) & \
+    FTMCTRL_MCFG2_SDRAM_CMD_MASK )
+
+#define FTMCTRL_MCFG2_D64 0x40000U
+
+#define FTMCTRL_MCFG2_SDPB 0x20000U
+
+#define FTMCTRL_MCFG2_SE 0x4000U
+
+#define FTMCTRL_MCFG2_SI 0x2000U
+
+#define FTMCTRL_MCFG2_RAM_BANK_SIZE_SHIFT 9
+#define FTMCTRL_MCFG2_RAM_BANK_SIZE_MASK  0x1e00U
+#define FTMCTRL_MCFG2_RAM_BANK_SIZE_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_RAM_BANK_SIZE_MASK ) >> \
+    FTMCTRL_MCFG2_RAM_BANK_SIZE_SHIFT )
+#define FTMCTRL_MCFG2_RAM_BANK_SIZE_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_RAM_BANK_SIZE_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_RAM_BANK_SIZE_SHIFT ) & \
+      FTMCTRL_MCFG2_RAM_BANK_SIZE_MASK ) )
+#define FTMCTRL_MCFG2_RAM_BANK_SIZE( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_RAM_BANK_SIZE_SHIFT ) & \
+    FTMCTRL_MCFG2_RAM_BANK_SIZE_MASK )
+
+#define FTMCTRL_MCFG2_RBRDY 0x80U
+
+#define FTMCTRL_MCFG2_RMW 0x40U
+
+#define FTMCTRL_MCFG2_RAM_WIDTH_SHIFT 4
+#define FTMCTRL_MCFG2_RAM_WIDTH_MASK  0x30U
+#define FTMCTRL_MCFG2_RAM_WIDTH_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_RAM_WIDTH_MASK ) >> \
+    FTMCTRL_MCFG2_RAM_WIDTH_SHIFT )
+#define FTMCTRL_MCFG2_RAM_WIDTH_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_RAM_WIDTH_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_RAM_WIDTH_SHIFT ) & \
+      FTMCTRL_MCFG2_RAM_WIDTH_MASK ) )
+#define FTMCTRL_MCFG2_RAM_WIDTH( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_RAM_WIDTH_SHIFT ) & \
+    FTMCTRL_MCFG2_RAM_WIDTH_MASK )
+
+#define FTMCTRL_MCFG2_RAM_WRITE_WS_SHIFT 2
+#define FTMCTRL_MCFG2_RAM_WRITE_WS_MASK  0xcU
+#define FTMCTRL_MCFG2_RAM_WRITE_WS_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_RAM_WRITE_WS_MASK ) >> \
+    FTMCTRL_MCFG2_RAM_WRITE_WS_SHIFT )
+#define FTMCTRL_MCFG2_RAM_WRITE_WS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_RAM_WRITE_WS_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_RAM_WRITE_WS_SHIFT ) & \
+      FTMCTRL_MCFG2_RAM_WRITE_WS_MASK ) )
+#define FTMCTRL_MCFG2_RAM_WRITE_WS( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_RAM_WRITE_WS_SHIFT ) & \
+    FTMCTRL_MCFG2_RAM_WRITE_WS_MASK )
+
+#define FTMCTRL_MCFG2_RAM_READ_WS_SHIFT 0
+#define FTMCTRL_MCFG2_RAM_READ_WS_MASK  0x3U
+#define FTMCTRL_MCFG2_RAM_READ_WS_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG2_RAM_READ_WS_MASK ) >> \
+    FTMCTRL_MCFG2_RAM_READ_WS_SHIFT )
+#define FTMCTRL_MCFG2_RAM_READ_WS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG2_RAM_READ_WS_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG2_RAM_READ_WS_SHIFT ) & \
+      FTMCTRL_MCFG2_RAM_READ_WS_MASK ) )
+#define FTMCTRL_MCFG2_RAM_READ_WS( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG2_RAM_READ_WS_SHIFT ) & \
+    FTMCTRL_MCFG2_RAM_READ_WS_MASK )
+
+/** @} */
+
+/**
  * @defgroup RTEMSDeviceGRLIBFTMCTRLMCFG3 \
  *   Memory configuration register 3 (MCFG3)
  *
@@ -270,7 +403,10 @@ typedef struct ftmctrl {
    */
   uint32_t mcfg1;
 
-  uint32_t reserved_4_8;
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG2.
+   */
+  uint32_t mcfg2;
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG3.
