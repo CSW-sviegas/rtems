@@ -61,14 +61,14 @@ int clock_getres( clockid_t clock_id, struct timespec *res )
     case CLOCK_REALTIME:
     case CLOCK_PROCESS_CPUTIME_ID:
     case CLOCK_THREAD_CPUTIME_ID: {
-      uint64_t freq = _Timecounter_Get_frequency();
+      uint64_t ns = UINT64_C( 1000000000 ) / _Timecounter_Get_frequency();
 
-      res->tv_sec = 0;
-      res->tv_nsec = (uint32_t) ( UINT64_C( 1000000000 ) / freq );
-
-      if ( res->tv_nsec == 0 ) {
-        res->tv_nsec = 1;
+      if ( ns == 0 ) {
+        ns = 1;
       }
+
+      res->tv_sec = (time_t) ( ns / 1000000000 );
+      res->tv_nsec = (long) ( ns % 1000000000 );
       break;
     }
 
