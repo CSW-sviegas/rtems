@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -65,7 +65,7 @@ post-conditions:
   - name: InheritMtxSeizeTry
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
-      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
       ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
       ${/score/mtx/req/seize-try:/test-run}( &ctx->tq_mtx_ctx );
@@ -76,7 +76,7 @@ post-conditions:
   - name: InheritMtxSeizeWait
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
-      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
       ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
       ${/score/mtx/req/seize-wait:/test-run}( &ctx->tq_mtx_ctx );
