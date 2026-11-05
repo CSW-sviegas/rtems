@@ -1,0 +1,877 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getattr-np
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- path: man3/pthread_getattr_np.3.html
+  role: reference
+  uid: /ref/man/linux
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getattr-np:/name} shall be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getattr-np:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  - name: Srch
+    test-code: |
+      T_eq_int( ctx->status, ESRCH );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getattr-np:/name} shall be
+      ${/c/errno/if/esrch:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Object
+  states:
+  - name: Zero
+    test-code: |
+      pthread_attr_t zero;
+
+      memset( &zero, 0, sizeof( zero ) );
+      T_eq_mem( &ctx->attr_obj, &zero, sizeof( zero ) );
+    text: |
+      Each byte of the object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( ctx->attr_obj.is_initialized, 1 );
+    text: |
+      The object referenced by the ${../if/getattr-np:/params[1]/name} parameter
+      shall be an initialized ${../glossary/thread:/term} attributes object.
+  test-epilogue: null
+  test-prologue: null
+- name: StackAddr
+  states:
+  - name: Small
+    test-code: |
+      T_eq_ptr( ctx->attr_obj.stackaddr, storage_small );
+    text: |
+      The ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be the begin of the stack
+      of the ${../glossary/thread:/term}.
+  - name: Large
+    test-code: |
+      T_eq_ptr( ctx->attr_obj.stackaddr, storage_large );
+    text: |
+      The ${../glossary/thread-stack-address:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be the begin of the stack
+      of the ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: StackSize
+  states:
+  - name: Small
+    test-code: |
+      CheckStackSize( ctx, storage_small, sizeof( storage_small ) );
+    text: |
+      The ${../glossary/thread-stack-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be the size of the stack of the ${../glossary/thread:/term}.
+  - name: Large
+    test-code: |
+      CheckStackSize( ctx, storage_large, sizeof( storage_large ) );
+    text: |
+      The ${../glossary/thread-stack-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be the size of the stack of the ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: DetachState
+  states:
+  - name: Joinable
+    test-code: |
+      T_eq_int( ctx->attr_obj.detachstate, PTHREAD_CREATE_JOINABLE );
+    text: |
+      The ${../glossary/thread-detach-state:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be ${../if/create-joinable:/name}.
+  - name: Detached
+    test-code: |
+      T_eq_int( ctx->attr_obj.detachstate, PTHREAD_CREATE_DETACHED );
+    text: |
+      The ${../glossary/thread-detach-state:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be ${../if/create-detached:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: InheritSched
+  states:
+  - name: Explicit
+    test-code: |
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_EXPLICIT_SCHED );
+    text: |
+      The ${../glossary/thread-inherit-scheduler:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be
+      ${../if/explicit-sched:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Policy
+  states:
+  - name: Fifo
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_FIFO );
+    text: |
+      The ${/c/sched/glossary/policy:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be ${/c/sched/if/fifo:/name}.
+  - name: Other
+    test-code: |
+      T_eq_int( ctx->attr_obj.schedpolicy, SCHED_OTHER );
+    text: |
+      The ${/c/sched/glossary/policy:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be ${/c/sched/if/other:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Priority
+  states:
+  - name: High
+    test-code: |
+      T_eq_int(
+        ctx->attr_obj.schedparam.sched_priority,
+        (int) ( ctx->maximum_priority - PRIO_HIGH )
+      );
+    text: |
+      The priority of the scheduling parameters of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be the maximum priority of the
+      ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term} minus the
+      high ${/glossary/priority-real:/term}.
+  - name: Low
+    test-code: |
+      T_eq_int(
+        ctx->attr_obj.schedparam.sched_priority,
+        (int) ( ctx->maximum_priority - PRIO_LOW )
+      );
+    text: |
+      The priority of the scheduling parameters of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be the maximum priority of the
+      ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term} minus the
+      low ${/glossary/priority-real:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Scope
+  states:
+  - name: Process
+    test-code: |
+      T_eq_int( ctx->attr_obj.contentionscope, PTHREAD_SCOPE_PROCESS );
+    text: |
+      The ${../glossary/thread-contention-scope:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/getattr-np:/params[1]/name} parameter shall be
+      ${../if/scope-process:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: GuardSize
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->attr_obj.guardsize, 0 );
+    text: |
+      The ${../glossary/thread-guard-size:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/getattr-np:/params[1]/name}
+      parameter shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Affinity
+  states:
+  - name: All
+    test-code: |
+      cpu_set_t expected;
+      uint32_t  cpu_max;
+      uint32_t  cpu_index;
+
+      CPU_ZERO( &expected );
+      cpu_max = rtems_scheduler_get_processor_maximum();
+
+      for ( cpu_index = 0; cpu_index < cpu_max; ++cpu_index ) {
+        CPU_SET( (int) cpu_index, &expected );
+      }
+
+      CheckAffinity( &ctx->attr_obj, &expected );
+    text: |
+      The processor affinity set of the ${../glossary/thread:/term} attributes object
+      referenced by the ${../if/getattr-np:/params[1]/name} parameter shall be a
+      ${/c/if/cpu_set_t:/name} object which contains each processor of the system and
+      no other processor.
+  - name: One
+    test-code: |
+      cpu_set_t expected;
+
+      CPU_ZERO( &expected );
+      CPU_SET( 0, &expected );
+      CheckAffinity( &ctx->attr_obj, &expected );
+    text: |
+      The processor affinity set of the ${../glossary/thread:/term} attributes object
+      referenced by the ${../if/getattr-np:/params[1]/name} parameter shall be a
+      ${/c/if/cpu_set_t:/name} object which contains only the processor with index
+      zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../if/getattr-np:/params[1]/name} parameter references an object of
+      type ${/c/if/pthread_attr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/getattr-np:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Thread
+  states:
+  - name: Task
+    test-code: |
+      ctx->thread_is_task = true;
+    text: |
+      While the ${../if/getattr-np:/params[0]/name} parameter is associated with a
+      ${../glossary/thread:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->thread_is_task = false;
+    text: |
+      While the ${../if/getattr-np:/params[0]/name} parameter is associated with no
+      ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: DetachState
+  states:
+  - name: Joinable
+    test-code: |
+      ctx->detached = false;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a
+      ${../glossary/joinable-thread:/term}.
+  - name: Detached
+    test-code: |
+      ctx->detached = true;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a
+      ${../glossary/detached-thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Timeslice
+  states:
+  - name: 'No'
+    test-code: |
+      ctx->modes = RTEMS_NO_TIMESLICE;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a started
+      ${/glossary/task:/term} with the ${/rtems/mode/if/no-timeslice:/name} mode.
+  - name: 'Yes'
+    test-code: |
+      ctx->modes = RTEMS_TIMESLICE;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a started
+      ${/glossary/task:/term} with the ${/rtems/mode/if/timeslice:/name} mode.
+  test-epilogue: null
+  test-prologue: null
+- name: Priority
+  states:
+  - name: High
+    test-code: |
+      ctx->priority = PRIO_HIGH;
+    text: |
+      While the ${/glossary/priority-real:/term} of the ${../glossary/thread:/term}
+      associated with the ${../if/getattr-np:/params[0]/name} parameter is the high
+      priority.
+  - name: Low
+    test-code: |
+      ctx->priority = PRIO_LOW;
+    text: |
+      While the ${/glossary/priority-real:/term} of the ${../glossary/thread:/term}
+      associated with the ${../if/getattr-np:/params[0]/name} parameter is the low
+      priority, which is lower than the high priority.
+  test-epilogue: null
+  test-prologue: null
+- name: CurrentPriority
+  states:
+  - name: Real
+    test-code: |
+      ctx->raise_priority = false;
+    text: |
+      While the ${/glossary/priority-current:/term} of the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is equal to its
+      ${/glossary/priority-real:/term}.
+  - name: Raised
+    test-code: |
+      ctx->raise_priority = true;
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter owns a mutex with the
+      ${/rtems/attr/if/priority-ceiling:/name} locking protocol and a ceiling
+      priority which is higher than the ${/glossary/priority-real:/term} of the
+      ${../glossary/thread:/term}, so that its ${/glossary/priority-current:/term} is
+      higher than its ${/glossary/priority-real:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Stack
+  states:
+  - name: Small
+    test-code: |
+      ctx->storage = storage_small;
+      ctx->storage_size = sizeof( storage_small );
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a ${/glossary/task:/term} with
+      a task storage area of the size which ${/rtems/task/if/storage-size:/name}
+      returns for the maximum thread-local storage size and the minimum stack size of
+      the test suite, aligned up to ${/rtems/task/if/storage-alignment:/name}.
+  - name: Large
+    test-code: |
+      ctx->storage = storage_large;
+      ctx->storage_size = sizeof( storage_large );
+    text: |
+      While the ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter is a ${/glossary/task:/term} with
+      a task storage area of the size which ${/rtems/task/if/storage-size:/name}
+      returns for the maximum thread-local storage size and the minimum stack size of
+      the test suite, aligned up to ${/rtems/task/if/storage-alignment:/name}, plus
+      1024 bytes.
+  test-epilogue: null
+  test-prologue: null
+- name: Affinity
+  states:
+  - name: All
+    test-code: |
+      ctx->one_processor = false;
+    text: |
+      While the ${/glossary/taskprocessoraffinity:/term} of the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter contains each processor of the
+      system.
+  - name: One
+    test-code: |
+      ctx->one_processor = true;
+    text: |
+      While the ${/glossary/taskprocessoraffinity:/term} of the
+      ${../glossary/thread:/term} associated with the
+      ${../if/getattr-np:/params[0]/name} parameter contains only the processor with
+      index zero.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The standard does not contain ${../if/getattr-np:/name}. The Linux manual page
+  pthread_getattr_np(3) describes it: the call initializes the
+  ${../glossary/thread:/term} attributes object so that it contains the actual
+  attribute values of the ${../glossary/thread:/term}. It names
+  ${/c/errno/if/enomem:/name} as the only error. RTEMS stores the processor
+  affinity set in the attributes object and allocates no memory, so it does not
+  return this error. This processor affinity set has the size of
+  ${/c/if/cpu_set_t:/name}, which can contain each processor of every
+  architecture which RTEMS supports. Getting the processor affinity set therefore
+  does not fail, and the function returns no error for it.
+
+  The manual page does not define the behaviour where the
+  ${../if/getattr-np:/params[1]/name} parameter is ${/c/if/null:/name} or where
+  the ${../if/getattr-np:/params[0]/name} parameter is associated with no
+  ${../glossary/thread:/term}. Dimensions Attr and Thread specify the behaviour
+  of RTEMS: it returns ${/c/errno/if/einval:/name} and
+  ${/c/errno/if/esrch:/name}. RTEMS clears the object before it looks up the
+  ${../glossary/thread:/term}, which post-condition Object specifies.
+
+  In RTEMS, the identifier of a ${/glossary/task:/term} is the identifier of a
+  ${../glossary/thread:/term}. The test uses ${/rtems/task/if/construct:/name}
+  for the ${../glossary/thread:/term}, so that the qualified build provides every
+  function of the test. Dimensions DetachState, Timeslice, Priority, Stack and
+  Affinity give each attribute which this function reads two values. The manual
+  page states that a joinable ${../glossary/thread:/term} may have been detached
+  after its creation, which ${../if/detach:/name} does in state Detached. A
+  ${/glossary/task:/term} with the ${/rtems/mode/if/no-timeslice:/name} mode has
+  the ${/c/sched/glossary/policy:/term} ${/c/sched/if/fifo:/name}, and a
+  ${/glossary/task:/term} with the ${/rtems/mode/if/timeslice:/name} mode has the
+  ${/c/sched/glossary/policy:/term} ${/c/sched/if/other:/name}. The system
+  assigns the CPU budget of a ${/glossary/task:/term} when it starts the
+  ${/glossary/task:/term}. A ${/glossary/task:/term} which is not started has the
+  ${/c/sched/glossary/policy:/term} ${/c/sched/if/fifo:/name} in both modes, so
+  pre-condition Timeslice names a started ${/glossary/task:/term}. The priority
+  of the scheduling parameters is the maximum priority of the
+  ${/glossary/scheduler-home:/term} minus the ${/glossary/priority-real:/term}.
+  Dimension CurrentPriority shows that the function does not report the
+  ${/glossary/priority-current:/term}. The ${/glossary/task:/term} starts with
+  the high priority, so that it runs before the call, and gets the
+  ${/glossary/priority-real:/term} of dimension Priority afterwards.
+
+  The stack of the ${../glossary/thread:/term} begins at the begin of the task
+  storage area. It does not contain the ${/glossary/tls:/term} area and the
+  floating-point context of the ${../glossary/thread:/term}, which the system
+  allocates at the end of the task storage area. The stack and the task storage
+  area therefore begin at the same address and differ in size. The test checks
+  the stack size through the address of a local variable of the
+  ${../glossary/thread:/term}, which lies in the stack, and the address of a
+  thread-local object, which lies above the stack in the task storage area. This
+  check does not find a stack size which is a few bytes too small.
+
+  Only ${../if/create:/name} gives a ${../glossary/thread:/term} the
+  ${../glossary/thread-inherit-scheduler:/term} ${../if/inherit-sched:/name}.
+  Only ${../if/create:/name} and the function which sets the scheduling
+  parameters of a ${../glossary/thread:/term} give it a
+  ${/c/sched/glossary/policy:/term} for which the ${../glossary/thread:/term}
+  exhausts its time slice. This item does not cover these values, since the
+  qualified build provides neither function. RTEMS provides no guard area and
+  supports only the ${../glossary/thread-contention-scope:/term}
+  ${../if/scope-process:/name}, so each of these attributes has one value. After
+  the construction of a ${/glossary/task:/term}, its
+  ${/glossary/taskprocessoraffinity:/term} contains each processor of the system.
+  State One of pre-condition Affinity sets it to the processor with index zero
+  before the start. In uniprocessor configurations, both states give the same
+  set, so the item uses state One only in SMP configurations.
+
+  The ${../glossary/thread:/term} attributes object of RTEMS contains further
+  data which no function of RTEMS reads. The item does not specify it. The item
+  does not specify the parameters of the sporadic server policy in the scheduling
+  parameters, which RTEMS writes only where the configuration enables the POSIX
+  API.
+requirement-type: functional
+skip-reasons:
+  OnlyOneProcessor: |
+    In uniprocessor configurations, the processor with index zero is the only
+    processor of the system, so the processor affinity set of state One is the
+    processor affinity set of state All.
+test-action: |
+  if ( ctx->thread_is_task ) {
+    rtems_task_config config;
+
+    memset( &config, 0, sizeof( config ) );
+    config.name = rtems_build_name( 'A', 'T', 'T', 'R' );
+    config.initial_priority = PRIO_HIGH;
+    config.storage_area = ctx->storage;
+    config.storage_size = ctx->storage_size;
+    config.maximum_thread_local_storage_size = TEST_MAXIMUM_TLS_SIZE;
+    config.initial_modes = ctx->modes;
+    config.attributes = TASK_ATTRIBUTES;
+    T_rsc_success( rtems_task_construct( &config, &ctx->task_id ) );
+
+    if ( ctx->one_processor ) {
+      cpu_set_t affinity;
+
+      CPU_ZERO( &affinity );
+      CPU_SET( 0, &affinity );
+      T_rsc_success(
+        rtems_task_set_affinity( ctx->task_id, sizeof( affinity ), &affinity )
+      );
+    }
+
+    StartTask( ctx->task_id, Worker, ctx );
+    (void) ReceiveAnyEvents();
+    SetPriority( ctx->task_id, ctx->priority );
+    ctx->thread = (pthread_t) ctx->task_id;
+
+    if ( ctx->detached ) {
+      T_eno_success( pthread_detach( ctx->thread ) );
+    }
+  } else {
+    ctx->thread = INVALID_ID;
+  }
+
+  ctx->status = pthread_getattr_np( ctx->thread, ctx->attr );
+test-brief: null
+test-cleanup: |
+  if ( ctx->task_id != 0 ) {
+    SendEvents( ctx->task_id, RTEMS_EVENT_0 );
+    (void) ReceiveAnyEvents();
+    DeleteTask( ctx->task_id );
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/getattr-np:/params[0]/name} parameter value.
+  description: null
+  member: pthread_t thread
+- brief: |
+    This member specifies the ${../if/getattr-np:/params[1]/name} parameter value.
+  description: null
+  member: pthread_attr_t *attr
+- brief: |
+    This member contains the return value of the ${../if/getattr-np:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
+- brief: |
+    This member is true, if the ${../if/getattr-np:/params[0]/name} parameter shall
+    be associated with a ${/glossary/task:/term}.
+  description: null
+  member: bool thread_is_task
+- brief: |
+    This member is true, if the ${/glossary/task:/term} shall be a
+    ${../glossary/detached-thread:/term}.
+  description: null
+  member: bool detached
+- brief: |
+    This member is true, if the ${/glossary/taskprocessoraffinity:/term} of the
+    ${/glossary/task:/term} shall contain only the processor with index zero.
+  description: null
+  member: bool one_processor
+- brief: |
+    This member specifies the initial modes of the ${/glossary/task:/term}.
+  description: null
+  member: rtems_mode modes
+- brief: |
+    This member specifies the initial priority of the ${/glossary/task:/term}.
+  description: null
+  member: rtems_task_priority priority
+- brief: |
+    This member specifies the task storage area of the ${/glossary/task:/term}.
+  description: null
+  member: void *storage
+- brief: |
+    This member specifies the size of the task storage area of the
+    ${/glossary/task:/term}.
+  description: null
+  member: size_t storage_size
+- brief: |
+    This member contains the identifier of the ${/glossary/task:/term}.
+  description: null
+  member: rtems_id task_id
+- brief: |
+    This member contains the maximum priority of the
+    ${/glossary/scheduler-home:/term} of the ${/glossary/task:/term}.
+  description: null
+  member: rtems_task_priority maximum_priority
+- brief: |
+    This member is true, if the ${/glossary/task:/term} shall own the mutex.
+  description: null
+  member: bool raise_priority
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member contains the identifier of the mutex with the
+    ${/rtems/attr/if/priority-ceiling:/name} locking protocol.
+  description: null
+  member: rtems_id mutex_id
+- brief: |
+    This member contains the address of a local variable of the
+    ${/glossary/task:/term}.
+  description: null
+  member: uintptr_t stack_object
+- brief: |
+    This member contains the address of a thread-local object of the
+    ${/glossary/task:/term}.
+  description: null
+  member: uintptr_t tls_object
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems.h
+- sched.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->detached = false;
+  ctx->raise_priority = false;
+  ctx->one_processor = false;
+  ctx->modes = RTEMS_NO_TIMESLICE;
+  ctx->priority = PRIO_HIGH;
+  ctx->storage = storage_small;
+  ctx->storage_size = sizeof( storage_small );
+  ctx->task_id = 0;
+  ctx->status = -1;
+test-setup:
+  brief: null
+  code: |
+    ctx->runner_id = rtems_task_self();
+    SetSelfPriority( PRIO_NORMAL );
+    T_rsc_success( rtems_scheduler_get_maximum_priority(
+      GetSelfScheduler(),
+      &ctx->maximum_priority
+    ) );
+    T_rsc_success( rtems_semaphore_create(
+      rtems_build_name( 'M', 'U', 'T', 'X' ),
+      1,
+      RTEMS_BINARY_SEMAPHORE | RTEMS_PRIORITY | RTEMS_PRIORITY_CEILING,
+      PRIO_VERY_HIGH,
+      &ctx->mutex_id
+    ) );
+  description: null
+test-stop: null
+test-support: |
+  #define TASK_ATTRIBUTES RTEMS_DEFAULT_ATTRIBUTES
+
+  #define STORAGE_SIZE_SMALL                             \
+    RTEMS_ALIGN_UP(                                      \
+      RTEMS_TASK_STORAGE_SIZE(                           \
+        TEST_MAXIMUM_TLS_SIZE + TEST_MINIMUM_STACK_SIZE, \
+        TASK_ATTRIBUTES                                  \
+      ),                                                 \
+      RTEMS_TASK_STORAGE_ALIGNMENT                       \
+    )
+
+  #define STORAGE_SIZE_LARGE ( STORAGE_SIZE_SMALL + 1024 )
+
+  RTEMS_ALIGNED( RTEMS_TASK_STORAGE_ALIGNMENT )
+  static char storage_small[ STORAGE_SIZE_SMALL ];
+
+  RTEMS_ALIGNED( RTEMS_TASK_STORAGE_ALIGNMENT )
+  static char storage_large[ STORAGE_SIZE_LARGE ];
+
+  typedef ${.:/test-context-type} Context;
+
+  static _Thread_local volatile int tls_object;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context     *ctx;
+    volatile int stack_object;
+
+    ctx = (Context *) arg;
+    ctx->stack_object = (uintptr_t) &stack_object;
+    ctx->tls_object = (uintptr_t) &tls_object;
+
+    if ( ctx->raise_priority ) {
+      ObtainMutex( ctx->mutex_id );
+    }
+
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+    (void) ReceiveAnyEvents();
+
+    if ( ctx->raise_priority ) {
+      ReleaseMutex( ctx->mutex_id );
+    }
+
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+    SuspendSelf();
+  }
+
+  static void CheckAffinity(
+    const pthread_attr_t *attr,
+    const cpu_set_t      *expected
+  )
+  {
+    T_assert_eq_ptr( attr->affinityset, &attr->affinitysetpreallocated );
+    T_eq_sz( attr->affinitysetsize, sizeof( attr->affinitysetpreallocated ) );
+    T_true( CPU_EQUAL( attr->affinityset, expected ) );
+  }
+
+  static void CheckStackSize(
+    const Context *ctx,
+    const char    *storage,
+    size_t         storage_size
+  )
+  {
+    uintptr_t begin;
+    uintptr_t end;
+
+    begin = (uintptr_t) ctx->attr_obj.stackaddr;
+    end = begin + ctx->attr_obj.stacksize;
+    T_ge_uptr( ctx->stack_object, begin );
+    T_lt_uptr( ctx->stack_object, end );
+    T_ge_uptr( ctx->tls_object, end );
+    T_lt_uptr( ctx->tls_object, (uintptr_t) storage + storage_size );
+  }
+test-target: testsuites/validation/tc-pthread-getattr-np.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteMutex( ctx->mutex_id );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Thread: Invalid
+      then: Srch
+    - else: Ok
+    Object:
+    - if:
+        post-conditions:
+          Status: Srch
+      then: Zero
+    - else: N/A
+    Initialized:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: 'Yes'
+    - else: N/A
+    StackAddr:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Stack
+    - else: N/A
+    StackSize:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Stack
+    - else: N/A
+    DetachState:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: DetachState
+    - else: N/A
+    InheritSched:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Explicit
+    - else: N/A
+    Policy:
+    - if:
+        post-conditions:
+          Status:
+          - Inval
+          - Srch
+      then: N/A
+    - if:
+        pre-conditions:
+          Timeslice: 'No'
+      then: Fifo
+    - else: Other
+    Priority:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Priority
+    - else: N/A
+    Scope:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Process
+    - else: N/A
+    GuardSize:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Zero
+    - else: N/A
+    Affinity:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Affinity
+    - else: N/A
+  pre-conditions:
+    Attr: all
+    Thread: all
+    DetachState:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+    Timeslice:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+    Priority:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+    CurrentPriority:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+    Stack:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+    Affinity:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+          Thread: Task
+- enabled-by: true
+  post-conditions: OnlyOneProcessor
+  pre-conditions:
+    Attr:
+    - Obj
+    Thread:
+    - Task
+    DetachState: all
+    Timeslice: all
+    Priority: all
+    CurrentPriority: all
+    Stack: all
+    Affinity:
+    - One
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Ok
+    Object: N/A
+    Initialized: 'Yes'
+    StackAddr:
+    - specified-by: Stack
+    StackSize:
+    - specified-by: Stack
+    DetachState:
+    - specified-by: DetachState
+    InheritSched: Explicit
+    Policy:
+    - if:
+        pre-conditions:
+          Timeslice: 'No'
+      then: Fifo
+    - else: Other
+    Priority:
+    - specified-by: Priority
+    Scope: Process
+    GuardSize: Zero
+    Affinity: One
+  pre-conditions:
+    Attr:
+    - Obj
+    Thread:
+    - Task
+    DetachState: all
+    Timeslice: all
+    Priority: all
+    CurrentPriority: all
+    Stack: all
+    Affinity:
+    - One
+type: requirement
