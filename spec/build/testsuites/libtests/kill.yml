@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/kill.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/kill.norun.exe
 type: build

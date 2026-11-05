@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/clock_gettime.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/clock_gettime.norun.exe
 type: build

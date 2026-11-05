@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/sigaddset.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/sigaddset.norun.exe
 type: build

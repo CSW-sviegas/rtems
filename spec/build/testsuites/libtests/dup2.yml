@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/dup2.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/dup2.norun.exe
 type: build

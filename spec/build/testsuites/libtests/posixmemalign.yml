@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/posix_memalign.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/posix_memalign.norun.exe
 type: build

@@ -93,7 +93,9 @@
  * @brief This note type indicates the test state of a test program.
  *
  * The descriptor is one of ``EXPECTED_PASS``, ``EXPECTED_FAIL``,
- * ``USER_INPUT``, ``INDETERMINATE``, and ``BENCHMARK``.
+ * ``USER_INPUT``, ``INDETERMINATE``, ``BENCHMARK``, and ``NO_RUN``.  A test
+ * program with the test state ``NO_RUN`` checks that it links and is not
+ * run.
  */
 #define RTEMS_ELF_NOTE_TEST_STATE 6
 

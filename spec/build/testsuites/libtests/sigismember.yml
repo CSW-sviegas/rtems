@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/sigismember.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/sigismember.norun.exe
 type: build
