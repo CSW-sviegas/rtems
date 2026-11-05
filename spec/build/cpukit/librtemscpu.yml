@@ -17,6 +17,7 @@ extra-files:
 - cpukit/doxygen/mainpage.h
 - cpukit/doxygen/top-level-groups.h
 - cpukit/include/rtems/cpuuseimpl.h
+- cpukit/include/rtems/score/elfnotesbuild.h
 - cpukit/score/src/contrib/opt_compat.h
 - cpukit/score/src/contrib/opt_ffclock.h
 - cpukit/score/src/contrib/opt_ntp.h
