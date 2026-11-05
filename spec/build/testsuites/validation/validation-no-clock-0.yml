@@ -90,6 +90,7 @@ source:
 - testsuites/validation/tc-pthread-cancel.c
 - testsuites/validation/tc-pthread-detach.c
 - testsuites/validation/tc-pthread-exit.c
+- testsuites/validation/tc-pthread-getattr-np.c
 - testsuites/validation/tc-pthread-getcpuclockid.c
 - testsuites/validation/tc-pthread-getname-np.c
 - testsuites/validation/tc-pthread-join.c
