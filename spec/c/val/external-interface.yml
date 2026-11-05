@@ -79,6 +79,8 @@ links:
 - role: validation
   uid: /c/if/offsetof
 - role: validation
+  uid: /c/sched/if/other
+- role: validation
   uid: /c/if/pthread_attr_t
 - role: validation
   uid: /c/if/pthread_t
