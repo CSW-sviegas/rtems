@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
@@ -14,5 +14,8 @@ rationale: null
 requirement-type: functional
 text: |
   The ${../if/sys-lock-mutex-recursive-try-acquire:/name} directive shall seize
-  the mutex as specified by ${/score/mtx/req/seize-try:/spec}.
+  the mutex as specified by ${/score/mtx/req/seize-try:/spec} where the mutex
+  does not use the priority ceiling or MrsP locking protocol, the thread queue of
+  the mutex uses the priority discipline, and a recursive seize of the mutex is
+  allowed.
 type: requirement

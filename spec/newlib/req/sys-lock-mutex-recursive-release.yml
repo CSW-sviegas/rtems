@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
@@ -13,6 +13,9 @@ links:
 rationale: null
 requirement-type: functional
 text: |
-  The ${../if/sys-lock-mutex-release:/name} directive shall surrender the mutex
-  as specified by ${/score/mtx/req/surrender:/spec}.
+  The ${../if/sys-lock-mutex-recursive-release:/name} directive shall surrender
+  the mutex as specified by ${/score/mtx/req/surrender:/spec} where the mutex
+  uses the priority inheritance locking protocol, the thread queue of the mutex
+  uses the priority discipline, a recursive seize of the mutex is allowed, and
+  the surrender does not check that the mutex owner is the calling thread.
 type: requirement
