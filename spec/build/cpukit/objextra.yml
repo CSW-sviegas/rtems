@@ -178,7 +178,6 @@ install:
   - cpukit/include/rtems/posix/muteximpl.h
   - cpukit/include/rtems/posix/psignal.h
   - cpukit/include/rtems/posix/psignalimpl.h
-  - cpukit/include/rtems/posix/pthreadimpl.h
   - cpukit/include/rtems/posix/rwlockimpl.h
   - cpukit/include/rtems/posix/semaphore.h
   - cpukit/include/rtems/posix/semaphoreimpl.h
@@ -808,11 +807,9 @@ source:
 - cpukit/posix/src/pspinlock.c
 - cpukit/posix/src/pspinunlock.c
 - cpukit/posix/src/psxnametoid.c
-- cpukit/posix/src/psxpriorityisvalid.c
 - cpukit/posix/src/psxsemaphore.c
 - cpukit/posix/src/psxsemaphoreconfig.c
 - cpukit/posix/src/psxtimerconfig.c
-- cpukit/posix/src/psxtransschedparam.c
 - cpukit/posix/src/pthread.c
 - cpukit/posix/src/pthreadatfork.c
 - cpukit/posix/src/pthreadattrgetaffinitynp.c
@@ -828,7 +825,6 @@ source:
 - cpukit/posix/src/pthreadcreate.c
 - cpukit/posix/src/pthreadequal.c
 - cpukit/posix/src/pthreadgetaffinitynp.c
-- cpukit/posix/src/pthreadgetattrnp.c
 - cpukit/posix/src/pthreadgetcpuclockid.c
 - cpukit/posix/src/pthreadgetschedparam.c
 - cpukit/posix/src/pthreadinitthreads.c
@@ -1061,7 +1057,6 @@ source:
 - cpukit/score/src/stackallocatorinit.c
 - cpukit/score/src/threadallocateunlimited.c
 - cpukit/score/src/threadentryadaptorpointer.c
-- cpukit/score/src/threadexhausttimeslice.c
 - cpukit/score/src/threadplaindispatch.c
 - cpukit/score/src/threadqextract.c
 - cpukit/score/src/threadqfirst.c
