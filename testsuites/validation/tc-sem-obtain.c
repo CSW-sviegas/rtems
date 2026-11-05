@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -413,7 +413,7 @@ static void RtemsSemReqObtain_Post_Action_Check(
        * seize is allowed, and a priority inheritance protocol is used.
        */
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
-      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
       ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
       ScoreMtxReqSeizeTry_Run( &ctx->tq_mtx_ctx );
@@ -427,7 +427,7 @@ static void RtemsSemReqObtain_Post_Action_Check(
        * seize is allowed, and a priority inheritance protocol is used.
        */
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
-      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
       ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
       ScoreMtxReqSeizeWait_Run( &ctx->tq_mtx_ctx );
