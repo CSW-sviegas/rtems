@@ -350,6 +350,8 @@ source:
 - cpukit/posix/src/clockgetres.c
 - cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/psxpriorityisvalid.c
+- cpukit/posix/src/psxtransschedparam.c
 - cpukit/posix/src/pthreadattrdefault.c
 - cpukit/posix/src/pthreadattrdestroy.c
 - cpukit/posix/src/pthreadattrgetdetachstate.c
@@ -371,6 +373,7 @@ source:
 - cpukit/posix/src/pthreadattrsetstacksize.c
 - cpukit/posix/src/pthreaddetach.c
 - cpukit/posix/src/pthreadexit.c
+- cpukit/posix/src/pthreadgetattrnp.c
 - cpukit/posix/src/pthreadgetcpuclockid.c
 - cpukit/posix/src/pthreadgetnamenp.c
 - cpukit/posix/src/pthreadjoin.c
@@ -569,6 +572,7 @@ source:
 - cpukit/score/src/threaddispatch.c
 - cpukit/score/src/threadentryadaptoridle.c
 - cpukit/score/src/threadentryadaptornumeric.c
+- cpukit/score/src/threadexhausttimeslice.c
 - cpukit/score/src/threadget.c
 - cpukit/score/src/threadgetcputimeused.c
 - cpukit/score/src/threadgetcputimeusedafterreset.c
