@@ -58,6 +58,8 @@ source:
 - testsuites/validation/tc-support-is-name-valid.c
 - testsuites/validation/tc-support.c
 - testsuites/validation/tc-sys-lock-condition.c
+- testsuites/validation/tc-sys-lock-mutex-acquire-timed-timeout.c
+- testsuites/validation/tc-sys-lock-mutex-recursive-acquire-timed-timeout.c
 - testsuites/validation/tc-sys-lock.c
 - testsuites/validation/tc-timer-cancel.c
 - testsuites/validation/tc-timer-create.c
