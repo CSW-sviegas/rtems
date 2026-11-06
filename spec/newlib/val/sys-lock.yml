@@ -42,8 +42,6 @@ test-actions:
     - role: validation
       uid: ../req/sys-lock-mutex-acquire-timed
     - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
-    - role: validation
       uid: ../req/sys-lock-mutex-omip
     - role: validation
       uid: ../req/sys-lock-mutex-priority-inherit
@@ -66,10 +64,6 @@ test-actions:
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-acquire-timed
-    - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
-    - role: validation
-      uid: ../req/sys-lock-mutex-invalid-timeout
   - brief: |
       Validate the ${../if/sys-lock-mutex-acquire-timed:/name} timeout behaviour.
     code: |
@@ -79,8 +73,6 @@ test-actions:
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-acquire-timed
-    - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
     - role: validation
       uid: ../req/sys-lock-mutex-omip
     - role: validation
@@ -157,8 +149,6 @@ test-actions:
     - role: validation
       uid: ../req/sys-lock-mutex-recursive-acquire-timed
     - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
-    - role: validation
       uid: ../req/sys-lock-mutex-omip
     - role: validation
       uid: ../req/sys-lock-mutex-priority-inherit
@@ -181,10 +171,6 @@ test-actions:
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-recursive-acquire-timed
-    - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
-    - role: validation
-      uid: ../req/sys-lock-mutex-invalid-timeout
   - brief: |
       Validate the ${../if/sys-lock-mutex-recursive-acquire-timed:/name} timeout
       behaviour.
@@ -195,8 +181,6 @@ test-actions:
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-recursive-acquire-timed
-    - role: validation
-      uid: ../req/sys-lock-mutex-clock-realtime
     - role: validation
       uid: ../req/sys-lock-mutex-omip
     - role: validation

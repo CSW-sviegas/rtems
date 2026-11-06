@@ -1,0 +1,374 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/sys-lock-mutex-acquire-timed
+- role: requirement-refinement
+  uid: sys-lock-mutex
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/sys-lock-mutex-acquire-timed:/name} shall be equal
+      to zero.
+  - name: ETIMEDOUT
+    test-code: |
+      T_eq_int( ctx->status, ETIMEDOUT );
+    text: |
+      The return value of ${../if/sys-lock-mutex-acquire-timed:/name} shall be equal
+      to ${/c/errno/if/etimedout:/name}.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The return value of ${../if/sys-lock-mutex-acquire-timed:/name} shall be equal
+      to ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Caller
+    test-code: |
+      T_eq_ptr( ctx->owner_after, ctx->worker_tcb );
+    text: |
+      The calling task shall be the owner of the mutex after the return of the
+      ${../if/sys-lock-mutex-acquire-timed:/name} call.
+  - name: Other
+    test-code: |
+      T_eq_ptr( ctx->owner_after, ctx->runner_tcb );
+    text: |
+      The owner of the mutex before the ${../if/sys-lock-mutex-acquire-timed:/name}
+      call shall be the owner of the mutex after the return of the
+      ${../if/sys-lock-mutex-acquire-timed:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Timer
+  states:
+  - name: Inactive
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_INACTIVE );
+    text: |
+      The timer of the calling task shall be inactive.
+  - name: Realtime
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_REALTIME );
+    text: |
+      The timer of the calling task shall be active using the
+      ${/glossary/clock-realtime:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Expire
+  states:
+  - name: Last
+    test-code: |
+      T_eq_u64( ctx->timer_info.expire_ticks, 0xffffffffffffffff );
+    text: |
+      The timer of the calling task shall expire at the last valid time point of the
+      ${/glossary/clock-realtime:/term}.
+  - name: Absolute
+    test-code: |
+      T_eq_i64( ctx->timer_info.expire_timespec.tv_sec, ctx->abstime.tv_sec );
+      T_eq_long( ctx->timer_info.expire_timespec.tv_nsec, ctx->abstime.tv_nsec );
+    text: |
+      The timer of the calling task shall expire at the time point specified by the
+      timeout parameter.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Owner
+  states:
+  - name: None
+    test-code: |
+      ctx->owner = OWNER_NONE;
+    text: |
+      While the mutex has no owner.
+  - name: Other
+    test-code: |
+      ctx->owner = OWNER_OTHER;
+    text: |
+      While a task other than the calling task is the owner of the mutex.
+  test-epilogue: null
+  test-prologue: null
+- name: AbstimeNSec
+  states:
+  - name: Valid
+    test-code: |
+      ctx->abstime.tv_nsec = 999999999;
+    text: |
+      While the `tv_nsec` member of the object referenced by the timeout parameter is
+      a valid nanoseconds value.
+  - name: Invalid
+    test-code: |
+      ctx->abstime.tv_nsec = -1;
+    text: |
+      While the `tv_nsec` member of the object referenced by the timeout parameter is
+      an invalid nanoseconds value.
+  test-epilogue: null
+  test-prologue: null
+- name: AbstimeSec
+  states:
+  - name: Negative
+    test-code: |
+      ctx->abstime.tv_sec = -238479;
+    text: |
+      While the `tv_sec` member of the object referenced by the timeout parameter is
+      negative.
+  - name: FarFuture
+    test-code: |
+      ctx->abstime.tv_sec = INT64_MAX;
+    text: |
+      While the `tv_sec` member of the object referenced by the timeout parameter
+      specifies a time point which is past the implementation limit.
+  - name: Future
+    test-code: |
+      ctx->abstime.tv_sec = 1621322302;
+    text: |
+      While the `tv_sec` member of the object referenced by the timeout parameter
+      specifies a time point which is after the current time of the
+      ${/glossary/clock-realtime:/term} and is within the implementation limits.
+  - name: PastOrNow
+    test-code: |
+      ctx->abstime.tv_sec = 0;
+
+      if ( ctx->abstime.tv_nsec == 999999999 ) {
+        ctx->abstime.tv_nsec = 0;
+      }
+    text: |
+      While the `tv_sec` member of the object referenced by the timeout parameter is
+      non-negative and specifies a time point which is before or at the current time
+      of the ${/glossary/clock-realtime:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Surrender
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->surrender = true;
+    text: |
+      While the owner of the mutex surrenders the mutex before the time point
+      specified by the timeout parameter.
+  - name: 'No'
+    test-code: |
+      ctx->surrender = false;
+    text: |
+      While the owner of the mutex does not surrender the mutex before the time point
+      specified by the timeout parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  if ( ctx->owner == OWNER_OTHER ) {
+    _Mutex_Acquire( &ctx->mutex );
+  }
+
+  ResumeTask( ctx->worker_id );
+  GetTaskTimerInfo( ctx->worker_id, &ctx->timer_info );
+
+  if ( ctx->owner == OWNER_OTHER ) {
+    if ( ctx->surrender ) {
+      _Mutex_Release( &ctx->mutex );
+    } else {
+      FinalClockTick();
+      _Mutex_Release( &ctx->mutex );
+    }
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the worker task identifier.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member references the TCB of the worker task.
+  description: null
+  member: |
+    const rtems_tcb *worker_tcb
+- brief: |
+    This member references the TCB of the runner task.
+  description: null
+  member: |
+    const rtems_tcb *runner_tcb
+- brief: |
+    This member provides the mutex.
+  description: null
+  member: |
+    struct _Mutex_Control mutex
+- brief: |
+    This member specifies the owner of the mutex before the
+    ${../if/sys-lock-mutex-acquire-timed:/name} call.
+  description: null
+  member: |
+    Owner owner
+- brief: |
+    This member specifies if the owner surrenders the mutex while the worker waits
+    for it.
+  description: null
+  member: |
+    bool surrender
+- brief: |
+    This member provides the object referenced by the timeout parameter.
+  description: null
+  member: |
+    struct timespec abstime
+- brief: |
+    This member contains the timer information of the worker task.
+  description: null
+  member: |
+    TaskTimerInfo timer_info
+- brief: |
+    This member contains the return value of the
+    ${../if/sys-lock-mutex-acquire-timed:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the owner of the mutex after the return of the
+    ${../if/sys-lock-mutex-acquire-timed:/name} call.
+  description: null
+  member: |
+    const rtems_tcb *owner_after
+test-context-support: |
+  typedef enum { OWNER_NONE, OWNER_CALLER, OWNER_OTHER } Owner;
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- rtems.h
+- string.h
+- sys/lock.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->status = -1;
+  ctx->owner_after = NULL;
+  ctx->surrender = false;
+  ctx->abstime.tv_sec = -1;
+  ctx->abstime.tv_nsec = -1;
+test-setup:
+  brief: null
+  code: |
+    rtems_time_of_day now = { 1988, 1, 1, 0, 0, 0, 0 };
+
+    T_rsc_success( rtems_clock_set( &now ) );
+    _Mutex_Initialize( &ctx->mutex );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->runner_tcb = GetExecuting();
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    ctx->worker_tcb = GetThread( ctx->worker_id );
+    StartTask( ctx->worker_id, Worker, ctx );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      SuspendSelf();
+
+      ctx->status = _Mutex_Acquire_timed( &ctx->mutex, &ctx->abstime );
+      ctx->owner_after = ctx->mutex._Queue._owner;
+
+      if ( ctx->status == 0 ) {
+        _Mutex_Release( &ctx->mutex );
+      }
+    }
+  }
+test-target: testsuites/validation/tc-sys-lock-mutex-acquire-timed-timeout.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    _Mutex_Destroy( &ctx->mutex );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Zero
+    Owner: Caller
+    Timer: Inactive
+    Expire: N/A
+  pre-conditions:
+    Owner:
+    - None
+    AbstimeNSec: all
+    AbstimeSec: all
+    Surrender: N/A
+- enabled-by: true
+  post-conditions:
+    Status: EINVAL
+    Owner: Other
+    Timer: Inactive
+    Expire: N/A
+  pre-conditions:
+    Owner:
+    - Other
+    AbstimeNSec:
+    - Invalid
+    AbstimeSec: all
+    Surrender: N/A
+- enabled-by: true
+  post-conditions:
+    Status: ETIMEDOUT
+    Owner: Other
+    Timer: Inactive
+    Expire: N/A
+  pre-conditions:
+    Owner:
+    - Other
+    AbstimeNSec:
+    - Valid
+    AbstimeSec:
+    - Negative
+    - PastOrNow
+    Surrender: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Surrender: 'Yes'
+      then: Zero
+    - else: ETIMEDOUT
+    Owner:
+    - if:
+        pre-conditions:
+          Surrender: 'Yes'
+      then: Caller
+    - else: Other
+    Timer: Realtime
+    Expire:
+    - if:
+        pre-conditions:
+          AbstimeSec: FarFuture
+      then: Last
+    - else: Absolute
+  pre-conditions:
+    Owner:
+    - Other
+    AbstimeNSec:
+    - Valid
+    AbstimeSec:
+    - FarFuture
+    - Future
+    Surrender: all
+type: requirement
