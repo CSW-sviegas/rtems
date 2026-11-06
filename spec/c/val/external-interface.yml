@@ -61,6 +61,12 @@ links:
 - role: validation
   uid: /c/sched/if/fifo
 - role: validation
+  uid: /c/sched/if/other
+- role: validation
+  uid: /c/sched/if/rr
+- role: validation
+  uid: /c/sched/if/sporadic
+- role: validation
   uid: /c/pthread/if/inherit-sched
 - role: validation
   uid: /c/if/int16_t
@@ -86,6 +92,8 @@ links:
   uid: /c/pthread/if/scope-process
 - role: validation
   uid: /c/pthread/if/scope-system
+- role: validation
+  uid: /c/if/sched_param
 - role: validation
   uid: /c/if/size_max
 - role: validation
