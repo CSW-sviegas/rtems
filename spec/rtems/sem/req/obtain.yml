@@ -40,7 +40,7 @@ post-conditions:
     text: |
       The calling task shall wait to seize the semaphore as specified by
       ${/score/sem/req/seize-wait:/spec}.
-  - name: MtxSeizeTry
+  - name: MtxSeizeTryFIFO
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
@@ -49,9 +49,22 @@ post-conditions:
       ${/score/mtx/req/seize-try:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall try to seize the mutex as specified by
-      ${/score/mtx/req/seize-try:/spec} where an enqueue blocks, a recursive seize is
-      allowed, and no locking protocol is used.
-  - name: MtxSeizeWait
+      ${/score/mtx/req/seize-try:/spec} where the mutex does not use the priority
+      ceiling or MrsP locking protocol, the thread queue of the mutex uses the FIFO
+      discipline, and a recursive seize of the mutex is allowed.
+  - name: MtxSeizeTryPriority
+    test-code: |
+      ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
+      ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
+      ${/score/mtx/req/seize-try:/test-run}( &ctx->tq_mtx_ctx );
+    text: |
+      The calling task shall try to seize the mutex as specified by
+      ${/score/mtx/req/seize-try:/spec} where the mutex does not use the priority
+      ceiling or MrsP locking protocol, the thread queue of the mutex uses the
+      priority discipline, and a recursive seize of the mutex is allowed.
+  - name: MtxSeizeWaitFIFO
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
@@ -60,8 +73,23 @@ post-conditions:
       ${/score/mtx/req/seize-wait:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall wait to seize the mutex as specified by
-      ${/score/mtx/req/seize-wait:/spec} where an enqueue blocks, a recursive seize
-      is allowed, and no locking protocol is used.
+      ${/score/mtx/req/seize-wait:/spec} where the mutex does not use a locking
+      protocol, the thread queue of the mutex uses the FIFO discipline, a detected
+      deadlock results in a return with a status code, and a recursive seize of the
+      mutex is allowed.
+  - name: MtxSeizeWaitPriority
+    test-code: |
+      ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
+      ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
+      ${/score/mtx/req/seize-wait:/test-run}( &ctx->tq_mtx_ctx );
+    text: |
+      The calling task shall wait to seize the mutex as specified by
+      ${/score/mtx/req/seize-wait:/spec} where the mutex does not use a locking
+      protocol, the thread queue of the mutex uses the priority discipline, a
+      detected deadlock results in a return with a status code, and a recursive seize
+      of the mutex is allowed.
   - name: InheritMtxSeizeTry
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -71,8 +99,9 @@ post-conditions:
       ${/score/mtx/req/seize-try:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall try to seize the mutex as specified by
-      ${/score/mtx/req/seize-try:/spec} where an enqueue blocks, a recursive seize is
-      allowed, and a priority inheritance protocol is used.
+      ${/score/mtx/req/seize-try:/spec} where the mutex does not use the priority
+      ceiling or MrsP locking protocol, the thread queue of the mutex uses the
+      priority discipline, and a recursive seize of the mutex is allowed.
   - name: InheritMtxSeizeWait
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -82,8 +111,10 @@ post-conditions:
       ${/score/mtx/req/seize-wait:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall wait to seize the mutex as specified by
-      ${/score/mtx/req/seize-wait:/spec} where an enqueue blocks, a recursive seize
-      is allowed, and a priority inheritance protocol is used.
+      ${/score/mtx/req/seize-wait:/spec} where the mutex uses the priority
+      inheritance locking protocol, the thread queue of the mutex uses the priority
+      discipline, a detected deadlock results in a return with a status code, and a
+      recursive seize of the mutex is allowed.
   - name: CeilingMtxSeizeTry
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -93,8 +124,9 @@ post-conditions:
       ${/score/mtx/req/seize-try:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall try to seize the mutex as specified by
-      ${/score/mtx/req/seize-try:/spec} where an enqueue blocks, a recursive seize is
-      allowed, and a priority ceiling is used.
+      ${/score/mtx/req/seize-try:/spec} where the mutex uses the priority ceiling
+      locking protocol, the thread queue of the mutex uses the priority discipline,
+      and a recursive seize of the mutex is allowed.
   - name: CeilingMtxSeizeWait
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -104,8 +136,10 @@ post-conditions:
       ${/score/mtx/req/seize-wait:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall wait to seize the mutex as specified by
-      ${/score/mtx/req/seize-wait:/spec} where an enqueue blocks, a recursive seize
-      is allowed, and a priority ceiling is used.
+      ${/score/mtx/req/seize-wait:/spec} where the mutex uses the priority ceiling
+      locking protocol, the thread queue of the mutex uses the priority discipline, a
+      detected deadlock results in a return with a status code, and a recursive seize
+      of the mutex is allowed.
   - name: MrsPMtxSeizeTry
     test-code: |
       #if defined( RTEMS_SMP )
@@ -119,8 +153,9 @@ post-conditions:
       #endif
     text: |
       The calling task shall try to seize the mutex as specified by
-      ${/score/mtx/req/seize-try:/spec} where an enqueue is sticky, a recursive seize
-      returns an error status, and a priority ceiling is used.
+      ${/score/mtx/req/seize-try:/spec} where the mutex uses the MrsP locking
+      protocol, the thread queue of the mutex uses the priority discipline, and a
+      recursive seize of the mutex results in a deadlock status.
   - name: MrsPMtxSeizeWait
     test-code: |
       #if defined( RTEMS_SMP )
@@ -134,8 +169,10 @@ post-conditions:
       #endif
     text: |
       The calling task shall wait to seize the mutex as specified by
-      ${/score/mtx/req/seize-wait:/spec} where an enqueue is sticky, a recursive
-      seize returns an error status, and a priority ceiling is used.
+      ${/score/mtx/req/seize-wait:/spec} where the mutex uses the MrsP locking
+      protocol, the thread queue of the mutex uses the priority discipline, a
+      detected deadlock results in a return with a status code, and a recursive seize
+      of the mutex results in a deadlock.
   test-epilogue: null
   test-prologue: |
     rtems_status_code sc;
@@ -376,22 +413,49 @@ transition-map:
     - Forever
 - enabled-by: true
   post-conditions:
-    Action: MtxSeizeTry
+    Action: MtxSeizeTryFIFO
   pre-conditions:
     Class:
     - Binary
-    Discipline: all
+    Discipline:
+    - FIFO
     Id:
     - Valid
     Wait:
     - 'No'
 - enabled-by: true
   post-conditions:
-    Action: MtxSeizeWait
+    Action: MtxSeizeTryPriority
   pre-conditions:
     Class:
     - Binary
-    Discipline: all
+    Discipline:
+    - Priority
+    Id:
+    - Valid
+    Wait:
+    - 'No'
+- enabled-by: true
+  post-conditions:
+    Action: MtxSeizeWaitFIFO
+  pre-conditions:
+    Class:
+    - Binary
+    Discipline:
+    - FIFO
+    Id:
+    - Valid
+    Wait:
+    - Timeout
+    - Forever
+- enabled-by: true
+  post-conditions:
+    Action: MtxSeizeWaitPriority
+  pre-conditions:
+    Class:
+    - Binary
+    Discipline:
+    - Priority
     Id:
     - Valid
     Wait:

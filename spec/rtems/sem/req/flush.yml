@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -34,7 +34,8 @@ post-conditions:
       ${/score/tq/req/flush-fifo:/test-run}( &ctx->tq_ctx, false );
     text: |
       The calling task shall flush the semaphore as specified by
-      ${/score/tq/req/flush-fifo:/spec}.
+      ${/score/tq/req/flush-fifo:/spec} where the flush filter does not return
+      ${/c/if/null:/name}.
   - name: FlushPriority
     test-code: |
       ${/score/tq/req/flush-priority:/test-run}( &ctx->tq_ctx, true );

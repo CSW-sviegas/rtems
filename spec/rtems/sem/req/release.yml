@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -20,7 +20,7 @@ post-conditions:
     text: |
       The return status of ${../if/release:/name} shall be
       ${../../status/if/invalid-id:/name}.
-  - name: BinarySurrender
+  - name: BinarySurrenderFIFO
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = NULL;
@@ -29,9 +29,22 @@ post-conditions:
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
-      The calling task shall surrender the binary semaphore as specified by
-      ${/score/sem/req/surrender:/spec}.
-  - name: CountingSurrender
+      The calling task shall surrender the semaphore as specified by
+      ${/score/sem/req/surrender:/spec} where the semaphore is a binary semaphore and
+      the thread queue of the semaphore uses the FIFO discipline.
+  - name: BinarySurrenderPriority
+    test-code: |
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = NULL;
+      ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
+    text: |
+      The calling task shall surrender the semaphore as specified by
+      ${/score/sem/req/surrender:/spec} where the semaphore is a binary semaphore and
+      the thread queue of the semaphore uses the priority discipline.
+  - name: CountingSurrenderFIFO
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = NULL;
@@ -40,9 +53,22 @@ post-conditions:
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
-      The calling task shall surrender the counting semaphore as specified by
-      ${/score/sem/req/surrender:/spec}.
-  - name: MtxSurrender
+      The calling task shall surrender the semaphore as specified by
+      ${/score/sem/req/surrender:/spec} where the semaphore is a counting semaphore
+      and the thread queue of the semaphore uses the FIFO discipline.
+  - name: CountingSurrenderPriority
+    test-code: |
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = NULL;
+      ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
+    text: |
+      The calling task shall surrender the semaphore as specified by
+      ${/score/sem/req/surrender:/spec} where the semaphore is a counting semaphore
+      and the thread queue of the semaphore uses the priority discipline.
+  - name: MtxSurrenderFIFO
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
@@ -53,8 +79,25 @@ post-conditions:
       ${/score/mtx/req/surrender:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall surrender the mutex as specified by
-      ${/score/mtx/req/surrender:/spec} where an enqueue blocks, a recursive seize is
-      allowed, the owner is checked, and no locking protocol is used.
+      ${/score/mtx/req/surrender:/spec} where the mutex does not use a locking
+      protocol, the thread queue of the mutex uses the FIFO discipline, a recursive
+      seize of the mutex is allowed, and the surrender checks that the mutex owner is
+      the calling thread.
+  - name: MtxSurrenderPriority
+    test-code: |
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
+      ctx->tq_mtx_ctx.owner_check = TQ_MTX_CHECKS_OWNER;
+      ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
+      ${/score/mtx/req/surrender:/test-run}( &ctx->tq_mtx_ctx );
+    text: |
+      The calling task shall surrender the mutex as specified by
+      ${/score/mtx/req/surrender:/spec} where the mutex does not use a locking
+      protocol, the thread queue of the mutex uses the priority discipline, a
+      recursive seize of the mutex is allowed, and the surrender checks that the
+      mutex owner is the calling thread.
   - name: InheritMtxSurrender
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -66,8 +109,10 @@ post-conditions:
       ${/score/mtx/req/surrender:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall surrender the mutex as specified by
-      ${/score/mtx/req/surrender:/spec} where an enqueue blocks, a recursive seize is
-      allowed, the owner is checked, and a priority inheritance protocol is used.
+      ${/score/mtx/req/surrender:/spec} where the mutex uses the priority inheritance
+      locking protocol, the thread queue of the mutex uses the priority discipline, a
+      recursive seize of the mutex is allowed, and the surrender checks that the
+      mutex owner is the calling thread.
   - name: CeilingMtxSurrender
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -79,8 +124,10 @@ post-conditions:
       ${/score/mtx/req/surrender:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall surrender the mutex as specified by
-      ${/score/mtx/req/surrender:/spec} where an enqueue blocks, a recursive seize is
-      allowed, the owner is checked, and a priority ceiling is used.
+      ${/score/mtx/req/surrender:/spec} where the mutex uses the priority ceiling
+      locking protocol, the thread queue of the mutex uses the priority discipline, a
+      recursive seize of the mutex is allowed, and the surrender checks that the
+      mutex owner is the calling thread.
   - name: MrsPMtxSurrender
     test-code: |
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_STICKY;
@@ -92,8 +139,10 @@ post-conditions:
       ${/score/mtx/req/surrender:/test-run}( &ctx->tq_mtx_ctx );
     text: |
       The calling task shall surrender the mutex as specified by
-      ${/score/mtx/req/surrender:/spec} where an enqueue is sticky, a recursive seize
-      returns an error status, the owner is checked, and a priority ceiling is used.
+      ${/score/mtx/req/surrender:/spec} where the mutex uses the MrsP locking
+      protocol, the thread queue of the mutex uses the priority discipline, a
+      recursive seize of the mutex is not allowed, and the surrender checks that the
+      mutex owner is the calling thread.
   test-epilogue: null
   test-prologue: |
     rtems_status_code sc;
@@ -268,29 +317,62 @@ transition-map:
     - Invalid
 - enabled-by: true
   post-conditions:
-    Action: BinarySurrender
+    Action: BinarySurrenderFIFO
   pre-conditions:
     Class:
     - Simple
-    Discipline: all
+    Discipline:
+    - FIFO
     Id:
     - Valid
 - enabled-by: true
   post-conditions:
-    Action: CountingSurrender
+    Action: BinarySurrenderPriority
+  pre-conditions:
+    Class:
+    - Simple
+    Discipline:
+    - Priority
+    Id:
+    - Valid
+- enabled-by: true
+  post-conditions:
+    Action: CountingSurrenderFIFO
   pre-conditions:
     Class:
     - Counting
-    Discipline: all
+    Discipline:
+    - FIFO
     Id:
     - Valid
 - enabled-by: true
   post-conditions:
-    Action: MtxSurrender
+    Action: CountingSurrenderPriority
+  pre-conditions:
+    Class:
+    - Counting
+    Discipline:
+    - Priority
+    Id:
+    - Valid
+- enabled-by: true
+  post-conditions:
+    Action: MtxSurrenderFIFO
   pre-conditions:
     Class:
     - Binary
-    Discipline: all
+    Discipline:
+    - FIFO
+    Id:
+    - Valid
+- enabled-by: true
+  post-conditions:
+    Action: MtxSurrenderPriority
+  pre-conditions:
+    Class:
+    - Binary
+    Discipline:
+    - Priority
     Id:
     - Valid
 - enabled-by: true
