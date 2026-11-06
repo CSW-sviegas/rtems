@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${/c/sched/glossary/parameter:/term} of the ${../glossary/thread:/term}
+  attributes object referenced by ${.:/params[0]/name} to the parameters
+  referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/sched_param:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${../glossary/thread:/term} attributes object referenced by the
+    ${.:/params[0]/name} parameter is not initialized.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/pthread-attr-getschedparam
+name: pthread_attr_setschedparam
+notes: |
+  See ${/ref/std/posix-2024/pthread-attr-getschedparam:/name}.
+params:
+- description: |
+    is the pointer to the ${../glossary/thread:/term} attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the pointer to the new ${/c/sched/glossary/parameter:/term}.
+  dir: in
+  name: param
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${../glossary/thread:/term} attributes object referenced by the
+      ${.:/params[0]/name} parameter was not initialized.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+type: interface

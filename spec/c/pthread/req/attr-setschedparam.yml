@@ -1,0 +1,289 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/attr-setschedparam
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-attr-getschedparam
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-setschedparam:/name} shall
+      be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-setschedparam:/name} shall
+      be ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: SchedParam
+  states:
+  - name: Param
+    test-code: |
+      const struct sched_param *param;
+
+      param = &ctx->attr_obj.schedparam;
+      T_eq_int( param->sched_priority, PARAM_PRIORITY );
+      T_eq_int( param->sched_ss_low_priority, PARAM_LOW_PRIORITY );
+      T_eq_i64( param->sched_ss_repl_period.tv_sec, PARAM_REPL_PERIOD_SEC );
+      T_eq_long( param->sched_ss_repl_period.tv_nsec, PARAM_REPL_PERIOD_NSEC );
+      T_eq_i64( param->sched_ss_init_budget.tv_sec, PARAM_INIT_BUDGET_SEC );
+      T_eq_long( param->sched_ss_init_budget.tv_nsec, PARAM_INIT_BUDGET_NSEC );
+      T_eq_int( param->sched_ss_max_repl, PARAM_MAX_REPL );
+    text: |
+      The ${/c/sched/glossary/parameter:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-setschedparam:/params[0]/name}
+      parameter shall be equal to the object referenced by the
+      ${../if/attr-setschedparam:/params[1]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_mem(
+        &ctx->attr_obj.schedparam,
+        &ctx->attr_before.schedparam,
+        sizeof( ctx->attr_obj.schedparam )
+      );
+    text: |
+      The ${/c/sched/glossary/parameter:/term} of the ${../glossary/thread:/term}
+      attributes object referenced by the ${../if/attr-setschedparam:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: Nop
+    test-code: |
+      pthread_attr_t expected;
+
+      memcpy( &expected, &ctx->attr_before, sizeof( expected ) );
+      memcpy(
+        &expected.schedparam,
+        &ctx->attr_obj.schedparam,
+        sizeof( expected.schedparam )
+      );
+      T_eq_mem( &ctx->attr_obj, &expected, sizeof( expected ) );
+    text: |
+      The content of the ${../glossary/thread:/term} attributes object referenced by
+      the ${../if/attr-setschedparam:/params[0]/name} parameter, other than its
+      ${/c/sched/glossary/parameter:/term}, shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../if/attr-setschedparam:/params[0]/name} parameter references an
+      object of type ${/c/if/pthread_attr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/attr-setschedparam:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eno_success( pthread_attr_init( &ctx->attr_obj ) );
+      memset(
+        &ctx->attr_obj.schedparam,
+        0xff,
+        sizeof( ctx->attr_obj.schedparam )
+      );
+    text: |
+      While the object referenced by the ${../if/attr-setschedparam:/params[0]/name}
+      parameter is an initialized ${../glossary/thread:/term} attributes object.
+  - name: 'No'
+    test-code: |
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      memset(
+        &ctx->attr_obj.schedparam,
+        0xff,
+        sizeof( ctx->attr_obj.schedparam )
+      );
+    text: |
+      While the object referenced by the ${../if/attr-setschedparam:/params[0]/name}
+      parameter is not an initialized ${../glossary/thread:/term} attributes object.
+  test-epilogue: null
+  test-prologue: null
+- name: Param
+  states:
+  - name: Obj
+    test-code: |
+      ctx->param = &ctx->param_obj;
+    text: |
+      While the ${../if/attr-setschedparam:/params[1]/name} parameter references an
+      object of type ${/c/if/sched_param:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->param = NULL;
+    text: |
+      While the ${../if/attr-setschedparam:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-attr-getschedparam:/name} specifies that
+  ${../if/attr-setschedparam:/name} sets the ${/c/sched/glossary/parameter:/term}
+  of the ${../glossary/thread:/term} attributes object to the object referenced
+  by the ${../if/attr-setschedparam:/params[1]/name} parameter. RTEMS copies the
+  whole object without a check of its members. The test uses one object in which
+  each member has a distinct value which satisfies the constraints of the
+  standard, so that post-condition SchedParam can check each member.
+
+  The standard leaves the behaviour undefined where the
+  ${../if/attr-setschedparam:/params[0]/name} parameter references no initialized
+  ${../glossary/thread:/term} attributes object. State Null of pre-condition Attr
+  and state No of pre-condition Initialized specify that RTEMS returns
+  ${/c/errno/if/einval:/name}. The standard does not mention a
+  ${../if/attr-setschedparam:/params[1]/name} parameter which is
+  ${/c/if/null:/name}. State Null of pre-condition Param specifies that RTEMS
+  returns ${/c/errno/if/einval:/name}, which the standard permits for a value of
+  the ${../if/attr-setschedparam:/params[1]/name} parameter which is not valid.
+
+  The item does not cover the following conditions, since RTEMS does not check
+  them in ${../if/attr-setschedparam:/name}. RTEMS supports the Thread Sporadic
+  Server option. For it, the standard requires that the function fails if the
+  ${/c/sched/glossary/ss-repl-period:/term} is less than the
+  ${/c/sched/glossary/ss-init-budget:/term}, or if the
+  ${/c/sched/glossary/ss-max-repl:/term} is outside of the range from one to the
+  limit of the system. The standard also requires ${/c/errno/if/enotsup:/name}
+  for an attempt to set an unsupported value. RTEMS stores these values and
+  checks the ${/c/sched/glossary/parameter:/term} only when it creates a
+  ${../glossary/thread:/term} with the attributes object.
+
+  ${../if/attr-setschedparam:/name} writes no other attribute of the object,
+  which post-condition Other specifies.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->attr_before, &ctx->attr_obj, sizeof( ctx->attr_before ) );
+  ctx->status = pthread_attr_setschedparam( ctx->attr, ctx->param );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/attr-setschedparam:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_attr_t *attr
+- brief: |
+    This member specifies the ${../if/attr-setschedparam:/params[1]/name} parameter
+    value.
+  description: null
+  member: const struct sched_param *param
+- brief: |
+    This member contains the return value of the ${../if/attr-setschedparam:/name}
+    call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
+- brief: |
+    This member contains a copy of the ${../glossary/thread:/term} attributes
+    object before the call.
+  description: null
+  member: pthread_attr_t attr_before
+- brief: |
+    This member contains the ${/c/sched/glossary/parameter:/term} object.
+  description: null
+  member: struct sched_param param_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- sched.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    memset( &ctx->param_obj, 0, sizeof( ctx->param_obj ) );
+    ctx->param_obj.sched_priority = PARAM_PRIORITY;
+    ctx->param_obj.sched_ss_low_priority = PARAM_LOW_PRIORITY;
+    ctx->param_obj.sched_ss_repl_period.tv_sec = PARAM_REPL_PERIOD_SEC;
+    ctx->param_obj.sched_ss_repl_period.tv_nsec = PARAM_REPL_PERIOD_NSEC;
+    ctx->param_obj.sched_ss_init_budget.tv_sec = PARAM_INIT_BUDGET_SEC;
+    ctx->param_obj.sched_ss_init_budget.tv_nsec = PARAM_INIT_BUDGET_NSEC;
+    ctx->param_obj.sched_ss_max_repl = PARAM_MAX_REPL;
+  description: null
+test-stop: null
+test-support: |
+  #define PARAM_PRIORITY 3
+
+  #define PARAM_LOW_PRIORITY 2
+
+  #define PARAM_REPL_PERIOD_SEC 7
+
+  #define PARAM_REPL_PERIOD_NSEC 8
+
+  #define PARAM_INIT_BUDGET_SEC 5
+
+  #define PARAM_INIT_BUDGET_NSEC 6
+
+  #define PARAM_MAX_REPL 4
+test-target: testsuites/validation/tc-pthread-attr-setschedparam.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        pre-conditions:
+          Param: 'Null'
+      then: Inval
+    - else: Ok
+    SchedParam:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Param
+    - else: Nop
+    Other:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Attr: all
+    Initialized:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+    Param: all
+type: requirement

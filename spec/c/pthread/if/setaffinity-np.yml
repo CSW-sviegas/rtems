@@ -1,0 +1,100 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the processor affinity of the ${../glossary/thread:/term} specified by
+  ${.:/params[0]/name} to the processor set referenced by ${.:/params[2]/name}
+  with the size specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    - const ${/c/if/cpu_set_t:/name} *${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[2]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    There is no ${../glossary/thread:/term} associated with the identifier
+    specified by ${.:/params[0]/name}.
+  role: errno
+  uid: /c/errno/if/esrch
+- description: |
+    The ${.:/params[1]/name} parameter is not an integral multiple of the size of
+    long.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The processor set referenced by ${.:/params[2]/name} contains processors, but
+    none which the system can store in a processor set.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The processor set referenced by ${.:/params[2]/name}, restricted to the online
+    processors, is not a valid processor affinity set for the
+    ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- path: man.cgi?query=pthread_setaffinity_np&sektion=3
+  role: reference
+  uid: /ref/man/freebsd
+name: pthread_setaffinity_np
+notes: |
+  The standard does not contain this function. It is a non-portable extension
+  which the FreeBSD manual page pthread_setaffinity_np(3) describes.
+params:
+- description: |
+    is the identifier of the ${../glossary/thread:/term}.
+  dir: null
+  name: thread
+- description: |
+    is the size of the processor set referenced by ${.:/params[2]/name} in bytes.
+  dir: null
+  name: cpusetsize
+- description: |
+    is the pointer to the processor set. A set bit in the processor set means that
+    the corresponding processor shall be in the processor affinity set of the
+    ${../glossary/thread:/term}, otherwise the bit shall be cleared.
+  dir: in
+  name: cpuset
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[2]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/efault:/name}
+  - description: |
+      There was no ${../glossary/thread:/term} associated with the identifier
+      specified by ${.:/params[0]/name}.
+    value: ${/c/errno/if/esrch:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was not an integral multiple of the size of
+      long.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The processor set referenced by ${.:/params[2]/name} contained processors, but
+      none which the system can store in a processor set.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The processor set referenced by ${.:/params[2]/name}, restricted to the online
+      processors, was not a valid processor affinity set for the
+      ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term}.
+    value: ${/c/errno/if/einval:/name}
+type: interface
