@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/sched-h
+term: maximum pending replenishments
+text: |
+  An attribute of the ${sporadic-server:/term} that specifies the maximum number
+  of pending replenishments. See ${/ref/std/posix-2024/sched-h:/name}.
+type: glossary
