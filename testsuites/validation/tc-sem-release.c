@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,9 +77,12 @@ typedef enum {
 
 typedef enum {
   RtemsSemReqRelease_Post_Action_InvId,
-  RtemsSemReqRelease_Post_Action_BinarySurrender,
-  RtemsSemReqRelease_Post_Action_CountingSurrender,
-  RtemsSemReqRelease_Post_Action_MtxSurrender,
+  RtemsSemReqRelease_Post_Action_BinarySurrenderFIFO,
+  RtemsSemReqRelease_Post_Action_BinarySurrenderPriority,
+  RtemsSemReqRelease_Post_Action_CountingSurrenderFIFO,
+  RtemsSemReqRelease_Post_Action_CountingSurrenderPriority,
+  RtemsSemReqRelease_Post_Action_MtxSurrenderFIFO,
+  RtemsSemReqRelease_Post_Action_MtxSurrenderPriority,
   RtemsSemReqRelease_Post_Action_InheritMtxSurrender,
   RtemsSemReqRelease_Post_Action_CeilingMtxSurrender,
   RtemsSemReqRelease_Post_Action_MrsPMtxSurrender,
@@ -91,7 +94,7 @@ typedef struct {
   uint8_t Pre_Class_NA : 1;
   uint8_t Pre_Discipline_NA : 1;
   uint8_t Pre_Id_NA : 1;
-  uint8_t Post_Action : 3;
+  uint8_t Post_Action : 4;
 } RtemsSemReqRelease_Entry;
 
 /**
@@ -303,10 +306,12 @@ static void RtemsSemReqRelease_Post_Action_Check(
       break;
     }
 
-    case RtemsSemReqRelease_Post_Action_BinarySurrender: {
+    case RtemsSemReqRelease_Post_Action_BinarySurrenderFIFO: {
       /*
-       * The calling task shall surrender the binary semaphore as specified by
-       * spec:/score/sem/req/surrender.
+       * The calling task shall surrender the semaphore as specified by
+       * spec:/score/sem/req/surrender where the semaphore is a binary
+       * semaphore and the thread queue of the semaphore uses the FIFO
+       * discipline.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = NULL;
@@ -317,10 +322,28 @@ static void RtemsSemReqRelease_Post_Action_Check(
       break;
     }
 
-    case RtemsSemReqRelease_Post_Action_CountingSurrender: {
+    case RtemsSemReqRelease_Post_Action_BinarySurrenderPriority: {
       /*
-       * The calling task shall surrender the counting semaphore as specified
-       * by spec:/score/sem/req/surrender.
+       * The calling task shall surrender the semaphore as specified by
+       * spec:/score/sem/req/surrender where the semaphore is a binary
+       * semaphore and the thread queue of the semaphore uses the priority
+       * discipline.
+       */
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = NULL;
+      ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
+      break;
+    }
+
+    case RtemsSemReqRelease_Post_Action_CountingSurrenderFIFO: {
+      /*
+       * The calling task shall surrender the semaphore as specified by
+       * spec:/score/sem/req/surrender where the semaphore is a counting
+       * semaphore and the thread queue of the semaphore uses the FIFO
+       * discipline.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = NULL;
@@ -331,12 +354,47 @@ static void RtemsSemReqRelease_Post_Action_Check(
       break;
     }
 
-    case RtemsSemReqRelease_Post_Action_MtxSurrender: {
+    case RtemsSemReqRelease_Post_Action_CountingSurrenderPriority: {
+      /*
+       * The calling task shall surrender the semaphore as specified by
+       * spec:/score/sem/req/surrender where the semaphore is a counting
+       * semaphore and the thread queue of the semaphore uses the priority
+       * discipline.
+       */
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = NULL;
+      ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
+      break;
+    }
+
+    case RtemsSemReqRelease_Post_Action_MtxSurrenderFIFO: {
       /*
        * The calling task shall surrender the mutex as specified by
-       * spec:/score/mtx/req/surrender where an enqueue blocks, a recursive
-       * seize is allowed, the owner is checked, and no locking protocol is
-       * used.
+       * spec:/score/mtx/req/surrender where the mutex does not use a locking
+       * protocol, the thread queue of the mutex uses the FIFO discipline, a
+       * recursive seize of the mutex is allowed, and the surrender checks that
+       * the mutex owner is the calling thread.
+       */
+      ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+      ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
+      ctx->tq_mtx_ctx.protocol = TQ_MTX_NO_PROTOCOL;
+      ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
+      ctx->tq_mtx_ctx.owner_check = TQ_MTX_CHECKS_OWNER;
+      ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
+      ScoreMtxReqSurrender_Run( &ctx->tq_mtx_ctx );
+      break;
+    }
+
+    case RtemsSemReqRelease_Post_Action_MtxSurrenderPriority: {
+      /*
+       * The calling task shall surrender the mutex as specified by
+       * spec:/score/mtx/req/surrender where the mutex does not use a locking
+       * protocol, the thread queue of the mutex uses the priority discipline,
+       * a recursive seize of the mutex is allowed, and the surrender checks
+       * that the mutex owner is the calling thread.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
@@ -351,9 +409,10 @@ static void RtemsSemReqRelease_Post_Action_Check(
     case RtemsSemReqRelease_Post_Action_InheritMtxSurrender: {
       /*
        * The calling task shall surrender the mutex as specified by
-       * spec:/score/mtx/req/surrender where an enqueue blocks, a recursive
-       * seize is allowed, the owner is checked, and a priority inheritance
-       * protocol is used.
+       * spec:/score/mtx/req/surrender where the mutex uses the priority
+       * inheritance locking protocol, the thread queue of the mutex uses the
+       * priority discipline, a recursive seize of the mutex is allowed, and
+       * the surrender checks that the mutex owner is the calling thread.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
@@ -368,9 +427,10 @@ static void RtemsSemReqRelease_Post_Action_Check(
     case RtemsSemReqRelease_Post_Action_CeilingMtxSurrender: {
       /*
        * The calling task shall surrender the mutex as specified by
-       * spec:/score/mtx/req/surrender where an enqueue blocks, a recursive
-       * seize is allowed, the owner is checked, and a priority ceiling is
-       * used.
+       * spec:/score/mtx/req/surrender where the mutex uses the priority
+       * ceiling locking protocol, the thread queue of the mutex uses the
+       * priority discipline, a recursive seize of the mutex is allowed, and
+       * the surrender checks that the mutex owner is the calling thread.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
       ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
@@ -385,9 +445,10 @@ static void RtemsSemReqRelease_Post_Action_Check(
     case RtemsSemReqRelease_Post_Action_MrsPMtxSurrender: {
       /*
        * The calling task shall surrender the mutex as specified by
-       * spec:/score/mtx/req/surrender where an enqueue is sticky, a recursive
-       * seize returns an error status, the owner is checked, and a priority
-       * ceiling is used.
+       * spec:/score/mtx/req/surrender where the mutex uses the MrsP locking
+       * protocol, the thread queue of the mutex uses the priority discipline,
+       * a recursive seize of the mutex is not allowed, and the surrender
+       * checks that the mutex owner is the calling thread.
        */
       ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_STICKY;
       ctx->tq_ctx.get_owner = TQGetOwnerClassicSem;
@@ -485,9 +546,12 @@ static const RtemsSemReqRelease_Entry
 RtemsSemReqRelease_Entries[] = {
   { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_InvId },
   { 1, 0, 0, 0, RtemsSemReqRelease_Post_Action_NA },
-  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_CountingSurrender },
-  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_BinarySurrender },
-  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_MtxSurrender },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_CountingSurrenderFIFO },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_CountingSurrenderPriority },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_BinarySurrenderFIFO },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_BinarySurrenderPriority },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_MtxSurrenderFIFO },
+  { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_MtxSurrenderPriority },
   { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_CeilingMtxSurrender },
   { 0, 0, 0, 0, RtemsSemReqRelease_Post_Action_InheritMtxSurrender },
 #if defined(RTEMS_SMP)
@@ -504,7 +568,7 @@ RtemsSemReqRelease_Entries[] = {
 
 static const uint8_t
 RtemsSemReqRelease_Map[] = {
-  2, 0, 2, 0, 3, 0, 3, 0, 4, 0, 4, 0, 1, 1, 5, 0, 1, 1, 6, 0, 1, 1, 7, 8
+  2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 1, 1, 8, 0, 1, 1, 9, 0, 1, 1, 10, 11
 };
 
 /* clang-format on */

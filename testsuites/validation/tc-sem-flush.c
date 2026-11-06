@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -378,7 +378,8 @@ static void RtemsSemReqFlush_Post_Action_Check(
     case RtemsSemReqFlush_Post_Action_FlushFIFO: {
       /*
        * The calling task shall flush the semaphore as specified by
-       * spec:/score/tq/req/flush-fifo.
+       * spec:/score/tq/req/flush-fifo where the flush filter does not return
+       * NULL.
        */
       ScoreTqReqFlushFifo_Run( &ctx->tq_ctx, false );
       break;
