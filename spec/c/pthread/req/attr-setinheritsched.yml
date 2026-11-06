@@ -1,0 +1,249 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/attr-setinheritsched
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-attr-getinheritsched
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-setinheritsched:/name} shall
+      be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-setinheritsched:/name} shall
+      be ${/c/errno/if/einval:/name}.
+  - name: NotSup
+    test-code: |
+      T_eq_int( ctx->status, ENOTSUP );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/attr-setinheritsched:/name} shall
+      be ${/c/errno/if/enotsup:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: InheritSched
+  states:
+  - name: Inherit
+    test-code: |
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_INHERIT_SCHED );
+    text: |
+      The ${../glossary/thread-inherit-scheduler:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setinheritsched:/params[0]/name} parameter shall be
+      ${../if/inherit-sched:/name}.
+  - name: Explicit
+    test-code: |
+      T_eq_int( ctx->attr_obj.inheritsched, PTHREAD_EXPLICIT_SCHED );
+    text: |
+      The ${../glossary/thread-inherit-scheduler:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setinheritsched:/params[0]/name} parameter shall be
+      ${../if/explicit-sched:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->attr_obj.inheritsched, ctx->attr_before.inheritsched );
+    text: |
+      The ${../glossary/thread-inherit-scheduler:/term} of the
+      ${../glossary/thread:/term} attributes object referenced by the
+      ${../if/attr-setinheritsched:/params[0]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: Nop
+    test-code: |
+      pthread_attr_t expected;
+
+      memcpy( &expected, &ctx->attr_before, sizeof( expected ) );
+      expected.inheritsched = ctx->attr_obj.inheritsched;
+      T_eq_mem( &ctx->attr_obj, &expected, sizeof( expected ) );
+    text: |
+      The content of the ${../glossary/thread:/term} attributes object referenced by
+      the ${../if/attr-setinheritsched:/params[0]/name} parameter, other than its
+      ${../glossary/thread-inherit-scheduler:/term}, shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../if/attr-setinheritsched:/params[0]/name} parameter references an
+      object of type ${/c/if/pthread_attr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/attr-setinheritsched:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eno_success( pthread_attr_init( &ctx->attr_obj ) );
+      ctx->attr_obj.inheritsched = -1;
+    text: |
+      While the object referenced by the
+      ${../if/attr-setinheritsched:/params[0]/name} parameter is an initialized
+      ${../glossary/thread:/term} attributes object.
+  - name: 'No'
+    test-code: |
+      memset( &ctx->attr_obj, 0, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.inheritsched = -1;
+    text: |
+      While the object referenced by the
+      ${../if/attr-setinheritsched:/params[0]/name} parameter is not an initialized
+      ${../glossary/thread:/term} attributes object.
+  test-epilogue: null
+  test-prologue: null
+- name: InheritSched
+  states:
+  - name: Inherit
+    test-code: |
+      ctx->inheritsched = PTHREAD_INHERIT_SCHED;
+    text: |
+      While the ${../if/attr-setinheritsched:/params[1]/name} parameter is equal to
+      ${../if/inherit-sched:/name}.
+  - name: Explicit
+    test-code: |
+      ctx->inheritsched = PTHREAD_EXPLICIT_SCHED;
+    text: |
+      While the ${../if/attr-setinheritsched:/params[1]/name} parameter is equal to
+      ${../if/explicit-sched:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->inheritsched = INHERIT_SCHED_INVALID;
+    text: |
+      While the ${../if/attr-setinheritsched:/params[1]/name} parameter is not a
+      valid ${../glossary/thread-inherit-scheduler:/term}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-attr-getinheritsched:/name} names
+  ${../if/inherit-sched:/name} and ${../if/explicit-sched:/name} as the supported
+  values of the ${../if/attr-setinheritsched:/params[1]/name} parameter. This
+  gives the states of pre-condition InheritSched and of post-condition
+  InheritSched.
+
+  The standard requires ${/c/errno/if/enotsup:/name} for an attempt to set an
+  unsupported value and permits ${/c/errno/if/einval:/name} for a value which is
+  not valid. RTEMS does not distinguish the two cases and returns
+  ${/c/errno/if/enotsup:/name} for every other value, which state Invalid of
+  pre-condition InheritSched specifies. Since the ${/c/errno/if/einval:/name}
+  error is optional, this conforms to the standard.
+
+  The standard leaves the behaviour undefined where the
+  ${../if/attr-setinheritsched:/params[0]/name} parameter references no
+  initialized ${../glossary/thread:/term} attributes object. State Null of
+  pre-condition Attr and state No of pre-condition Initialized specify that RTEMS
+  returns ${/c/errno/if/einval:/name}. RTEMS checks these conditions before the
+  value of the ${../if/attr-setinheritsched:/params[1]/name} parameter.
+
+  ${../if/attr-setinheritsched:/name} writes no other attribute of the object,
+  which post-condition Other specifies.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->attr_before, &ctx->attr_obj, sizeof( ctx->attr_before ) );
+  ctx->status = pthread_attr_setinheritsched( ctx->attr, ctx->inheritsched );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/attr-setinheritsched:/params[0]/name}
+    parameter value.
+  description: null
+  member: pthread_attr_t *attr
+- brief: |
+    This member specifies the ${../if/attr-setinheritsched:/params[1]/name}
+    parameter value.
+  description: null
+  member: int inheritsched
+- brief: |
+    This member contains the return value of the
+    ${../if/attr-setinheritsched:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/thread:/term} attributes object.
+  description: null
+  member: pthread_attr_t attr_obj
+- brief: |
+    This member contains a copy of the ${../glossary/thread:/term} attributes
+    object before the call.
+  description: null
+  member: pthread_attr_t attr_before
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  #define INHERIT_SCHED_INVALID 123
+test-target: testsuites/validation/tc-pthread-attr-setinheritsched.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        pre-conditions:
+          InheritSched: Invalid
+      then: NotSup
+    - else: Ok
+    InheritSched:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: InheritSched
+    - else: Nop
+    Other:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Attr: all
+    Initialized:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+    InheritSched: all
+type: requirement

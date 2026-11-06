@@ -1,0 +1,363 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/setaffinity-np
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- path: man.cgi?query=pthread_setaffinity_np&sektion=3
+  role: reference
+  uid: /ref/man/freebsd
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setaffinity-np:/name} shall be
+      zero.
+  - name: Fault
+    test-code: |
+      T_eq_int( ctx->status, EFAULT );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setaffinity-np:/name} shall be
+      ${/c/errno/if/efault:/name}.
+  - name: Srch
+    test-code: |
+      T_eq_int( ctx->status, ESRCH );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setaffinity-np:/name} shall be
+      ${/c/errno/if/esrch:/name}.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setaffinity-np:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: SetAffinity
+  states:
+  - name: Set
+    test-code: |
+      #if defined( RTEMS_SMP )
+        T_eq_sz( ctx->scheduler_log.header.recorded, 1 );
+        T_eq_int(
+          ctx->scheduler_log.events[ 0 ].operation,
+          T_SCHEDULER_SET_AFFINITY
+        );
+        T_eq_int(
+          ctx->scheduler_log.events[ 0 ].set_affinity.status,
+          STATUS_SUCCESSFUL
+        );
+      #else
+        T_eq_sz( ctx->scheduler_log.header.recorded, 0 );
+      #endif
+    text: |
+      The processor affinity of the ${../glossary/thread:/term} specified by the
+      ${../if/setaffinity-np:/params[0]/name} parameter shall be set with respect to
+      the ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term} at
+      some point during the ${../if/setaffinity-np:/name} call.
+  - name: Nop
+    test-code: |
+      #if defined( RTEMS_SMP )
+        if ( ctx->scheduler_log.header.recorded == 1 ) {
+          T_eq_int(
+            ctx->scheduler_log.events[ 0 ].operation,
+            T_SCHEDULER_SET_AFFINITY
+          );
+          T_eq_int(
+            ctx->scheduler_log.events[ 0 ].set_affinity.status,
+            STATUS_INVALID_NUMBER
+          );
+        } else {
+          T_eq_sz( ctx->scheduler_log.header.recorded, 0 );
+        }
+      #else
+        T_eq_sz( ctx->scheduler_log.header.recorded, 0 );
+      #endif
+    text: |
+      No processor affinity shall be modified by the ${../if/setaffinity-np:/name}
+      call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Thread
+  states:
+  - name: NoObj
+    test-code: |
+      ctx->thread = INVALID_THREAD_ID;
+    text: |
+      While the ${../if/setaffinity-np:/params[0]/name} parameter is not associated
+      with a ${../glossary/thread:/term}.
+  - name: Valid
+    test-code: |
+      ctx->thread = pthread_self();
+    text: |
+      While the ${../if/setaffinity-np:/params[0]/name} parameter is associated with
+      a ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: CPUSetSize
+  states:
+  - name: Askew
+    test-code: |
+      ctx->cpusetsize = SIZE_MAX;
+    text: |
+      While the ${../if/setaffinity-np:/params[1]/name} parameter is not an integral
+      multiple of the size of long.
+  - name: Normal
+    test-code: |
+      ctx->cpusetsize = sizeof( ctx->cpuset_obj[ 0 ] );
+    text: |
+      While the ${../if/setaffinity-np:/params[1]/name} parameter is an integral
+      multiple of the size of long, while the ${../if/setaffinity-np:/params[1]/name}
+      parameter is less than or equal to the maximum processor set size storable in
+      the system.
+  - name: Huge
+    test-code: |
+      ctx->cpusetsize = sizeof( ctx->cpuset_obj );
+    text: |
+      While the ${../if/setaffinity-np:/params[1]/name} parameter is an integral
+      multiple of the size of long, while the ${../if/setaffinity-np:/params[1]/name}
+      parameter is greater than the maximum processor set size storable in the
+      system.
+  test-epilogue: null
+  test-prologue: null
+- name: CPUSetOnline
+  states:
+  - name: Supported
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the intersection of the processor set specified by the
+      ${../if/setaffinity-np:/params[1]/name} and
+      ${../if/setaffinity-np:/params[2]/name} parameters and the set of online
+      processors represents an affinity set supported by the
+      ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term} specified
+      by the ${../if/setaffinity-np:/params[0]/name} parameter at some point during
+      the ${../if/setaffinity-np:/name} call.
+  - name: Unsupported
+    test-code: |
+      CPU_CLR( 0, &ctx->cpuset_obj[ 0 ] );
+    text: |
+      While the intersection of the processor set specified by the
+      ${../if/setaffinity-np:/params[1]/name} and
+      ${../if/setaffinity-np:/params[2]/name} parameters and the set of online
+      processors represents an affinity set not supported by the
+      ${/glossary/scheduler-home:/term} of the ${../glossary/thread:/term} specified
+      by the ${../if/setaffinity-np:/params[0]/name} parameter at some point during
+      the ${../if/setaffinity-np:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: CPUSetHuge
+  states:
+  - name: NotZero
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the processor set specified by the
+      ${../if/setaffinity-np:/params[1]/name} and
+      ${../if/setaffinity-np:/params[2]/name} parameters contains at least one
+      processor which is not storable in a processor set supported by the system.
+  - name: Zero
+    test-code: |
+      CPU_ZERO( &ctx->cpuset_obj[ 1 ] );
+    text: |
+      While the processor set specified by the
+      ${../if/setaffinity-np:/params[1]/name} and
+      ${../if/setaffinity-np:/params[2]/name} parameters contains no processor which
+      is not storable in a processor set supported by the system.
+  - name: Only
+    test-code: |
+      CPU_ZERO( &ctx->cpuset_obj[ 0 ] );
+    text: |
+      While the processor set specified by the
+      ${../if/setaffinity-np:/params[1]/name} and
+      ${../if/setaffinity-np:/params[2]/name} parameters contains processors, but
+      none which is storable in a processor set supported by the system.
+  test-epilogue: null
+  test-prologue: null
+- name: CPUSet
+  states:
+  - name: Obj
+    test-code: |
+      ctx->cpuset = &ctx->cpuset_obj[ 0 ];
+    text: |
+      While the ${../if/setaffinity-np:/params[2]/name} parameter references an
+      object of type ${/c/if/cpu_set_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->cpuset = NULL;
+    text: |
+      While the ${../if/setaffinity-np:/params[2]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The standard does not contain ${../if/setaffinity-np:/name}. The FreeBSD manual
+  page pthread_setaffinity_np(3) describes it. RTEMS implements it through the
+  same scheduler operation as ${/rtems/task/if/set-affinity:/name}. The
+  pre-conditions and post-conditions follow the action requirement of
+  ${/rtems/task/if/set-affinity:/name}, adapted to the error numbers of
+  ${../if/setaffinity-np:/name}: state Null of pre-condition CPUSet gives
+  ${/c/errno/if/efault:/name}, state NoObj of pre-condition Thread gives
+  ${/c/errno/if/esrch:/name}, and state Askew of pre-condition CPUSetSize, state
+  Unsupported of pre-condition CPUSetOnline, and state Only of pre-condition
+  CPUSetHuge give ${/c/errno/if/einval:/name}. RTEMS checks the
+  ${../if/setaffinity-np:/params[2]/name} parameter first, then the
+  ${../if/setaffinity-np:/params[0]/name} parameter.
+
+  A processor set which is larger than the processor set of the system is
+  accepted as long as it contains at least one processor which the system can
+  store. Pre-condition CPUSetHuge shows that the processors beyond the system
+  limit do not change the result while the set contains at least one processor
+  which the system can store. State Only of pre-condition CPUSetHuge specifies a
+  set which contains only processors beyond the system limit. RTEMS returns
+  ${/c/errno/if/einval:/name} for it before it calls the scheduler.
+
+  Post-condition SetAffinity observes the set affinity operation of the
+  ${/glossary/scheduler-home:/term} through the scheduler operation log. In a
+  uniprocessor configuration, RTEMS does not call a scheduler operation and the
+  affinity of a ${../glossary/thread:/term} is always the one processor of the
+  system, so the status is the only observable effect.
+requirement-type: functional
+skip-reasons:
+  OnlyBeyond: |
+    A processor set which contains no processor storable in a processor set
+    supported by the system has an empty intersection with the set of online
+    processors, which no ${/glossary/scheduler-home:/term} supports.
+test-action: |
+  T_scheduler_log *log;
+
+  log = T_scheduler_record_2( &ctx->scheduler_log );
+  T_null( log );
+
+  ctx->status = pthread_setaffinity_np(
+    ctx->thread,
+    ctx->cpusetsize,
+    ctx->cpuset
+  );
+
+  log = T_scheduler_record( NULL );
+  T_eq_ptr( &log->header, &ctx->scheduler_log.header );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the scheduler operation records.
+  description: null
+  member: |
+    T_scheduler_log_2 scheduler_log
+- brief: |
+    This member provides the object referenced by the
+    ${../if/setaffinity-np:/params[2]/name} parameter.
+  description: null
+  member: |
+    cpu_set_t cpuset_obj[ 2 ]
+- brief: |
+    This member contains the return value of the ${../if/setaffinity-np:/name}
+    call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member specifies the ${../if/setaffinity-np:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    pthread_t thread
+- brief: |
+    This member specifies the ${../if/setaffinity-np:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    size_t cpusetsize
+- brief: |
+    This member specifies the ${../if/setaffinity-np:/params[2]/name} parameter
+    value.
+  description: null
+  member: |
+    cpu_set_t *cpuset
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems/test-scheduler.h
+test-local-includes: []
+test-prepare: |
+  CPU_FILL_S( sizeof( ctx->cpuset_obj ), &ctx->cpuset_obj[ 0 ] );
+test-setup: null
+test-stop: null
+test-support: |
+  #define INVALID_THREAD_ID ( (pthread_t) 0xffffffff )
+test-target: testsuites/validation/tc-pthread-setaffinity-np.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          CPUSet: 'Null'
+      then: Fault
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: Srch
+    - if:
+        pre-conditions:
+          CPUSetSize: Askew
+      then: Inval
+    - if:
+        pre-conditions:
+          CPUSetOnline: Unsupported
+      then: Inval
+    - if:
+        pre-conditions:
+          CPUSetHuge: Only
+      then: Inval
+    - else: Ok
+    SetAffinity:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Set
+    - else: Nop
+  pre-conditions:
+    Thread: all
+    CPUSetSize: all
+    CPUSetOnline:
+      applicable:
+        pre-conditions:
+          CPUSet: Obj
+          Thread: Valid
+    CPUSetHuge:
+      applicable:
+        pre-conditions:
+          CPUSet: Obj
+          CPUSetSize: Huge
+          Thread: Valid
+    CPUSet: all
+- enabled-by: true
+  post-conditions: OnlyBeyond
+  pre-conditions:
+    Thread:
+    - Valid
+    CPUSetSize:
+    - Huge
+    CPUSetOnline:
+    - Supported
+    CPUSetHuge:
+    - Only
+    CPUSet:
+    - Obj
+type: requirement
