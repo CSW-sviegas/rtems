@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -531,6 +531,7 @@ static void ScoreTqReqEnqueuePriority_Action(
     TQ_BLOCKER_C,
     TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC
   );
+  TQGetProperties( ctx->tq_ctx, TQ_BLOCKER_C );
   TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
 
   if ( ctx->other_before || ctx->other_after ) {

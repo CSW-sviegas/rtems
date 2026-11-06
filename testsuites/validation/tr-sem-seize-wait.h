@@ -47,6 +47,18 @@ extern "C" {
  */
 
 typedef enum {
+  ScoreSemReqSeizeWait_Pre_Discipline_FIFO,
+  ScoreSemReqSeizeWait_Pre_Discipline_Priority,
+  ScoreSemReqSeizeWait_Pre_Discipline_NA
+} ScoreSemReqSeizeWait_Pre_Discipline;
+
+typedef enum {
+  ScoreSemReqSeizeWait_Pre_Timeout_Ticks,
+  ScoreSemReqSeizeWait_Pre_Timeout_None,
+  ScoreSemReqSeizeWait_Pre_Timeout_NA
+} ScoreSemReqSeizeWait_Pre_Timeout;
+
+typedef enum {
   ScoreSemReqSeizeWait_Pre_Count_Zero,
   ScoreSemReqSeizeWait_Pre_Count_Positive,
   ScoreSemReqSeizeWait_Pre_Count_NA
@@ -54,9 +66,15 @@ typedef enum {
 
 typedef enum {
   ScoreSemReqSeizeWait_Post_Status_Ok,
-  ScoreSemReqSeizeWait_Post_Status_Enqueued,
   ScoreSemReqSeizeWait_Post_Status_NA
 } ScoreSemReqSeizeWait_Post_Status;
+
+typedef enum {
+  ScoreSemReqSeizeWait_Post_Enqueued_No,
+  ScoreSemReqSeizeWait_Post_Enqueued_FIFO,
+  ScoreSemReqSeizeWait_Post_Enqueued_Priority,
+  ScoreSemReqSeizeWait_Post_Enqueued_NA
+} ScoreSemReqSeizeWait_Post_Enqueued;
 
 typedef enum {
   ScoreSemReqSeizeWait_Post_Count_Nop,
@@ -65,7 +83,7 @@ typedef enum {
 } ScoreSemReqSeizeWait_Post_Count;
 
 typedef enum {
-  ScoreSemReqSeizeWait_Post_Timer_Optional,
+  ScoreSemReqSeizeWait_Post_Timer_Ticks,
   ScoreSemReqSeizeWait_Post_Timer_No,
   ScoreSemReqSeizeWait_Post_Timer_NA
 } ScoreSemReqSeizeWait_Post_Timer;

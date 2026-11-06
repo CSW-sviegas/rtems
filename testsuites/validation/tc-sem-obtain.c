@@ -87,7 +87,10 @@ typedef enum {
 typedef enum {
   RtemsSemReqObtain_Post_Action_InvId,
   RtemsSemReqObtain_Post_Action_SemSeizeTry,
-  RtemsSemReqObtain_Post_Action_SemSeizeWait,
+  RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOTimeout,
+  RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOForever,
+  RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityTimeout,
+  RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityForever,
   RtemsSemReqObtain_Post_Action_MtxSeizeTryFIFO,
   RtemsSemReqObtain_Post_Action_MtxSeizeTryPriority,
   RtemsSemReqObtain_Post_Action_MtxSeizeWaitFIFO,
@@ -107,7 +110,7 @@ typedef struct {
   uint16_t Pre_Discipline_NA : 1;
   uint16_t Pre_Id_NA : 1;
   uint16_t Pre_Wait_NA : 1;
-  uint16_t Post_Action : 4;
+  uint16_t Post_Action : 5;
 } RtemsSemReqObtain_Entry;
 
 /**
@@ -369,10 +372,56 @@ static void RtemsSemReqObtain_Post_Action_Check(
       break;
     }
 
-    case RtemsSemReqObtain_Post_Action_SemSeizeWait: {
+    case RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOTimeout: {
       /*
        * The calling task shall wait to seize the semaphore as specified by
-       * spec:/score/sem/req/seize-wait.
+       * spec:/score/sem/req/seize-wait where the thread queue of the semaphore
+       * uses the FIFO discipline and the directive waits with a timeout in
+       * clock ticks.
+       */
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = 3;
+      ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = UINT32_MAX;
+      break;
+    }
+
+    case RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOForever: {
+      /*
+       * The calling task shall wait to seize the semaphore as specified by
+       * spec:/score/sem/req/seize-wait where the thread queue of the semaphore
+       * uses the FIFO discipline and the directive waits without a timeout.
+       */
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+      break;
+    }
+
+    case RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityTimeout: {
+      /*
+       * The calling task shall wait to seize the semaphore as specified by
+       * spec:/score/sem/req/seize-wait where the thread queue of the semaphore
+       * uses the priority discipline and the directive waits with a timeout in
+       * clock ticks.
+       */
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = 3;
+      ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = UINT32_MAX;
+      break;
+    }
+
+    case RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityForever: {
+      /*
+       * The calling task shall wait to seize the semaphore as specified by
+       * spec:/score/sem/req/seize-wait where the thread queue of the semaphore
+       * uses the priority discipline and the directive waits without a
+       * timeout.
        */
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
@@ -633,8 +682,11 @@ static const RtemsSemReqObtain_Entry
 RtemsSemReqObtain_Entries[] = {
   { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_InvId },
   { 1, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_NA },
-  { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeWait },
   { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeTry },
+  { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOTimeout },
+  { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeWaitFIFOForever },
+  { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityTimeout },
+  { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_SemSeizeWaitPriorityForever },
   { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_MtxSeizeWaitFIFO },
   { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_MtxSeizeWaitPriority },
   { 0, 0, 0, 0, 0, RtemsSemReqObtain_Post_Action_CeilingMtxSeizeWait },
@@ -657,9 +709,9 @@ RtemsSemReqObtain_Entries[] = {
 
 static const uint8_t
 RtemsSemReqObtain_Map[] = {
-  3, 2, 2, 0, 0, 0, 3, 2, 2, 0, 0, 0, 3, 2, 2, 0, 0, 0, 3, 2, 2, 0, 0, 0, 9, 4,
-  4, 0, 0, 0, 10, 5, 5, 0, 0, 0, 1, 1, 1, 1, 1, 1, 11, 6, 6, 0, 0, 0, 1, 1, 1,
-  1, 1, 1, 12, 7, 7, 0, 0, 0, 1, 1, 1, 1, 1, 1, 13, 8, 8, 0, 0, 0
+  2, 3, 4, 0, 0, 0, 2, 5, 6, 0, 0, 0, 2, 3, 4, 0, 0, 0, 2, 5, 6, 0, 0, 0, 12,
+  7, 7, 0, 0, 0, 13, 8, 8, 0, 0, 0, 1, 1, 1, 1, 1, 1, 14, 9, 9, 0, 0, 0, 1, 1,
+  1, 1, 1, 1, 15, 10, 10, 0, 0, 0, 1, 1, 1, 1, 1, 1, 16, 11, 11, 0, 0, 0
 };
 
 /* clang-format on */
