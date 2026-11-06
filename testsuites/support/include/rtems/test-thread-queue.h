@@ -38,7 +38,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -973,7 +973,14 @@ void TQReset( TQContext *ctx );
 void TQSortMutexesByID( TQContext *ctx );
 
 /**
- * @brief Calls the get properties handler of the test context.
+ * @brief Calls the get properties handler of the test context for a blocked
+ *   worker.
+ *
+ * Without a get properties handler, the function does nothing.  Otherwise, it
+ * waits until the wait flags of the worker indicate a thread queue in the
+ * blocked state.  Then the enqueue completed the timer and the thread state of
+ * the worker.  After one second of wait, a check fails and the function
+ * returns without a call of the handler.
  *
  * @param ctx is the thread queue test context.
  * @param enqueued_worker is the worker which enqueues on the thread queue.

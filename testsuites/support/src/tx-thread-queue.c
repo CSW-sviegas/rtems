@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <sys/time.h>
 
 #include <rtems/test-thread-queue.h>
 #include <rtems/test-support.h>
@@ -617,7 +619,33 @@ void TQSortMutexesByID( TQContext *ctx )
 
 void TQGetProperties( TQContext *ctx, TQWorkerKind enqueued_worker )
 {
-  ( *ctx->get_properties )( ctx, enqueued_worker );
+  const rtems_tcb *thread;
+  int64_t          begin;
+  bool             blocked;
+
+  if ( ctx->get_properties == NULL ) {
+    return;
+  }
+
+  thread = ctx->worker_tcb[ enqueued_worker ];
+  begin = rtems_clock_get_monotonic_sbintime();
+
+  /*
+   * The blocked state publishes no earlier store of the enqueue.  The handler
+   * reads the thread state and the timer under their locks.
+   */
+  do {
+    blocked = ( _Thread_Wait_flags_get_acquire( thread ) & THREAD_WAIT_MASK ) ==
+              ( THREAD_WAIT_CLASS_QUEUE | THREAD_WAIT_STATE_BLOCKED );
+  } while (
+    !blocked && rtems_clock_get_monotonic_sbintime() - begin <= SBT_1S
+  );
+
+  T_true( blocked );
+
+  if ( blocked ) {
+    ( *ctx->get_properties )( ctx, enqueued_worker );
+  }
 }
 
 Status_Control TQConvertStatus( TQContext *ctx, Status_Control status )
