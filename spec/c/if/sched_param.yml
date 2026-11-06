@@ -1,0 +1,66 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure represents scheduling parameters.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member represents the ${../sched/glossary/priority:/term}.
+    definition: int ${.:name}
+    description: null
+    kind: member
+    name: sched_priority
+  variants: []
+- default:
+    brief: |
+      This member represents the ${../sched/glossary/ss-low-priority:/term}.
+    definition: int ${.:name}
+    description: null
+    kind: member
+    name: sched_ss_low_priority
+  variants: []
+- default:
+    brief: |
+      This member represents the ${../sched/glossary/ss-repl-period:/term}.
+    definition: ${/c/if/timespec:/name} ${.:name}
+    description: null
+    kind: member
+    name: sched_ss_repl_period
+  variants: []
+- default:
+    brief: |
+      This member represents the ${../sched/glossary/ss-init-budget:/term}.
+    definition: ${/c/if/timespec:/name} ${.:name}
+    description: null
+    kind: member
+    name: sched_ss_init_budget
+  variants: []
+- default:
+    brief: |
+      This member represents the ${../sched/glossary/ss-max-repl:/term}.
+    definition: int ${.:name}
+    description: null
+    kind: member
+    name: sched_ss_max_repl
+  variants: []
+definition-kind: struct-only
+description: null
+enabled-by: true
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: /c/sched/if/header
+- role: interface-ingroup
+  uid: /c/sched/if/group
+- role: reference
+  uid: /ref/std/posix-2024/sched-h
+name: sched_param
+notes: |
+  See ${/ref/std/posix-2024/sched-h:/name}.
+
+  The sporadic server is available only if RTEMS is built with the option
+  RTEMS_POSIX_API enabled.
+type: interface
