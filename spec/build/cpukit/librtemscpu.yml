@@ -358,6 +358,9 @@ source:
 - cpukit/posix/src/pthreadattrinit.c
 - cpukit/posix/src/pthreadattrsetdetachstate.c
 - cpukit/posix/src/pthreadattrsetguardsize.c
+- cpukit/posix/src/pthreadattrsetinheritsched.c
+- cpukit/posix/src/pthreadattrsetschedparam.c
+- cpukit/posix/src/pthreadattrsetschedpolicy.c
 - cpukit/posix/src/pthreadattrsetscope.c
 - cpukit/posix/src/pthreadattrsetstack.c
 - cpukit/posix/src/pthreadattrsetstackaddr.c
@@ -366,6 +369,7 @@ source:
 - cpukit/posix/src/pthreadexit.c
 - cpukit/posix/src/pthreadgetnamenp.c
 - cpukit/posix/src/pthreadjoin.c
+- cpukit/posix/src/pthreadsetaffinitynp.c
 - cpukit/posix/src/pthreadsetnamenp.c
 - cpukit/posix/src/setcancelstate.c
 - cpukit/posix/src/setcanceltype.c

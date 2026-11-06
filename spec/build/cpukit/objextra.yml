@@ -820,9 +820,6 @@ source:
 - cpukit/posix/src/pthreadattrgetschedparam.c
 - cpukit/posix/src/pthreadattrgetschedpolicy.c
 - cpukit/posix/src/pthreadattrsetaffinitynp.c
-- cpukit/posix/src/pthreadattrsetinheritsched.c
-- cpukit/posix/src/pthreadattrsetschedparam.c
-- cpukit/posix/src/pthreadattrsetschedpolicy.c
 - cpukit/posix/src/pthreadconcurrency.c
 - cpukit/posix/src/pthreadconfig.c
 - cpukit/posix/src/pthreadcreate.c
@@ -833,7 +830,6 @@ source:
 - cpukit/posix/src/pthreadgetschedparam.c
 - cpukit/posix/src/pthreadinitthreads.c
 - cpukit/posix/src/pthreadonce.c
-- cpukit/posix/src/pthreadsetaffinitynp.c
 - cpukit/posix/src/pthreadsetschedparam.c
 - cpukit/posix/src/pthreadsetschedprio.c
 - cpukit/posix/src/rwlockattrdestroy.c
