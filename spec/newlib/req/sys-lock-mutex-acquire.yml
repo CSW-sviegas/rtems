@@ -9,7 +9,7 @@ links:
 - role: function-implementation
   uid: /score/mtx/req/seize-wait
 - role: requirement-refinement
-  uid: sys-lock
+  uid: sys-lock-mutex
 rationale: null
 requirement-type: functional
 text: |

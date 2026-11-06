@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 identifier: RTEMSScoreFutex
 links:
@@ -14,6 +14,6 @@ rationale: |
   It is used for barriers which are a core synchronization primitive of OpenMP.
 requirement-type: non-functional
 text: |
-  The super core shall have a component containing the futex implementation those
+  The super core shall have a component containing the futex implementation whose
   interfaces are defined by Newlib.
 type: requirement
