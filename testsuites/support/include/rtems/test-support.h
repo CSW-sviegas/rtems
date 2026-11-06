@@ -1085,6 +1085,15 @@ typedef struct {
   uint64_t expire_ticks;
 
   /**
+   * @brief This member contains the ticks of the watchdog of the processor
+   *   which holds the timer at the time of the query.
+   *
+   * For the state TASK_TIMER_TICKS, the difference between expire_ticks and
+   * this member is the count of clock ticks until the timer fires.
+   */
+  uint64_t now_ticks;
+
+  /**
    * @brief This member contains the expire time point of a timer of
    *   CLOCK_REALTIME or CLOCK_MONOTONIC.
    *

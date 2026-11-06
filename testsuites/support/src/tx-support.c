@@ -800,6 +800,7 @@ void GetTaskTimerInfoByThread(
 )
 {
   info->expire_ticks = 0;
+  info->now_ticks = 0;
   info->expire_timespec.tv_sec = -1;
   info->expire_timespec.tv_nsec = -1;
 
@@ -816,6 +817,7 @@ void GetTaskTimerInfoByThread(
     cpu = _Per_CPU_Get();
 #endif
     _Watchdog_Per_CPU_acquire_critical( cpu, &lock_context_2 );
+    info->now_ticks = cpu->Watchdog.ticks;
 
     if ( _Watchdog_Is_scheduled( &thread->Timer.Watchdog ) ) {
       const Watchdog_Header *hdr;
