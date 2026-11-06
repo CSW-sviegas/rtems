@@ -39,6 +39,8 @@ links:
 - role: validation
   uid: /c/errno/if/edeadlk
 - role: validation
+  uid: /c/errno/if/efault
+- role: validation
   uid: /c/errno/if/einval
 - role: validation
   uid: /c/errno/if/enomem
