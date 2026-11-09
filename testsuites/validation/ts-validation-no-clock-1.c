@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +48,8 @@
  *   to run basic tests without a Clock Driver for all specified managers and
  *   functions. The maximum thread name size is zero. The application
  *   configuration defines the task stack size of the Classic API
- *   initialization task.
+ *   initialization task, CONFIGURE_MAXIMUM_POSIX_KEYS, and
+ *   CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS.
  *
  * In SMP configurations, up to three scheduler instances using the SMP EDF
  * scheduler are provided using up to four processors.
@@ -64,6 +66,10 @@ const char rtems_test_name[] = "TestsuitesValidationNoClock1";
 #define CONFIGURE_MAXIMUM_THREAD_NAME_SIZE 0
 
 #define CONFIGURE_INIT_TASK_STACK_SIZE TEST_INIT_TASK_STACK_SIZE
+
+#define CONFIGURE_MAXIMUM_POSIX_KEYS 8
+
+#define CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS 8
 
 #include "ts-default.h"
 
