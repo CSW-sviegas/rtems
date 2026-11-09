@@ -1,15 +1,67 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Associate the value specified by ${.:/params[1]/name} with the
+  ${../glossary/thread-specific-data-key:/term} specified by ${.:/params[0]/name}
+  for the calling ${../glossary/thread:/term}.
 copyrights:
 - Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_key_t:/name} ${.:/params[0]/name}
+    - const void *${.:/params[1]/name}
+    return: int
+  variants: []
+description: |
+  If ${.:/params[1]/name} is ${/c/if/null:/name}, then the calling
+  ${../glossary/thread:/term} has no value associated with the key afterwards.
 enabled-by: true
 index-entries: []
-interface-type: unspecified-function
+interface-type: function
 links:
 - role: interface-placement
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The value specified by ${.:/params[0]/name} is not a valid
+    ${../glossary/thread-specific-data-key:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    Insufficient memory exists to associate the value specified by
+    ${.:/params[1]/name} with the key.
+  role: errno
+  uid: /c/errno/if/enomem
+- role: reference
+  uid: /ref/std/posix-2024/pthread-getspecific
 name: pthread_setspecific
+notes: |
+  See ${/ref/std/posix-2024/pthread-getspecific:/name}.
+params:
+- description: |
+    is the ${../glossary/thread-specific-data-key:/term}.
+  dir: null
+  name: key
+- description: |
+    is the value to associate with the key.
+  dir: null
+  name: value
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The value specified by ${.:/params[0]/name} was not a valid
+      ${../glossary/thread-specific-data-key:/term}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      Insufficient memory existed to associate the value specified by
+      ${.:/params[1]/name} with the key.
+    value: ${/c/errno/if/enomem:/name}
 type: interface

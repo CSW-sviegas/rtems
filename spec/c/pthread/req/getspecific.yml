@@ -1,0 +1,235 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getspecific
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-getspecific
+post-conditions:
+- name: Result
+  states:
+  - name: Obj
+    test-code: |
+      T_eq_ptr( ctx->result, &executing_value );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getspecific:/name} shall be the
+      value which the calling ${../glossary/thread:/term} associated with the key
+      specified by the ${../if/getspecific:/params[0]/name} parameter.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getspecific:/name} shall be
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Values
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_ptr( GetValue( ctx->key_obj, GetExecuting() ), ctx->executing_before );
+      T_eq_ptr( GetValue( ctx->key_obj, ctx->worker_tcb ), ctx->other_before );
+    text: |
+      The values associated with the key specified by the
+      ${../if/getspecific:/params[0]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Key
+  states:
+  - name: Valid
+    test-code: |
+      ctx->key = ctx->key_obj;
+    text: |
+      While the ${../if/getspecific:/params[0]/name} parameter is a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/getspecific:/params[0]/name} parameter is not a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Obj
+    test-code: |
+      T_eq_int( pthread_setspecific( ctx->key_obj, &executing_value ), 0 );
+    text: |
+      While the calling ${../glossary/thread:/term} has a value associated with the
+      key specified by the ${../if/getspecific:/params[0]/name} parameter.
+  - name: 'Null'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+    text: |
+      While the calling ${../glossary/thread:/term} has no value associated with the
+      key specified by the ${../if/getspecific:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: 'Yes'
+    test-code: |
+      StartTask( ctx->worker_id, Worker, ctx );
+      (void) ReceiveAnyEvents();
+    text: |
+      While a ${../glossary/thread:/term} other than the calling thread has a value
+      associated with the key specified by the ${../if/getspecific:/params[0]/name}
+      parameter.
+  - name: 'No'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, ctx->worker_tcb ) );
+    text: |
+      While no ${../glossary/thread:/term} other than the calling thread has a value
+      associated with the key specified by the ${../if/getspecific:/params[0]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-getspecific:/name} specifies that
+  ${../if/getspecific:/name} returns the value which the calling thread
+  associated with the ${../glossary/thread-specific-data-key:/term}, and
+  ${/c/if/null:/name} where the calling thread associated no value with it. This
+  gives pre-condition Value and post-condition Result. Pre-condition Other covers
+  a value which another thread associated with the key.
+
+  The standard does not define the behaviour where the
+  ${../if/getspecific:/params[0]/name} parameter is not a valid key, and the
+  function has no error return. State Invalid of pre-condition Key specifies the
+  behaviour of RTEMS which returns ${/c/if/null:/name}.
+
+  ${../if/getspecific:/name} does not change the values associated with the key,
+  which post-condition Values specifies.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->executing_before = GetValue( ctx->key_obj, GetExecuting() );
+  ctx->other_before = GetValue( ctx->key_obj, ctx->worker_tcb );
+  ctx->result = pthread_getspecific( ctx->key );
+test-brief: null
+test-cleanup: |
+  DeleteTask( ctx->worker_id );
+  T_eq_int( pthread_key_delete( ctx->key_obj ), 0 );
+test-context:
+- brief: |
+    This member specifies the ${../if/getspecific:/params[0]/name} parameter value.
+  description: null
+  member: pthread_key_t key
+- brief: |
+    This member contains the return value of the ${../if/getspecific:/name} call.
+  description: null
+  member: void *result
+- brief: |
+    This member contains the key created for the test.
+  description: null
+  member: pthread_key_t key_obj
+- brief: |
+    This member contains the value which the calling thread associated with the key
+    before the call.
+  description: null
+  member: void *executing_before
+- brief: |
+    This member contains the value which the worker task associated with the key
+    before the call.
+  description: null
+  member: void *other_before
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member contains the identifier of the worker task.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member references the TCB of the worker task.
+  description: null
+  member: Thread_Control *worker_tcb
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- rtems/posix/keyimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  T_eq_int( pthread_key_create( &ctx->key_obj, NULL ), 0 );
+  ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+  ctx->worker_tcb = GetThread( ctx->worker_id );
+test-setup:
+  brief: null
+  code: |
+    ctx->runner_id = rtems_task_self();
+  description: null
+test-stop: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+  typedef ${.:/test-context-type} Context;
+
+  static int executing_value;
+
+  static int other_value;
+
+  static void *GetValue( pthread_key_t key, const Thread_Control *thread )
+  {
+    const POSIX_Keys_Key_value_pair *pair;
+
+    pair = _POSIX_Keys_Key_value_find( key, thread );
+
+    if ( pair == NULL ) {
+      return NULL;
+    }
+
+    return pair->value;
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+    T_eq_int( pthread_setspecific( ctx->key_obj, &other_value ), 0 );
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
+test-target: testsuites/validation/tc-pthread-getspecific.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Key: Valid
+      then-specified-by: Value
+    - else: 'Null'
+    Values:
+    - if:
+        pre-conditions:
+          Key: Invalid
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Key: all
+    Value:
+      applicable:
+        pre-conditions:
+          Key: Valid
+    Other:
+      applicable:
+        pre-conditions:
+          Key: Valid
+type: requirement

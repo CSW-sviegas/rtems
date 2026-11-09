@@ -1,0 +1,61 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Create a ${../glossary/thread-specific-data-key:/term}, store it in the object
+  referenced by ${.:/params[0]/name}, and associate it with the destructor
+  function specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_key_t:/name} *${.:/params[0]/name}
+    - void ( *${.:/params[1]/name} )( void * )
+    return: int
+  variants: []
+description: |
+  When a ${../glossary/thread:/term} terminates or is restarted which has a value
+  other than ${/c/if/null:/name} associated with the key, the destructor function
+  is called with this value, if the destructor function is not
+  ${/c/if/null:/name}.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The system lacked the necessary resources to create another
+    ${../glossary/thread-specific-data-key:/term}.
+  role: errno
+  uid: /c/errno/if/eagain
+- role: reference
+  uid: /ref/std/posix-2024/pthread-key-create
+name: pthread_key_create
+notes: |
+  See ${/ref/std/posix-2024/pthread-key-create:/name}.
+params:
+- description: |
+    is the pointer to the location where the created
+    ${../glossary/thread-specific-data-key:/term} will be stored.
+  dir: out
+  name: key
+- description: |
+    is the destructor function of the key, or ${/c/if/null:/name}.
+  dir: null
+  name: destructor
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The system lacked the necessary resources to create another
+      ${../glossary/thread-specific-data-key:/term}.
+    value: ${/c/errno/if/eagain:/name}
+type: interface

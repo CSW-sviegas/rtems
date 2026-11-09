@@ -1,0 +1,437 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/setspecific
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-getspecific
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setspecific:/name} shall be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setspecific:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  - name: NoMem
+    test-code: |
+      T_eq_int( ctx->status, ENOMEM );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/setspecific:/name} shall be
+      ${/c/errno/if/enomem:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Obj
+    test-code: |
+      pair = _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() );
+      T_assert_not_null( pair );
+      T_eq_ptr( pair->value, &new_value );
+    text: |
+      The value which the calling ${../glossary/thread:/term} associated with the key
+      specified by the ${../if/setspecific:/params[0]/name} parameter shall be the
+      value specified by the ${../if/setspecific:/params[1]/name} parameter.
+  - name: 'Null'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+    text: |
+      The calling ${../glossary/thread:/term} shall have no value associated with the
+      key specified by the ${../if/setspecific:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_ptr( GetValue( ctx->key_obj ), ctx->value_before );
+    text: |
+      The value which the calling ${../glossary/thread:/term} associated with the key
+      specified by the ${../if/setspecific:/params[0]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: |
+    const POSIX_Keys_Key_value_pair *pair;
+- name: Pairs
+  states:
+  - name: Allocated
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before - 1 );
+    text: |
+      One inactive key value pair shall be used, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: Released
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before + 1 );
+    text: |
+      One key value pair shall become inactive, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before );
+    text: |
+      The count of inactive key value pairs shall not be modified, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherValues
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_ptr( GetValue( ctx->other_keys[ 0 ] ), ctx->other_before[ 0 ] );
+      T_eq_ptr( GetValue( ctx->other_keys[ 1 ] ), ctx->other_before[ 1 ] );
+    text: |
+      The values which the calling ${../glossary/thread:/term} associated with keys
+      other than the key specified by the ${../if/setspecific:/params[0]/name}
+      parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Key
+  states:
+  - name: Valid
+    test-code: |
+      ctx->key = ctx->key_obj;
+    text: |
+      While the ${../if/setspecific:/params[0]/name} parameter is a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/setspecific:/params[0]/name} parameter is not a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Obj
+    test-code: |
+      ctx->value = &new_value;
+    text: |
+      While the ${../if/setspecific:/params[1]/name} parameter is not
+      ${/c/if/null:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->value = NULL;
+    text: |
+      While the ${../if/setspecific:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherKey
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( pthread_setspecific( ctx->other_keys[ 0 ], &other_value ), 0 );
+      T_eq_int( pthread_setspecific( ctx->other_keys[ 1 ], &other_value ), 0 );
+    text: |
+      While the calling ${../glossary/thread:/term} has values associated with keys
+      other than the key specified by the ${../if/setspecific:/params[0]/name}
+      parameter.
+  - name: 'No'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->other_keys[ 0 ], GetExecuting() ) );
+      T_null( _POSIX_Keys_Key_value_find( ctx->other_keys[ 1 ], GetExecuting() ) );
+    text: |
+      While the calling ${../glossary/thread:/term} has no value associated with a
+      key other than the key specified by the ${../if/setspecific:/params[0]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Associated
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( pthread_setspecific( ctx->key_obj, &old_value ), 0 );
+    text: |
+      While the calling ${../glossary/thread:/term} has a value associated with the
+      key specified by the ${../if/setspecific:/params[0]/name} parameter.
+  - name: 'No'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+    text: |
+      While the calling ${../glossary/thread:/term} has no value associated with the
+      key specified by the ${../if/setspecific:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Pairs
+  states:
+  - name: Available
+    test-code: |
+      T_gt_sz( CountFreePairs(), 0 );
+    text: |
+      While at least one key value pair is inactive, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: Exhausted
+    test-code: |
+      _Objects_Allocator_lock();
+
+      while ( ctx->pairs_used < RTEMS_ARRAY_SIZE( ctx->pairs ) ) {
+        POSIX_Keys_Key_value_pair *pair;
+
+        pair = _POSIX_Keys_Key_value_allocate();
+
+        if ( pair == NULL ) {
+          break;
+        }
+
+        ctx->pairs[ ctx->pairs_used ] = pair;
+        ++ctx->pairs_used;
+      }
+
+      _Objects_Allocator_unlock();
+
+      T_lt_sz( ctx->pairs_used, RTEMS_ARRAY_SIZE( ctx->pairs ) );
+      T_eq_sz( CountFreePairs(), 0 );
+    text: |
+      While no key value pair is inactive, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-getspecific:/name} specifies that
+  ${../if/setspecific:/name} associates the value with the
+  ${../glossary/thread-specific-data-key:/term} for the calling thread. This
+  gives pre-condition Value and post-condition Value. The standard requires
+  ${/c/errno/if/enomem:/name} where insufficient memory exists to associate a
+  value other than ${/c/if/null:/name} with the key. The behaviour is undefined
+  where the ${../if/setspecific:/params[0]/name} parameter is not a valid key.
+  The standard recommends ${/c/errno/if/einval:/name} in this case, which RTEMS
+  returns. This gives pre-condition Key and the states Inval and NoMem of
+  post-condition Status.
+
+  RTEMS stores an association in a key value pair. It uses an inactive pair only
+  where the calling thread has no value associated with the key and the value is
+  not ${/c/if/null:/name}. Otherwise it changes the existing association, or
+  removes it for the value ${/c/if/null:/name} and makes its pair inactive. This
+  gives pre-conditions Associated and Pairs and post-condition Pairs. The item
+  does not cover the unlimited allocation mode of
+  ${/acfg/if/max-posix-key-value-pairs:/name}.
+
+  RTEMS stores the associations of a thread in a tree ordered by the key. The
+  standard requires that the call changes only the association of the specified
+  key. This gives pre-condition OtherKey and post-condition OtherValues. The test
+  associates values with one key less than and one key greater than the specified
+  key, so that the tree lookup visits nodes on both sides.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->value_before = GetValue( ctx->key_obj );
+  ctx->other_before[ 0 ] = GetValue( ctx->other_keys[ 0 ] );
+  ctx->other_before[ 1 ] = GetValue( ctx->other_keys[ 1 ] );
+  ctx->pairs_before = CountFreePairs();
+  ctx->status = pthread_setspecific( ctx->key, ctx->value );
+test-brief: null
+test-cleanup: |
+  _Objects_Allocator_lock();
+
+  while ( ctx->pairs_used > 0 ) {
+    --ctx->pairs_used;
+    _Freechain_Put( &_POSIX_Keys_Keypool, ctx->pairs[ ctx->pairs_used ] );
+  }
+
+  _Objects_Allocator_unlock();
+
+  T_eq_int( pthread_key_delete( ctx->key_obj ), 0 );
+  T_eq_int( pthread_key_delete( ctx->other_keys[ 0 ] ), 0 );
+  T_eq_int( pthread_key_delete( ctx->other_keys[ 1 ] ), 0 );
+test-context:
+- brief: |
+    This member specifies the ${../if/setspecific:/params[0]/name} parameter value.
+  description: null
+  member: pthread_key_t key
+- brief: |
+    This member specifies the ${../if/setspecific:/params[1]/name} parameter value.
+  description: null
+  member: const void *value
+- brief: |
+    This member contains the return value of the ${../if/setspecific:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the key created for the test.
+  description: null
+  member: pthread_key_t key_obj
+- brief: |
+    This member contains the value which the calling thread associated with the key
+    before the call.
+  description: null
+  member: void *value_before
+- brief: |
+    This member contains the count of inactive key value pairs before the call.
+  description: null
+  member: size_t pairs_before
+- brief: |
+    This member contains the key value pairs taken to use up the inactive key value
+    pairs.
+  description: null
+  member: POSIX_Keys_Key_value_pair *pairs[ 16 ]
+- brief: |
+    This member contains the count of key value pairs taken to use up the inactive
+    key value pairs.
+  description: null
+  member: size_t pairs_used
+- brief: |
+    This member contains the keys other than the key created for the test. The
+    first key is less than and the second key is greater than the key created for
+    the test.
+  description: null
+  member: pthread_key_t other_keys[ 2 ]
+- brief: |
+    This member contains the values which the calling thread associated with the
+    other keys before the call.
+  description: null
+  member: void *other_before[ 2 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems/posix/keyimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->pairs_used = 0;
+  CreateKeys( ctx );
+test-setup: null
+test-stop: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+  static int old_value;
+
+  static int new_value;
+
+  static int other_value;
+
+  typedef ${.:/test-context-type} Context;
+
+  /*
+   * The key under test gets the middle identifier of three new keys, so that
+   * the other keys are on both sides of it in the tree of the calling thread.
+   */
+  static void CreateKeys( Context *ctx )
+  {
+    pthread_key_t keys[ 3 ];
+    size_t        i;
+    size_t        j;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( keys ); ++i ) {
+      T_eq_int( pthread_key_create( &keys[ i ], NULL ), 0 );
+    }
+
+    for ( i = 1; i < RTEMS_ARRAY_SIZE( keys ); ++i ) {
+      for ( j = i; j > 0 && keys[ j - 1 ] > keys[ j ]; --j ) {
+        pthread_key_t key;
+
+        key = keys[ j - 1 ];
+        keys[ j - 1 ] = keys[ j ];
+        keys[ j ] = key;
+      }
+    }
+
+    ctx->other_keys[ 0 ] = keys[ 0 ];
+    ctx->key_obj = keys[ 1 ];
+    ctx->other_keys[ 1 ] = keys[ 2 ];
+  }
+
+  static void *GetValue( pthread_key_t key )
+  {
+    const POSIX_Keys_Key_value_pair *pair;
+
+    pair = _POSIX_Keys_Key_value_find( key, GetExecuting() );
+
+    if ( pair == NULL ) {
+      return NULL;
+    }
+
+    return pair->value;
+  }
+
+  static size_t CountFreePairs( void )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+    size_t               count;
+
+    chain = &_POSIX_Keys_Keypool.Free;
+    node = _Chain_Immutable_first( chain );
+    count = 0;
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      ++count;
+      node = _Chain_Immutable_next( node );
+    }
+
+    return count;
+  }
+test-target: testsuites/validation/tc-pthread-setspecific.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Key: Invalid
+      then: Inval
+    - if:
+        pre-conditions:
+          Associated: 'No'
+          Pairs: Exhausted
+          Value: Obj
+      then: NoMem
+    - else: Ok
+    Value:
+    - if:
+        pre-conditions:
+          Key: Invalid
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Value
+    - else: Nop
+    Pairs:
+    - if:
+        and:
+        - post-conditions:
+            Status: Ok
+        - pre-conditions:
+            Associated: 'No'
+            Value: Obj
+      then: Allocated
+    - if:
+        and:
+        - post-conditions:
+            Status: Ok
+        - pre-conditions:
+            Associated: 'Yes'
+            Value: 'Null'
+      then: Released
+    - else: Nop
+    OtherValues: Nop
+  pre-conditions:
+    Key: all
+    Value: all
+    OtherKey:
+      applicable:
+        pre-conditions:
+          Key: Valid
+    Associated:
+      applicable:
+        pre-conditions:
+          Key: Valid
+    Pairs: all
+type: requirement
