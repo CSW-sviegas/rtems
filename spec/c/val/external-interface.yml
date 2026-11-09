@@ -130,6 +130,8 @@ links:
 - role: validation
   uid: /c/if/pthread_condattr_t
 - role: validation
+  uid: /c/if/pthread_key_t
+- role: validation
   uid: /c/if/pthread_t
 - role: validation
   uid: /c/pthread/if/scope-process
