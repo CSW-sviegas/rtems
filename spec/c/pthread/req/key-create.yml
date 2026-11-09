@@ -1,0 +1,341 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/key-create
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-key-create
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/key-create:/name} shall be zero.
+  - name: Again
+    test-code: |
+      T_eq_int( ctx->status, EAGAIN );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/key-create:/name} shall be
+      ${/c/errno/if/eagain:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Key
+  states:
+  - name: Created
+    test-code: |
+      the_key = _POSIX_Keys_Get( ctx->key_obj );
+      T_assert_not_null( the_key );
+      T_eq_u32( the_key->Object.id, ctx->key_obj );
+    text: |
+      The object referenced by the ${../if/key-create:/params[0]/name} parameter
+      shall be the ${../glossary/thread-specific-data-key:/term} created by the
+      ${../if/key-create:/name} call.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->key_obj, KEY_POISON );
+    text: |
+      The object referenced by the ${../if/key-create:/params[0]/name} parameter
+      shall not be modified.
+  test-epilogue: null
+  test-prologue: |
+    const POSIX_Keys_Control *the_key;
+- name: Value
+  states:
+  - name: 'Null'
+    test-code: |
+      the_key = _POSIX_Keys_Get( ctx->key_obj );
+      T_assert_not_null( the_key );
+      T_true( _Chain_Is_empty( &the_key->Key_value_pairs ) );
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+    text: |
+      The value ${/c/if/null:/name} shall be associated with the created
+      ${../glossary/thread-specific-data-key:/term} in each
+      ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: |
+    const POSIX_Keys_Control *the_key;
+- name: Destructor
+  states:
+  - name: Func
+    test-code: |
+      worker_id = StartWorker( ctx );
+      RestartWorker( ctx, worker_id );
+      T_eq_u32( ctx->destructor_calls, 1 );
+      T_eq_ptr( ctx->destructor_arg, &worker_value );
+      DeleteTask( worker_id );
+      T_eq_u32( ctx->destructor_calls, 1 );
+
+      ctx->destructor_arg = NULL;
+      worker_id = StartWorker( ctx );
+      DeleteTask( worker_id );
+      T_eq_u32( ctx->destructor_calls, 2 );
+      T_eq_ptr( ctx->destructor_arg, &worker_value );
+    text: |
+      When a ${../glossary/thread:/term} terminates or is restarted which has a value
+      other than ${/c/if/null:/name} associated with the created
+      ${../glossary/thread-specific-data-key:/term}, the destructor function
+      specified by the ${../if/key-create:/params[1]/name} parameter shall be called
+      once with this value as its argument.
+  - name: 'Null'
+    test-code: |
+      worker_id = StartWorker( ctx );
+      RestartWorker( ctx, worker_id );
+      DeleteTask( worker_id );
+      worker_id = StartWorker( ctx );
+      DeleteTask( worker_id );
+      T_eq_u32( ctx->destructor_calls, 0 );
+    text: |
+      When a ${../glossary/thread:/term} terminates or is restarted which has a value
+      other than ${/c/if/null:/name} associated with the created
+      ${../glossary/thread-specific-data-key:/term}, no destructor function shall be
+      called.
+  test-epilogue: null
+  test-prologue: |
+    rtems_id worker_id;
+pre-conditions:
+- name: Destructor
+  states:
+  - name: Func
+    test-code: |
+      ctx->destructor = Destructor;
+    text: |
+      While the ${../if/key-create:/params[1]/name} parameter references a function.
+  - name: 'Null'
+    test-code: |
+      ctx->destructor = NULL;
+    text: |
+      While the ${../if/key-create:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Keys
+  states:
+  - name: Available
+    test-code: |
+      T_false( _Chain_Is_empty( &_POSIX_Keys_Information.Inactive ) );
+    text: |
+      While the system has the resources to create another
+      ${../glossary/thread-specific-data-key:/term}, see
+      ${/acfg/if/max-posix-keys:/name}.
+  - name: Exhausted
+    test-code: |
+      while ( ctx->keys_used < RTEMS_ARRAY_SIZE( ctx->keys ) ) {
+        if ( pthread_key_create( &ctx->keys[ ctx->keys_used ], NULL ) != 0 ) {
+          break;
+        }
+
+        ++ctx->keys_used;
+      }
+
+      T_lt_sz( ctx->keys_used, RTEMS_ARRAY_SIZE( ctx->keys ) );
+      T_true( _Chain_Is_empty( &_POSIX_Keys_Information.Inactive ) );
+    text: |
+      While the system lacks the resources to create another
+      ${../glossary/thread-specific-data-key:/term}, see
+      ${/acfg/if/max-posix-keys:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-key-create:/name} specifies that
+  ${../if/key-create:/name} creates a
+  ${../glossary/thread-specific-data-key:/term}, stores it in the object
+  referenced by the ${../if/key-create:/params[0]/name} parameter and associates
+  the value ${/c/if/null:/name} with the key in all active threads. This gives
+  post-conditions Key and Value. At the termination of a thread which has a value
+  other than ${/c/if/null:/name} associated with the key, the destructor function
+  is called with this value if it is not ${/c/if/null:/name}. This gives
+  pre-condition Destructor and post-condition Destructor.
+
+  The standard requires ${/c/errno/if/eagain:/name} where the system lacks the
+  resources to create another key, and ${/c/errno/if/enomem:/name} where
+  insufficient memory exists to create the key. RTEMS takes the key from the
+  objects which ${/acfg/if/max-posix-keys:/name} defines and allocates no other
+  memory. It returns ${/c/errno/if/eagain:/name} where no object is available,
+  which pre-condition Keys covers. The item does not cover the unlimited
+  allocation mode, in which RTEMS returns ${/c/errno/if/eagain:/name} also where
+  no memory exists to extend the objects.
+
+  The standard does not define the behaviour where the
+  ${../if/key-create:/params[0]/name} parameter is ${/c/if/null:/name}. RTEMS
+  does not check the parameter, so the item has no pre-condition for it.
+
+  The destructor function is observed through the deletion and the restart of a
+  task. RTEMS calls the destructor functions also at the restart of a task and
+  removes the associations, so a deletion after the restart calls no destructor
+  function. ${../if/setspecific:/name} removes the association where it gets the
+  value ${/c/if/null:/name}, so no thread has the value ${/c/if/null:/name}
+  associated with a key. RTEMS repeats the calls while a destructor function
+  associates new values. The item does not specify this case.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_key_create( &ctx->key_obj, ctx->destructor );
+test-brief: null
+test-cleanup: |
+  if ( ctx->status == 0 ) {
+    T_eq_int( pthread_key_delete( ctx->key_obj ), 0 );
+  }
+
+  while ( ctx->keys_used > 0 ) {
+    --ctx->keys_used;
+    T_eq_int( pthread_key_delete( ctx->keys[ ctx->keys_used ] ), 0 );
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/key-create:/params[1]/name} parameter value.
+  description: null
+  member: void ( *destructor )( void * )
+- brief: |
+    This member contains the return value of the ${../if/key-create:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the object referenced by the
+    ${../if/key-create:/params[0]/name} parameter.
+  description: null
+  member: pthread_key_t key_obj
+- brief: |
+    This member contains the keys created to use up the available keys.
+  description: null
+  member: pthread_key_t keys[ 16 ]
+- brief: |
+    This member contains the count of keys created to use up the available keys.
+  description: null
+  member: size_t keys_used
+- brief: |
+    This member contains the count of destructor function calls.
+  description: null
+  member: uint32_t destructor_calls
+- brief: |
+    This member contains the argument of the last destructor function call.
+  description: null
+  member: void *destructor_arg
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member is true, if the worker task was restarted.
+  description: null
+  member: bool worker_restarted
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems/posix/keyimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->key_obj = KEY_POISON;
+  ctx->keys_used = 0;
+  ctx->destructor_calls = 0;
+  ctx->destructor_arg = NULL;
+test-setup:
+  brief: null
+  code: |
+    ctx->runner_id = rtems_task_self();
+  description: null
+test-stop: null
+test-support: |
+  #define KEY_POISON ( (pthread_key_t) 0xffffffff )
+
+  typedef ${.:/test-context-type} Context;
+
+  static int worker_value;
+
+  static void Destructor( void *value )
+  {
+    Context *ctx;
+
+    ctx = T_fixture_context();
+    ++ctx->destructor_calls;
+    ctx->destructor_arg = value;
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    if ( !ctx->worker_restarted ) {
+      T_eq_int( pthread_setspecific( ctx->key_obj, &worker_value ), 0 );
+    }
+
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
+
+  /*
+   * The task deletion by DeleteTask() returns after the worker terminated, so
+   * the destructor functions were called when DeleteTask() returns.
+   */
+  static rtems_id StartWorker( Context *ctx )
+  {
+    rtems_id worker_id;
+
+    ctx->worker_restarted = false;
+    worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( worker_id, Worker, ctx );
+    (void) ReceiveAnyEvents();
+
+    return worker_id;
+  }
+
+  static void RestartWorker( Context *ctx, rtems_id worker_id )
+  {
+    ctx->worker_restarted = true;
+    RestartTask( worker_id, ctx );
+
+    /*
+     * The restarted worker sends the event after the thread restart extensions
+     * called the destructor functions.
+     */
+    (void) ReceiveAnyEvents();
+  }
+test-target: testsuites/validation/tc-pthread-key-create.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Keys: Exhausted
+      then: Again
+    - else: Ok
+    Key:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Created
+    - else: Nop
+    Value:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: 'Null'
+    - else: N/A
+    Destructor:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Destructor
+    - else: N/A
+  pre-conditions:
+    Destructor: all
+    Keys: all
+type: requirement

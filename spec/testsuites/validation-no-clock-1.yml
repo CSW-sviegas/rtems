@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 links:
 - role: requirement-refinement
@@ -10,7 +11,8 @@ test-brief: |
   basic tests without a ${/glossary/clock-driver:/term} for all specified
   managers and functions. The maximum thread name size is zero. The application
   configuration defines the task stack size of the Classic API initialization
-  task.
+  task, ${/acfg/if/max-posix-keys:/name}, and
+  ${/acfg/if/max-posix-key-value-pairs:/name}.
 test-code: |
   const char rtems_test_name[] = "${.:/test-suite-name}";
 
@@ -21,6 +23,10 @@ test-code: |
   #define CONFIGURE_MAXIMUM_THREAD_NAME_SIZE 0
 
   #define CONFIGURE_INIT_TASK_STACK_SIZE TEST_INIT_TASK_STACK_SIZE
+
+  #define CONFIGURE_MAXIMUM_POSIX_KEYS 8
+
+  #define CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS 8
 
   #include "ts-default.h"
 test-description: |

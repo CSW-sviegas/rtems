@@ -1,0 +1,324 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/key-delete
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-key-delete
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/key-delete:/name} shall be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/key-delete:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Key
+  states:
+  - name: Deleted
+    test-code: |
+      T_null( _POSIX_Keys_Get( ctx->key_obj ) );
+    text: |
+      The ${../glossary/thread-specific-data-key:/term} specified by the
+      ${../if/key-delete:/params[0]/name} parameter shall be deleted.
+  - name: Nop
+    test-code: |
+      T_not_null( _POSIX_Keys_Get( ctx->key_obj ) );
+    text: |
+      No ${../glossary/thread-specific-data-key:/term} shall be deleted by the
+      ${../if/key-delete:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Values
+  states:
+  - name: Removed
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, ctx->worker_tcb ) );
+    text: |
+      No ${../glossary/thread:/term} shall have a value associated with the
+      ${../glossary/thread-specific-data-key:/term} specified by the
+      ${../if/key-delete:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Pairs
+  states:
+  - name: Two
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before + 2 );
+    text: |
+      Two key value pairs shall become inactive, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: One
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before + 1 );
+    text: |
+      One key value pair shall become inactive, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_sz( CountFreePairs(), ctx->pairs_before );
+    text: |
+      The count of inactive key value pairs shall not be modified, see
+      ${/acfg/if/max-posix-key-value-pairs:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Destructor
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->destructor_calls, 0 );
+    text: |
+      No destructor function shall be called by the ${../if/key-delete:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Key
+  states:
+  - name: Valid
+    test-code: |
+      ctx->key = ctx->key_obj;
+    text: |
+      While the ${../if/key-delete:/params[0]/name} parameter is a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->key = KEY_INVALID;
+    text: |
+      While the ${../if/key-delete:/params[0]/name} parameter is not a valid
+      ${../glossary/thread-specific-data-key:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Executing
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( pthread_setspecific( ctx->key_obj, &executing_value ), 0 );
+    text: |
+      While the calling ${../glossary/thread:/term} has a value associated with the
+      key specified by the ${../if/key-delete:/params[0]/name} parameter.
+  - name: 'No'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, GetExecuting() ) );
+    text: |
+      While the calling ${../glossary/thread:/term} has no value associated with the
+      key specified by the ${../if/key-delete:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: 'Yes'
+    test-code: |
+      StartTask( ctx->worker_id, Worker, ctx );
+      (void) ReceiveAnyEvents();
+    text: |
+      While a ${../glossary/thread:/term} other than the calling thread has a value
+      associated with the key specified by the ${../if/key-delete:/params[0]/name}
+      parameter.
+  - name: 'No'
+    test-code: |
+      T_null( _POSIX_Keys_Key_value_find( ctx->key_obj, ctx->worker_tcb ) );
+    text: |
+      While no ${../glossary/thread:/term} other than the calling thread has a value
+      associated with the key specified by the ${../if/key-delete:/params[0]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-key-delete:/name} specifies that
+  ${../if/key-delete:/name} deletes the
+  ${../glossary/thread-specific-data-key:/term} and calls no destructor function.
+  This gives post-conditions Key and Destructor. The behaviour is undefined where
+  the ${../if/key-delete:/params[0]/name} parameter is not a valid key. The
+  standard recommends ${/c/errno/if/einval:/name} in this case, which RTEMS
+  returns. This gives pre-condition Key.
+
+  The standard permits values other than ${/c/if/null:/name} associated with the
+  key at the call. RTEMS removes these associations in all threads and makes
+  their key value pairs inactive. Pre-conditions Executing and Other cover the
+  calling thread and another thread, and post-conditions Values and Pairs specify
+  the behaviour of RTEMS.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->pairs_before = CountFreePairs();
+  ctx->status = pthread_key_delete( ctx->key );
+test-brief: null
+test-cleanup: |
+  DeleteTask( ctx->worker_id );
+
+  if ( ctx->status != 0 ) {
+    T_eq_int( pthread_key_delete( ctx->key_obj ), 0 );
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/key-delete:/params[0]/name} parameter value.
+  description: null
+  member: pthread_key_t key
+- brief: |
+    This member contains the return value of the ${../if/key-delete:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the key created for the test.
+  description: null
+  member: pthread_key_t key_obj
+- brief: |
+    This member contains the count of inactive key value pairs before the call.
+  description: null
+  member: size_t pairs_before
+- brief: |
+    This member contains the count of destructor function calls.
+  description: null
+  member: uint32_t destructor_calls
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member contains the identifier of the worker task.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member references the TCB of the worker task.
+  description: null
+  member: Thread_Control *worker_tcb
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems/posix/keyimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->destructor_calls = 0;
+  ctx->status = -1;
+  T_eq_int( pthread_key_create( &ctx->key_obj, Destructor ), 0 );
+  ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+  ctx->worker_tcb = GetThread( ctx->worker_id );
+test-setup:
+  brief: null
+  code: |
+    ctx->runner_id = rtems_task_self();
+  description: null
+test-stop: null
+test-support: |
+  #define KEY_INVALID ( (pthread_key_t) 0xffffffff )
+
+  typedef ${.:/test-context-type} Context;
+
+  static int executing_value;
+
+  static int other_value;
+
+  static void Destructor( void *value )
+  {
+    Context *ctx;
+
+    (void) value;
+    ctx = T_fixture_context();
+    ++ctx->destructor_calls;
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+    T_eq_int( pthread_setspecific( ctx->key_obj, &other_value ), 0 );
+    SendEvents( ctx->runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
+
+  static size_t CountFreePairs( void )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+    size_t               count;
+
+    chain = &_POSIX_Keys_Keypool.Free;
+    node = _Chain_Immutable_first( chain );
+    count = 0;
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      ++count;
+      node = _Chain_Immutable_next( node );
+    }
+
+    return count;
+  }
+test-target: testsuites/validation/tc-pthread-key-delete.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Key: Valid
+      then: Ok
+    - else: Inval
+    Key:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Deleted
+    - else: Nop
+    Values:
+    - if:
+        pre-conditions:
+          Key: Invalid
+      then: N/A
+    - else: Removed
+    Pairs:
+    - if:
+        pre-conditions:
+          Executing: 'Yes'
+          Key: Valid
+          Other: 'Yes'
+      then: Two
+    - if:
+        pre-conditions:
+          Executing: 'Yes'
+          Key: Valid
+          Other: 'No'
+      then: One
+    - if:
+        pre-conditions:
+          Executing: 'No'
+          Key: Valid
+          Other: 'Yes'
+      then: One
+    - else: Nop
+    Destructor: Nop
+  pre-conditions:
+    Key: all
+    Executing:
+      applicable:
+        pre-conditions:
+          Key: Valid
+    Other:
+      applicable:
+        pre-conditions:
+          Key: Valid
+type: requirement
