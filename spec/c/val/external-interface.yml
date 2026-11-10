@@ -71,6 +71,12 @@ links:
 - role: validation
   uid: /c/errno/if/etimedout
 - role: validation
+  uid: /c/fcntl/if/o-creat
+- role: validation
+  uid: /c/fcntl/if/o-excl
+- role: validation
+  uid: /c/fcntl/if/o-nonblock
+- role: validation
   uid: /c/pthread/if/explicit-sched
 - role: validation
   uid: /c/if/false
