@@ -1,0 +1,58 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Close the ${../glossary/mqdes:/term} specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter was not a ${../glossary/mqdes:/term}.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+    open.
+  role: errno
+  uid: /c/errno/if/ebadf
+- role: reference
+  uid: /ref/std/posix-2024/mq-close
+name: mq_close
+notes: |
+  See ${/ref/std/posix-2024/mq-close:/name}.
+
+  In RTEMS, each ${open:/name} call for a ${/glossary/messagequeue:/term} returns
+  the same ${../glossary/mqdes:/term}. The ${/glossary/messagequeue:/term}
+  remains open until ${close:/name} was called once for each successful
+  ${open:/name} call.
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+return:
+  return: null
+  return-values:
+  - description: |
+      On success, zero is returned.
+    value: 0
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
+type: interface

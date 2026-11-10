@@ -1,0 +1,111 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Open the ${/glossary/messagequeue:/term} with the name specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - '...'
+    return: ${/c/if/mqd_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The length of the string referenced by ${.:/params[0]/name} was greater than
+    the maximum length of a ${/glossary/messagequeue:/term} name.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    No ${/glossary/messagequeue:/term} had the name specified by
+    ${.:/params[0]/name} and ${/c/fcntl/if/o-creat:/name} was not set in
+    ${.:/params[1]/name}.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    A ${/glossary/messagequeue:/term} had the name specified by
+    ${.:/params[0]/name} and ${/c/fcntl/if/o-creat:/name} and
+    ${/c/fcntl/if/o-excl:/name} were set in ${.:/params[1]/name}.
+  role: errno
+  uid: /c/errno/if/eexist
+- description: |
+    The ${../glossary/maxmsgs:/term} of the ${../glossary/mqattr:/term}s of the new
+    ${/glossary/messagequeue:/term} was not positive.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The maximum ${../glossary/msgsize:/term} of the ${../glossary/mqattr:/term}s of
+    the new ${/glossary/messagequeue:/term} was not positive.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    No inactive ${/glossary/messagequeue:/term} object was available.
+  role: errno
+  uid: /c/errno/if/enfile
+- description: |
+    There was not enough memory to store the name of the new
+    ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/enomem
+- description: |
+    There was not enough memory to store the ${/glossary/message:/term} buffers of
+    the new ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/enospc
+- role: reference
+  uid: /ref/std/posix-2024/mq-open
+name: mq_open
+notes: |
+  See ${/ref/std/posix-2024/mq-open:/name}.
+
+  In RTEMS, each ${open:/name} call for a ${/glossary/messagequeue:/term} returns
+  the same ${../glossary/mqdes:/term}. The flags specified by
+  ${.:/params[1]/name} become the flags of the ${/glossary/messagequeue:/term}
+  only if the call creates it. The permission mode argument is ignored. The
+  default ${../glossary/mqattr:/term}s are a ${../glossary/maxmsgs:/term} of ten
+  and a maximum ${../glossary/msgsize:/term} of 16 bytes.
+params:
+- description: |
+    is the name of the ${/glossary/messagequeue:/term}.
+  dir: in
+  name: name
+- description: |
+    is the flags of the call.
+  dir: null
+  name: oflag
+- description: |
+    is the list of optional arguments. If ${.:/params[1]/name} specifies
+    ${/c/fcntl/if/o-creat:/name}, the first optional argument is the
+    ${/c/if/mode_t:/name} permission mode and the second optional argument is
+    ${/c/if/null:/name} or the pointer to an ${/c/if/mq_attr:/name} object with the
+    ${../glossary/mqattr:/term}s of a new ${/glossary/messagequeue:/term}. If this
+    pointer is ${/c/if/null:/name}, default ${../glossary/mqattr:/term}s are used.
+  dir: null
+  name: '...'
+return:
+  return: |
+    On success, the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} is returned.
+  return-values:
+  - description: |
+      On error, -1 cast to ${/c/if/mqd_t:/name} is returned, and
+      ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

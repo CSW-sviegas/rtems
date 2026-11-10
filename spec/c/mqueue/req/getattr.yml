@@ -1,0 +1,535 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getattr
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getattr:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getattr:/name} shall be minus
+      one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified by the
+      ${../if/getattr:/name} call.
+  - name: Badf
+    test-code: |
+      T_eq_int( ctx->errno_value, EBADF );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/ebadf:/name}.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Flags
+  states:
+  - name: Block
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_flags, FLAGS_BLOCK );
+    text: |
+      The ${/c/if/mq_attr:/definition[0]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be the flags
+      of the ${/glossary/messagequeue:/term}, which do not contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  - name: NonBlock
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_flags, FLAGS_NON_BLOCK );
+    text: |
+      The ${/c/if/mq_attr:/definition[0]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be the flags
+      of the ${/glossary/messagequeue:/term}, which contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_flags, -1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[0]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: MaxMsg
+  states:
+  - name: One
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_maxmsg, 1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[1]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be one.
+  - name: Many
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_maxmsg, MAX_MSG );
+    text: |
+      The ${/c/if/mq_attr:/definition[1]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be the
+      ${../glossary/maxmsgs:/term} of the ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_maxmsg, -1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[1]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgSize
+  states:
+  - name: One
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_msgsize, 1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[2]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be one.
+  - name: Many
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_msgsize, MSG_SIZE );
+    text: |
+      The ${/c/if/mq_attr:/definition[2]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_msgsize, -1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[2]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: CurMsgs
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_curmsgs, 0 );
+    text: |
+      The ${/c/if/mq_attr:/definition[3]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be zero.
+  - name: One
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_curmsgs, 1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[3]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall be one.
+  - name: Nop
+    test-code: |
+      T_eq_long( ctx->mqstat_obj.mq_curmsgs, -1 );
+    text: |
+      The ${/c/if/mq_attr:/definition[3]/default/name} member of the object
+      referenced by the ${../if/getattr:/params[1]/name} parameter shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Nop
+    test-code: |
+      GetQueueState( ctx->queue, &queue_state );
+      T_eq_mem( &queue_state, &ctx->queue_before, sizeof( queue_state ) );
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be modified by the
+      ${../if/getattr:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    QueueState queue_state;
+pre-conditions:
+- name: MqStat
+  states:
+  - name: Obj
+    test-code: |
+      ctx->mqstat = &ctx->mqstat_obj;
+    text: |
+      While the ${../if/getattr:/params[1]/name} parameter references an object of
+      type ${/c/if/mq_attr:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->mqstat = NULL;
+    text: |
+      While the ${../if/getattr:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredFlags
+  states:
+  - name: Block
+    test-code: |
+      ctx->oflag = FLAGS_BLOCK;
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} do not contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  - name: NonBlock
+    test-code: |
+      ctx->oflag = FLAGS_NON_BLOCK;
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredMaxMsg
+  states:
+  - name: One
+    test-code: |
+      ctx->attr.mq_maxmsg = 1;
+    text: |
+      While the ${../glossary/maxmsgs:/term} of the ${/glossary/messagequeue:/term}
+      is one.
+  - name: Many
+    test-code: |
+      ctx->attr.mq_maxmsg = MAX_MSG;
+    text: |
+      While the ${../glossary/maxmsgs:/term} of the ${/glossary/messagequeue:/term}
+      is greater than one.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredMsgSize
+  states:
+  - name: One
+    test-code: |
+      ctx->attr.mq_msgsize = 1;
+    text: |
+      While the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term} is one.
+  - name: Many
+    test-code: |
+      ctx->attr.mq_msgsize = MSG_SIZE;
+    text: |
+      While the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term} is greater than one.
+  test-epilogue: null
+  test-prologue: null
+- name: MqDes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->queue_id = mq_open( NAME, ctx->oflag, 0, &ctx->attr );
+      T_ne_u32( ctx->queue_id, (mqd_t) -1 );
+      ctx->queue = GetQueue( ctx->queue_id );
+      T_assert_not_null( ctx->queue );
+      ctx->mqdes = ctx->queue_id;
+    text: |
+      While the ${../if/getattr:/params[0]/name} parameter is the
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = (mqd_t) INVALID_ID;
+    text: |
+      While the ${../if/getattr:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredCurMsgs
+  states:
+  - name: Zero
+    test-code: |
+      /* The message queue was created without messages */
+    text: |
+      While the ${/glossary/messagequeue:/term} contains no
+      ${/glossary/message:/term}.
+  - name: One
+    test-code: |
+      T_eq_int( mq_send( ctx->queue_id, "M", 1, 0 ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains exactly one
+      ${/glossary/message:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The message queue was opened by its creation */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/mq-getattr:/name} specifies that ${../if/getattr:/name}
+  stores the ${../glossary/mqattr:/term}s of the ${/glossary/messagequeue:/term}
+  in the object referenced by the ${../if/getattr:/params[1]/name} parameter.
+  This gives the post-conditions Flags, MaxMsg, MsgSize, and CurMsgs. Each value
+  stored in the ${/glossary/messagequeue:/term} has a pre-condition with two
+  values, so that a ${../if/getattr:/name} which returns a constant fails a
+  check.
+
+  The standard requires ${/c/errno/if/ebadf:/name} for a
+  ${../if/getattr:/params[0]/name} parameter which is not a valid
+  ${../glossary/mqdes:/term}. This gives the states Invalid of pre-condition
+  MqDes and No of pre-condition Open. A ${/glossary/messagequeue:/term} which is
+  not open still exists while it has a name.
+
+  The standard does not define the behaviour where the
+  ${../if/getattr:/params[1]/name} parameter is ${/c/if/null:/name}. The state
+  Null of pre-condition MqStat specifies the behaviour of RTEMS which returns
+  minus one and sets ${/c/errno/if/errno:/name} to ${/c/errno/if/einval:/name}.
+
+  The standard specifies that the flags contain ${/c/fcntl/if/o-nonblock:/name}
+  if this flag is set for the open message queue description. RTEMS stores all
+  flags of the ${../if/open:/name} call which creates the
+  ${/glossary/messagequeue:/term}, or of the ${../if/setattr:/name} call, and
+  ${../if/getattr:/name} returns them unchanged. The states of pre-condition
+  StoredFlags use flags which contain the access mode and the flags to create the
+  ${/glossary/messagequeue:/term}.
+
+  ${../if/getattr:/name} does not write the ${/glossary/messagequeue:/term},
+  which post-condition Queue specifies.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memset( &ctx->mqstat_obj, 0xff, sizeof( ctx->mqstat_obj ) );
+
+  if ( ctx->queue != NULL ) {
+    GetQueueState( ctx->queue, &ctx->queue_before );
+  }
+
+  errno = ERRNO_POISON;
+  ctx->status = mq_getattr( ctx->mqdes, ctx->mqstat );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: |
+  if ( ctx->queue != NULL ) {
+    if ( ctx->queue->open_count > 0 ) {
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    }
+
+    T_eq_int( mq_unlink( NAME ), 0 );
+    ctx->queue = NULL;
+  }
+test-context:
+- brief: |
+    This member contains the flags to create the ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    int oflag
+- brief: |
+    This member contains the ${../glossary/mqattr:/term}s to create the
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    struct mq_attr attr
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} created for the test.
+  description: null
+  member: |
+    mqd_t queue_id
+- brief: |
+    This member references the control block of the ${/glossary/messagequeue:/term}
+    created for the test.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *queue
+- brief: |
+    This member contains the state of the ${/glossary/messagequeue:/term} before
+    the ${../if/getattr:/name} call.
+  description: null
+  member: |
+    QueueState queue_before
+- brief: |
+    This member provides the object referenced by the
+    ${../if/getattr:/params[1]/name} parameter.
+  description: null
+  member: |
+    struct mq_attr mqstat_obj
+- brief: |
+    This member specifies the ${../if/getattr:/params[0]/name} parameter value.
+  description: null
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/getattr:/params[1]/name} parameter value.
+  description: null
+  member: |
+    struct mq_attr *mqstat
+- brief: |
+    This member contains the return value of the ${../if/getattr:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/getattr:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: |
+  typedef struct {
+    int      oflag;
+    uint32_t open_count;
+    bool     linked;
+    uint32_t maximum_pending_messages;
+    uint32_t number_of_pending_messages;
+    size_t   maximum_message_size;
+  } QueueState;
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- mqueue.h
+- string.h
+- rtems/posix/mqueueimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->queue = NULL;
+  memset( &ctx->attr, 0, sizeof( ctx->attr ) );
+test-setup: null
+test-stop: null
+test-support: |
+  #define NAME "/mq-getattr"
+
+  #define ERRNO_POISON -1
+
+  #define FLAGS_BLOCK ( O_CREAT | O_EXCL | O_RDWR )
+
+  #define FLAGS_NON_BLOCK ( O_CREAT | O_EXCL | O_RDWR | O_NONBLOCK )
+
+  #define MAX_MSG 3
+
+  #define MSG_SIZE 8
+
+  static POSIX_Message_queue_Control *GetQueue( mqd_t mqdes )
+  {
+    return (POSIX_Message_queue_Control *) _Objects_Get_no_protection(
+      (Objects_Id) mqdes,
+      &_POSIX_Message_queue_Information
+    );
+  }
+
+  static void GetQueueState(
+    const POSIX_Message_queue_Control *queue,
+    QueueState                        *state
+  )
+  {
+    memset( state, 0, sizeof( *state ) );
+    state->oflag = queue->oflag;
+    state->open_count = queue->open_count;
+    state->linked = queue->linked;
+    state->maximum_pending_messages = queue->Message_queue
+                                        .maximum_pending_messages;
+    state->number_of_pending_messages = queue->Message_queue
+                                          .number_of_pending_messages;
+    state->maximum_message_size = queue->Message_queue.maximum_message_size;
+  }
+test-target: testsuites/validation/tc-posix-mq-getattr.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          MqDes: Valid
+          MqStat: Obj
+          Open: 'Yes'
+      then: Zero
+    - else: MinusOne
+    Errno:
+    - if:
+        pre-conditions:
+          MqStat: 'Null'
+      then: Inval
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Badf
+    - else: Nop
+    Flags:
+    - if:
+        pre-conditions:
+          MqStat: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: StoredFlags
+    - else: Nop
+    MaxMsg:
+    - if:
+        pre-conditions:
+          MqStat: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: StoredMaxMsg
+    - else: Nop
+    MsgSize:
+    - if:
+        pre-conditions:
+          MqStat: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: StoredMsgSize
+    - else: Nop
+    CurMsgs:
+    - if:
+        pre-conditions:
+          MqStat: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: StoredCurMsgs
+    - else: Nop
+    Queue:
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    MqStat: all
+    StoredFlags:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    StoredMaxMsg:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    StoredMsgSize:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    MqDes: all
+    StoredCurMsgs:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    Open:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+type: requirement

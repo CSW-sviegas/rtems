@@ -1,0 +1,1299 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/timedreceive
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: function-implementation
+  uid: /score/tq/req/enqueue-fifo
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_ssz( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedreceive:/name} shall be
+      zero.
+  - name: One
+    test-code: |
+      T_eq_ssz( ctx->status, 1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedreceive:/name} shall be one.
+  - name: Below
+    test-code: |
+      T_eq_ssz( ctx->status, MSG_SIZE - 1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedreceive:/name} shall be the
+      ${../glossary/msgsize:/term} of the first ${/glossary/message:/term}, which is
+      greater than one and less than the maximum ${../glossary/msgsize:/term}.
+  - name: Max
+    test-code: |
+      T_eq_ssz( ctx->status, MSG_SIZE );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedreceive:/name} shall be the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  - name: MinusOne
+    test-code: |
+      T_eq_ssz( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedreceive:/name} shall be
+      minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified by the
+      ${../if/timedreceive:/name} call.
+  - name: Badf
+    test-code: |
+      T_eq_int( ctx->errno_value, EBADF );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/ebadf:/name}.
+  - name: MsgSize
+    test-code: |
+      T_eq_int( ctx->errno_value, EMSGSIZE );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/emsgsize:/name}.
+  - name: Again
+    test-code: |
+      T_eq_int( ctx->errno_value, EAGAIN );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/eagain:/name}.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  - name: TimedOut
+    test-code: |
+      T_eq_int( ctx->errno_value, ETIMEDOUT );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be
+      ${/c/errno/if/etimedout:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Buffer
+  states:
+  - name: One
+    test-code: |
+      CheckBuffer( ctx, 1 );
+    text: |
+      The buffer referenced by the ${../if/timedreceive:/params[1]/name} parameter
+      shall consist of the first ${/glossary/message:/term} of one byte followed by
+      the bytes of the buffer before the call.
+  - name: Below
+    test-code: |
+      CheckBuffer( ctx, MSG_SIZE - 1 );
+    text: |
+      The buffer referenced by the ${../if/timedreceive:/params[1]/name} parameter
+      shall consist of the first ${/glossary/message:/term}, which is greater than
+      one byte and less than the maximum ${../glossary/msgsize:/term}, followed by
+      the bytes of the buffer before the call.
+  - name: Max
+    test-code: |
+      CheckBuffer( ctx, MSG_SIZE );
+    text: |
+      The buffer referenced by the ${../if/timedreceive:/params[1]/name} parameter
+      shall consist of the first ${/glossary/message:/term} of the maximum
+      ${../glossary/msgsize:/term} followed by the bytes of the buffer before the
+      call.
+  - name: Nop
+    test-code: |
+      CheckBuffer( ctx, 0 );
+    text: |
+      The buffer referenced by the ${../if/timedreceive:/params[1]/name} parameter
+      shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Priority
+  states:
+  - name: Low
+    test-code: |
+      T_eq_uint( ctx->prio_obj, 0 );
+    text: |
+      The object referenced by the ${../if/timedreceive:/params[3]/name} parameter
+      shall be zero.
+  - name: High
+    test-code: |
+      T_eq_uint( ctx->prio_obj, MQ_PRIO_MAX - 1 );
+    text: |
+      The object referenced by the ${../if/timedreceive:/params[3]/name} parameter
+      shall be ${/c/if/mq_prio_max:/name} minus one.
+  - name: Nop
+    test-code: |
+      T_eq_uint( ctx->prio_obj, PRIO_POISON );
+    text: |
+      The object referenced by the ${../if/timedreceive:/params[3]/name} parameter
+      shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Removed
+    test-code: |
+      T_null( FindMessage( ctx, RECEIVE_BYTE ) );
+    text: |
+      The first ${/glossary/message:/term} shall be removed from the
+      ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      CheckQueueUnchanged( ctx );
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be modified by the
+      ${../if/timedreceive:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Sender
+  states:
+  - name: Moved
+    test-code: |
+      T_true( ctx->sender_done );
+      T_eq_int( ctx->sender_status, 0 );
+      T_eq_ptr( FindMessage( ctx, SENDER_BYTE ), GetLastMessage( ctx ) );
+    text: |
+      The ${/glossary/message:/term} of the thread which waits to send a
+      ${/glossary/message:/term} shall be added to the end of the
+      ${/glossary/messagequeue:/term}, and the call of this thread shall return zero.
+  - name: Nop
+    test-code: |
+      T_false( ctx->sender_done );
+      T_null( FindMessage( ctx, SENDER_BYTE ) );
+    text: |
+      The thread which waits to send a ${/glossary/message:/term} shall still wait.
+  test-epilogue: null
+  test-prologue: null
+- name: Wait
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_false( ctx->done );
+      T_eq_ptr(
+        ctx->worker_tcb->Wait.queue,
+        &ctx->queue->Message_queue.Wait_queue.Queue
+      );
+    text: |
+      The calling thread shall wait for a ${/glossary/message:/term} of the
+      ${/glossary/messagequeue:/term}.
+  - name: 'No'
+    test-code: |
+      T_true( ctx->done );
+    text: |
+      The ${../if/timedreceive:/name} call shall return.
+  test-epilogue: null
+  test-prologue: null
+- name: Tasks
+  states:
+  - name: Fifo
+    test-code: |
+      ReleaseWorker( ctx );
+      ${/score/tq/req/enqueue-fifo:/test-run}( &ctx->tq_ctx );
+    text: |
+      The calling thread shall be enqueued in FIFO order as specified by
+      ${/score/tq/req/enqueue-fifo:/spec}.
+  test-epilogue: null
+  test-prologue: null
+- name: Timer
+  states:
+  - name: Realtime
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_REALTIME );
+    text: |
+      The timer of the calling thread shall be active using the
+      ${/glossary/clock-realtime:/term}.
+  - name: Inactive
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_INACTIVE );
+    text: |
+      The timer of the calling thread shall be inactive.
+  test-epilogue: null
+  test-prologue: null
+- name: FatalError
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_u32( ctx->fatal_calls, 1 );
+    text: |
+      The fatal error with a fatal source of
+      ${/score/interr/if/internal-error-core:/name} and a fatal code of
+      ${/score/interr/if/bad-thread-dispatch-disable-level:/name} shall occur by the
+      ${../if/timedreceive:/name} call.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->fatal_calls, 0 );
+    text: |
+      The ${../if/timedreceive:/name} call shall not cause a fatal error.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: MsgPrio
+  states:
+  - name: Obj
+    test-code: |
+      ctx->msg_prio = &ctx->prio_obj;
+    text: |
+      While the ${../if/timedreceive:/params[3]/name} parameter references an object
+      of type unsigned int.
+  - name: 'Null'
+    test-code: |
+      ctx->msg_prio = NULL;
+    text: |
+      While the ${../if/timedreceive:/params[3]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgLen
+  states:
+  - name: Zero
+    test-code: |
+      ctx->msg_len = 0;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is zero.
+  - name: One
+    test-code: |
+      ctx->msg_len = 1;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is one.
+  - name: Below
+    test-code: |
+      ctx->msg_len = MSG_SIZE - 1;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is greater than one
+      and less than the maximum ${../glossary/msgsize:/term} of the
+      ${/glossary/messagequeue:/term}.
+  - name: Max
+    test-code: |
+      ctx->msg_len = MSG_SIZE;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is equal to the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  - name: Greater
+    test-code: |
+      ctx->msg_len = MSG_SIZE + 1;
+    text: |
+      While the ${../if/timedreceive:/params[2]/name} parameter is greater than the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MqDes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->valid = true;
+    text: |
+      While the ${../if/timedreceive:/params[0]/name} parameter is the
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->valid = false;
+    text: |
+      While the ${../if/timedreceive:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredPrio
+  states:
+  - name: Low
+    test-code: |
+      ctx->stored_prio = 0;
+    text: |
+      While the ${../glossary/msgprio:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is zero.
+  - name: High
+    test-code: |
+      ctx->stored_prio = MQ_PRIO_MAX - 1;
+    text: |
+      While the ${../glossary/msgprio:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is ${/c/if/mq_prio_max:/name} minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: StoredSize
+  states:
+  - name: Zero
+    test-code: |
+      ctx->stored_size = 0;
+    text: |
+      While the ${../glossary/msgsize:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is zero.
+  - name: One
+    test-code: |
+      ctx->stored_size = 1;
+    text: |
+      While the ${../glossary/msgsize:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is one.
+  - name: Below
+    test-code: |
+      ctx->stored_size = MSG_SIZE - 1;
+    text: |
+      While the ${../glossary/msgsize:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is greater than one and less than the
+      maximum ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  - name: Max
+    test-code: |
+      ctx->stored_size = MSG_SIZE;
+    text: |
+      While the ${../glossary/msgsize:/term} of the first ${/glossary/message:/term}
+      of the ${/glossary/messagequeue:/term} is equal to the maximum
+      ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Access
+  states:
+  - name: ReadWrite
+    test-code: |
+      ctx->oflag = O_RDWR;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for reading and writing.
+  - name: ReadOnly
+    test-code: |
+      ctx->oflag = O_RDONLY;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for reading only.
+  - name: WriteOnly
+    test-code: |
+      ctx->oflag = O_WRONLY;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for writing only.
+  test-epilogue: null
+  test-prologue: null
+- name: NonBlock
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->oflag |= O_NONBLOCK;
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  - name: 'No'
+    test-code: |
+      /* O_NONBLOCK is not set */
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} do not contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Messages
+  states:
+  - name: Zero
+    test-code: |
+      Create( ctx );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains no
+      ${/glossary/message:/term}.
+  - name: Some
+    test-code: |
+      Create( ctx );
+      SendStored( ctx );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains at least one
+      ${/glossary/message:/term} and is not full.
+  - name: Full
+    test-code: |
+      Create( ctx );
+      SendStored( ctx );
+      SendFiller( ctx );
+    text: |
+      While the ${/glossary/messagequeue:/term} is full.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: None
+    test-code: |
+      /* No thread waits */
+    text: |
+      While no thread waits to send a ${/glossary/message:/term} to the
+      ${/glossary/messagequeue:/term}.
+  - name: Sender
+    test-code: |
+      StartSender( ctx );
+    text: |
+      While a thread waits to send a ${/glossary/message:/term} to the
+      ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The message queue was opened by its creation */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
+  test-epilogue: null
+  test-prologue: null
+- name: Abstime
+  states:
+  - name: Future
+    test-code: |
+      ctx->abstime_obj.tv_sec = INT64_MAX;
+      ctx->abstime_obj.tv_nsec = 0;
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} which specifies a time point after the current
+      time of the ${/glossary/clock-realtime:/term}.
+  - name: PastOrNow
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 0;
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} which specifies a time point before or at the
+      current time of the ${/glossary/clock-realtime:/term}.
+  - name: InvalidNsec
+    test-code: |
+      ctx->abstime_obj.tv_sec = INT64_MAX;
+      ctx->abstime_obj.tv_nsec = -1;
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter references an object
+      of type ${/c/if/timespec:/name} with an invalid nanoseconds member.
+  - name: 'Null'
+    test-code: |
+      ctx->abstime = NULL;
+    text: |
+      While the ${../if/timedreceive:/params[4]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Context
+  states:
+  - name: Task
+    test-code: |
+      ctx->interrupt = false;
+    text: |
+      While the ${../if/timedreceive:/name} function is called from within task
+      context.
+  - name: Interrupt
+    test-code: |
+      ctx->interrupt = true;
+    text: |
+      While the ${../if/timedreceive:/name} function is called from within interrupt
+      context.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/mq-receive:/name} specifies that
+  ${../if/timedreceive:/name} removes the oldest of the
+  ${/glossary/message:/term}s with the highest priority from the
+  ${/glossary/messagequeue:/term}, copies it to the buffer referenced by the
+  ${../if/timedreceive:/params[1]/name} parameter, returns its size, and stores
+  its priority in the object referenced by the
+  ${../if/timedreceive:/params[3]/name} parameter if this parameter is not
+  ${/c/if/null:/name}. This gives the pre-conditions MsgPrio, StoredPrio,
+  StoredSize, and Messages and the post-conditions Status, Buffer, Priority, and
+  Queue. The pre-conditions StoredSize and MsgLen have the states zero, one, a
+  value below the maximum ${../glossary/msgsize:/term}, and the maximum
+  ${../glossary/msgsize:/term}; MsgLen also has a value greater than the maximum
+  ${../glossary/msgsize:/term}. The ${/glossary/message:/term} which the test
+  receives is the first ${/glossary/message:/term} of the
+  ${/glossary/messagequeue:/term}. The ${/glossary/messagequeue:/term} of the
+  test can hold two ${/glossary/message:/term}s.
+
+  The standard requires ${/c/errno/if/ebadf:/name} if the
+  ${../if/timedreceive:/params[0]/name} parameter is not a valid
+  ${../glossary/mqdes:/term} open for reading and ${/c/errno/if/emsgsize:/name}
+  if the ${../if/timedreceive:/params[2]/name} parameter is less than the maximum
+  ${../glossary/msgsize:/term}. This gives pre-condition MqDes, the state
+  WriteOnly of pre-condition Access, state No of pre-condition Open, and
+  pre-condition MsgLen. RTEMS checks the ${/glossary/messagequeue:/term} before
+  the size.
+
+  The standard requires that an empty ${/glossary/messagequeue:/term} blocks the
+  call unless ${/c/fcntl/if/o-nonblock:/name} is set, which gives pre-condition
+  NonBlock. The call waits until the time point specified by the
+  ${../if/timedreceive:/params[4]/name} parameter, which gives pre-condition
+  Abstime. The standard requires ${/c/errno/if/einval:/name} for an invalid time
+  point where the call would block and ${/c/errno/if/etimedout:/name} where the
+  time point already passed. While the calling thread waits, the
+  ${/glossary/messagequeue:/term} enqueues it in FIFO order, see post-condition
+  Tasks, and the thread has an active timer of the
+  ${/glossary/clock-realtime:/term}, see post-condition Timer.
+  ${timedreceive-timeout:/spec} specifies the timeout of the wait.
+
+  Another event ends a wait. A ${/glossary/message:/term} which a thread sends
+  ends the wait, see the items of ${../if/send:/name} and
+  ${../if/timedsend:/name}. The deletion of the ${/glossary/messagequeue:/term}
+  ends the wait, see the items of ${../if/close:/name} and ${../if/unlink:/name}.
+  A thread which waits to send a ${/glossary/message:/term} to a full
+  ${/glossary/messagequeue:/term} adds its ${/glossary/message:/term} when the
+  call removes a ${/glossary/message:/term}, see pre-condition Waiters and
+  post-condition Sender.
+
+  The ${/rtems/task/if/delete:/name}, ${/rtems/task/if/restart:/name}, and
+  ${/c/pthread/if/cancel:/name} items specify the extraction of a waiting thread.
+  The thread queue of the message queue uses the FIFO discipline, so a priority
+  change of a waiting thread does not change its position. A signal and the
+  notification of a message queue need the option RTEMS_POSIX_API, so the item
+  does not cover them.
+
+  Pre-condition Context gives a call from within interrupt context. A
+  ${/glossary/message:/term} or an error is returned as in task context. Where
+  the call would wait, it ends in the fatal error of post-condition FatalError.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  if ( ctx->valid ) {
+    ctx->mqdes = ctx->queue_id;
+    ctx->pending_count = GetPendingCount( ctx );
+  } else {
+    ctx->mqdes = (mqd_t) INVALID_ID;
+  }
+
+  if ( ctx->interrupt ) {
+    CallWithinISR( ReceiveWithinISR, ctx );
+  } else {
+    ResumeTask( ctx->worker_id );
+    WaitForExecutionStop( ctx->worker_id );
+    GetTaskTimerInfo( ctx->worker_id, &ctx->timer_info );
+  }
+
+  if ( ctx->sender_started ) {
+    WaitForExecutionStop( ctx->sender_id );
+  }
+test-brief: null
+test-cleanup: |
+  if ( !ctx->interrupt && ctx->valid && !ctx->done ) {
+    ReleaseWorker( ctx );
+  }
+
+  if ( ctx->queue != NULL ) {
+    if ( ctx->queue->open_count == 0 ) {
+      T_eq_u32( mq_open( NAME, O_RDWR ), ctx->queue_id );
+    }
+
+    if ( ctx->sender_started && !ctx->sender_done ) {
+      ReceiveAny( ctx );
+      WaitForExecutionStop( ctx->sender_id );
+      T_true( ctx->sender_done );
+    }
+
+    T_eq_int( mq_close( ctx->queue_id ), 0 );
+    T_eq_int( mq_unlink( NAME ), 0 );
+    ctx->queue = NULL;
+  }
+test-context:
+- brief: |
+    This member contains the thread queue test context.
+  description: null
+  member: |
+    TQContext tq_ctx
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} created for the test.
+  description: null
+  member: |
+    mqd_t queue_id
+- brief: |
+    This member references the control block of the ${/glossary/messagequeue:/term}
+    created for the test.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *queue
+- brief: |
+    This member contains the flags used to create the
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    int oflag
+- brief: |
+    If this member is true, then the ${../if/timedreceive:/params[0]/name}
+    parameter is valid.
+  description: null
+  member: |
+    bool valid
+- brief: |
+    This member contains the ${../glossary/msgprio:/term} of the
+    ${/glossary/message:/term} to receive.
+  description: null
+  member: |
+    unsigned int stored_prio
+- brief: |
+    This member contains the ${../glossary/msgsize:/term} of the
+    ${/glossary/message:/term} to receive.
+  description: null
+  member: |
+    size_t stored_size
+- brief: |
+    This member contains the number of pending ${/glossary/message:/term}s before
+    the ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    uint32_t pending_count
+- brief: |
+    If this member is true, then the ${../if/timedreceive:/name} function is called
+    from within interrupt context.
+  description: null
+  member: |
+    bool interrupt
+- brief: |
+    This member contains the identifier of the task which calls
+    ${../if/timedreceive:/name}.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member references the TCB of the task which calls
+    ${../if/timedreceive:/name}.
+  description: null
+  member: |
+    rtems_tcb *worker_tcb
+- brief: |
+    If this member is true, then the ${../if/timedreceive:/name} call returned.
+  description: null
+  member: |
+    volatile bool done
+- brief: |
+    This member contains the identifier of the task which waits to send a
+    ${/glossary/message:/term}.
+  description: null
+  member: |
+    rtems_id sender_id
+- brief: |
+    If this member is true, then the task which waits to send a
+    ${/glossary/message:/term} started its call.
+  description: null
+  member: |
+    bool sender_started
+- brief: |
+    If this member is true, then the call of the task which waits to send a
+    ${/glossary/message:/term} returned.
+  description: null
+  member: |
+    volatile bool sender_done
+- brief: |
+    This member contains the return value of the call of the task which waits to
+    send a ${/glossary/message:/term}.
+  description: null
+  member: |
+    int sender_status
+- brief: |
+    This member contains the count of fatal errors.
+  description: null
+  member: |
+    uint32_t fatal_calls
+- brief: |
+    This member provides the context to return from a fatal error.
+  description: null
+  member: |
+    jmp_buf fatal_context
+- brief: |
+    This member provides the buffer referenced by the
+    ${../if/timedreceive:/params[1]/name} parameter.
+  description: null
+  member: |
+    char buf[ MSG_SIZE + 1 ]
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timedreceive:/params[3]/name} parameter.
+  description: null
+  member: |
+    unsigned int prio_obj
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[2]/name} parameter
+    value.
+  description: null
+  member: |
+    size_t msg_len
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[3]/name} parameter
+    value.
+  description: null
+  member: |
+    unsigned int *msg_prio
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timedreceive:/params[4]/name} parameter.
+  description: null
+  member: |
+    struct timespec abstime_obj
+- brief: |
+    This member specifies the ${../if/timedreceive:/params[4]/name} parameter
+    value.
+  description: null
+  member: |
+    const struct timespec *abstime
+- brief: |
+    This member contains the timer information of the calling thread.
+  description: null
+  member: |
+    TaskTimerInfo timer_info
+- brief: |
+    This member contains the return value of the ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    ssize_t status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/timedreceive:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: |
+  #define MSG_SIZE 8
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- setjmp.h
+- string.h
+- rtems/posix/mqueueimpl.h
+- rtems/score/threaddispatch.h
+test-local-includes:
+- tr-tq-enqueue-fifo.h
+- tx-support.h
+- tx-thread-queue.h
+test-prepare: |
+  ctx->queue = NULL;
+  ctx->abstime = NULL;
+  ctx->stored_prio = 0;
+  ctx->stored_size = 0;
+  ctx->oflag = O_RDWR;
+  ctx->done = false;
+  ctx->sender_started = false;
+  ctx->sender_done = false;
+  ctx->sender_status = -1;
+  ctx->fatal_calls = 0;
+  ctx->prio_obj = PRIO_POISON;
+  ctx->pending_count = 0;
+  memset( ctx->buf, BUFFER_POISON, sizeof( ctx->buf ) );
+test-setup:
+  brief: null
+  code: |
+    memset( ctx, 0, sizeof( *ctx ) );
+    ctx->tq_ctx.enqueue_prepare = TQDoNothing;
+    ctx->tq_ctx.enqueue_done = EnqueueDone;
+    ctx->tq_ctx.enqueue = Enqueue;
+    ctx->tq_ctx.surrender = TQDoNothingSuccessfully;
+    ctx->tq_ctx.convert_status = TQConvertStatusPOSIX;
+    TQInitialize( &ctx->tq_ctx );
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( ctx->worker_id, Worker, ctx );
+    WaitForExecutionStop( ctx->worker_id );
+    ctx->worker_tcb = GetThread( ctx->worker_id );
+    ctx->sender_id = CreateTask( "SEND", PRIO_HIGH );
+    StartTask( ctx->sender_id, SenderTask, ctx );
+    WaitForExecutionStop( ctx->sender_id );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define NAME "/mq-timedreceive"
+
+  #define ERRNO_POISON -1
+
+  #define PRIO_POISON UINT_MAX
+
+  #define BUFFER_POISON 0xff
+
+  #define MAX_MSG 2
+
+  #define RECEIVE_BYTE 0x5a
+
+  #define FILLER_BYTE 0xa5
+
+  #define SENDER_BYTE 0x3c
+
+  #define EVENT_SEND RTEMS_EVENT_0
+
+  static Context *ToContext( TQContext *tq_ctx )
+  {
+    return RTEMS_CONTAINER_OF( tq_ctx, Context, tq_ctx );
+  }
+
+  static POSIX_Message_queue_Control *GetQueue( mqd_t mqdes )
+  {
+    return (POSIX_Message_queue_Control *) _Objects_Get_no_protection(
+      (Objects_Id) mqdes,
+      &_POSIX_Message_queue_Information
+    );
+  }
+
+  static uint32_t GetPendingCount( const Context *ctx )
+  {
+    return ctx->queue->Message_queue.number_of_pending_messages;
+  }
+
+  static const CORE_message_queue_Buffer *GetFirstMessage( const Context *ctx )
+  {
+    return (const CORE_message_queue_Buffer *) _Chain_Immutable_first(
+      &ctx->queue->Message_queue.Pending_messages
+    );
+  }
+
+  static const CORE_message_queue_Buffer *GetLastMessage( const Context *ctx )
+  {
+    return (const CORE_message_queue_Buffer *) _Chain_Immutable_last(
+      &ctx->queue->Message_queue.Pending_messages
+    );
+  }
+
+  static const CORE_message_queue_Buffer *FindMessage(
+    const Context *ctx,
+    uint8_t        byte
+  )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+
+    chain = &ctx->queue->Message_queue.Pending_messages;
+    node = _Chain_Immutable_first( chain );
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      const CORE_message_queue_Buffer *buffer;
+      const uint8_t                   *content;
+
+      buffer = (const CORE_message_queue_Buffer *) node;
+      content = (const uint8_t *) &buffer->buffer[ 0 ];
+
+      if ( buffer->size > 0 && content[ 0 ] == byte ) {
+        return buffer;
+      }
+
+      if ( buffer->size == 0 && byte == RECEIVE_BYTE ) {
+        return buffer;
+      }
+
+      node = _Chain_Immutable_next( node );
+    }
+
+    return NULL;
+  }
+
+  static void CheckBuffer( const Context *ctx, size_t size )
+  {
+    size_t i;
+
+    for ( i = 0; i < sizeof( ctx->buf ); ++i ) {
+      if ( i < size ) {
+        T_eq_u8( (uint8_t) ctx->buf[ i ], RECEIVE_BYTE );
+      } else {
+        T_eq_u8( (uint8_t) ctx->buf[ i ], BUFFER_POISON );
+      }
+    }
+  }
+
+  static void CheckQueueUnchanged( const Context *ctx )
+  {
+    if ( ctx->queue == NULL ) {
+      return;
+    }
+
+    T_eq_u32( GetPendingCount( ctx ), ctx->pending_count );
+
+    if ( ctx->pending_count > 0 ) {
+      T_eq_ptr( FindMessage( ctx, RECEIVE_BYTE ), GetFirstMessage( ctx ) );
+    }
+  }
+
+  static void Create( Context *ctx )
+  {
+    static const struct mq_attr attr = {
+      .mq_maxmsg = MAX_MSG,
+      .mq_msgsize = MSG_SIZE
+    };
+
+    ctx->queue_id = mq_open( NAME, O_CREAT | O_EXCL | ctx->oflag, 0, &attr );
+    T_assert_ne_u32( ctx->queue_id, (mqd_t) -1 );
+    ctx->queue = GetQueue( ctx->queue_id );
+    T_assert_not_null( ctx->queue );
+  }
+
+  static void Send( Context *ctx, uint8_t byte, size_t size, unsigned int prio )
+  {
+    char msg[ MSG_SIZE ];
+    int  oflag;
+
+    /* Send through a descriptor open for writing which does not block */
+    oflag = ctx->queue->oflag;
+    ctx->queue->oflag = O_RDWR | O_NONBLOCK;
+    memset( msg, byte, sizeof( msg ) );
+    T_eq_int( mq_send( ctx->queue_id, msg, size, prio ), 0 );
+    ctx->queue->oflag = oflag;
+  }
+
+  static void SendStored( Context *ctx )
+  {
+    Send( ctx, RECEIVE_BYTE, ctx->stored_size, ctx->stored_prio );
+  }
+
+  static void SendFiller( Context *ctx )
+  {
+    Send( ctx, FILLER_BYTE, MSG_SIZE, 0 );
+  }
+
+  static void ReceiveAny( Context *ctx )
+  {
+    char buf[ MSG_SIZE ];
+    int  oflag;
+
+    /* Receive through a descriptor open for reading which does not block */
+    oflag = ctx->queue->oflag;
+    ctx->queue->oflag = O_RDWR | O_NONBLOCK;
+    T_ge_ssz( mq_receive( ctx->queue_id, buf, sizeof( buf ), NULL ), 0 );
+    ctx->queue->oflag = oflag;
+  }
+
+  static void StartSender( Context *ctx )
+  {
+    int oflag;
+
+    /* Let the sender wait on a descriptor open for writing which blocks */
+    oflag = ctx->queue->oflag;
+    ctx->queue->oflag = O_RDWR;
+    ctx->sender_started = true;
+    SendEvents( ctx->sender_id, EVENT_SEND );
+    WaitForExecutionStop( ctx->sender_id );
+    T_false( ctx->sender_done );
+    ctx->queue->oflag = oflag;
+  }
+
+  static void ReleaseWorker( Context *ctx )
+  {
+    Send( ctx, FILLER_BYTE, 1, 0 );
+    WaitForExecutionStop( ctx->worker_id );
+    T_true( ctx->done );
+  }
+
+  static void DoReceive( Context *ctx )
+  {
+    errno = ERRNO_POISON;
+    ctx->status = mq_timedreceive(
+      ctx->mqdes,
+      ctx->buf,
+      ctx->msg_len,
+      ctx->msg_prio,
+      ctx->abstime
+    );
+    ctx->errno_value = errno;
+  }
+
+  static void Fatal(
+    rtems_fatal_source source,
+    rtems_fatal_code   code,
+    void              *arg
+  )
+  {
+    Context *ctx;
+
+    T_eq_int( source, INTERNAL_ERROR_CORE );
+    T_eq_ulong( code, INTERNAL_ERROR_BAD_THREAD_DISPATCH_DISABLE_LEVEL );
+
+    ctx = arg;
+    ++ctx->fatal_calls;
+    longjmp( ctx->fatal_context, 1 );
+  }
+
+  static void ReceiveWithinISR( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    SetFatalHandler( Fatal, ctx );
+
+    if ( setjmp( ctx->fatal_context ) == 0 ) {
+      DoReceive( ctx );
+      ctx->done = true;
+    } else {
+      /*
+       * The call may have enqueued the interrupted thread on the thread queue
+       * of the message queue before the fatal error.  A message for the
+       * waiting thread removes it from the thread queue.
+       */
+      if ( GetExecuting()->Wait.queue != NULL ) {
+        Send( ctx, FILLER_BYTE, 1, 0 );
+      }
+      _Thread_Dispatch_unnest( _Per_CPU_Get() );
+    }
+
+    SetFatalHandler( NULL, NULL );
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      SuspendSelf();
+      DoReceive( ctx );
+      ctx->done = true;
+    }
+  }
+
+  static void SenderTask( rtems_task_argument arg )
+  {
+    Context *ctx;
+    char     msg[ MSG_SIZE ];
+
+    ctx = (Context *) arg;
+    memset( msg, SENDER_BYTE, sizeof( msg ) );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+      ctx->sender_status = mq_send( ctx->queue_id, msg, MSG_SIZE, 0 );
+      ctx->sender_done = true;
+    }
+  }
+
+  static Status_Control Enqueue( TQContext *tq_ctx, TQWait wait )
+  {
+    Context        *ctx;
+    char            buf[ MSG_SIZE ];
+    ssize_t         n;
+    struct timespec abstime = { .tv_sec = INT64_MAX, .tv_nsec = 0 };
+    ctx = ToContext( tq_ctx );
+    (void) wait;
+    n = mq_timedreceive( ctx->queue_id, buf, sizeof( buf ), NULL, &abstime );
+
+    return STATUS_BUILD( 0, n < 0 ? errno : 0 );
+  }
+
+  static void EnqueueDone( TQContext *tq_ctx )
+  {
+    Context *ctx;
+    uint32_t i;
+
+    ctx = ToContext( tq_ctx );
+
+    for ( i = 0; i < tq_ctx->how_many; ++i ) {
+      Send( ctx, FILLER_BYTE, 1, 0 );
+    }
+  }
+test-target: testsuites/validation/tc-posix-mq-timedreceive.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    DeleteTask( ctx->sender_id );
+    TQDestroy( &ctx->tq_ctx );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if: &id001
+      - pre-conditions:
+          MqDes: Invalid
+      - pre-conditions:
+          Open: 'No'
+      - pre-conditions:
+          Access: WriteOnly
+      then: MinusOne
+    - if: &id002
+        pre-conditions:
+          MsgLen:
+          - Zero
+          - One
+          - Below
+      then: MinusOne
+    - if: &id003
+        pre-conditions:
+          Messages:
+          - Some
+          - Full
+      then-specified-by: StoredSize
+    - if: &id004
+        pre-conditions:
+          NonBlock: 'Yes'
+      then: MinusOne
+    - if: &id005
+        pre-conditions:
+          Context: Interrupt
+      then: N/A
+    - if:
+        pre-conditions:
+          Abstime:
+          - InvalidNsec
+          - 'Null'
+          - PastOrNow
+      then: MinusOne
+    - else: N/A
+    Errno:
+    - if: *id001
+      then: Badf
+    - if: *id002
+      then: MsgSize
+    - if: *id003
+      then: Nop
+    - if: *id004
+      then: Again
+    - if: *id005
+      then: N/A
+    - if:
+        pre-conditions:
+          Abstime:
+          - InvalidNsec
+          - 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Abstime: PastOrNow
+      then: TimedOut
+    - else: N/A
+    Buffer:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - if:
+        post-conditions:
+          Status: N/A
+      then: N/A
+    - if:
+        pre-conditions:
+          StoredSize: Zero
+      then: Nop
+    - specified-by: StoredSize
+    Priority:
+    - if:
+        pre-conditions:
+          MsgPrio: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - if:
+        post-conditions:
+          Status: N/A
+      then: N/A
+    - specified-by: StoredPrio
+    Queue:
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: N/A
+    - if:
+        and:
+        - post-conditions:
+            Status:
+            - Zero
+            - One
+            - Below
+            - Max
+      then: Removed
+    - else: Nop
+    Sender:
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          Waiters: None
+      then: N/A
+    - if:
+        pre-conditions:
+          Messages:
+          - Zero
+          - Some
+      then: N/A
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - else: Moved
+    Wait:
+    - if: &id006
+        and:
+        - post-conditions:
+            Status: N/A
+        - pre-conditions:
+            Context: Task
+      then: 'Yes'
+    - if: &id007
+        and:
+        - post-conditions:
+            Status: N/A
+        - pre-conditions:
+            Context: Interrupt
+      then: N/A
+    - else: 'No'
+    Tasks:
+    - if: *id006
+      then: Fifo
+    - else: N/A
+    Timer:
+    - if: *id005
+      then: N/A
+    - if: *id006
+      then: Realtime
+    - else: Inactive
+    FatalError:
+    - if: *id007
+      then: 'Yes'
+    - else: Nop
+  pre-conditions:
+    MsgPrio: all
+    MsgLen: all
+    MqDes: all
+    StoredPrio:
+      applicable:
+        pre-conditions:
+          Messages:
+          - Some
+          - Full
+          MqDes: Valid
+    StoredSize:
+      applicable:
+        pre-conditions:
+          Messages:
+          - Some
+          - Full
+          MqDes: Valid
+    Access:
+      applicable:
+        pre-conditions: &id008
+          MqDes: Valid
+    NonBlock:
+      applicable:
+        pre-conditions: *id008
+    Messages:
+      applicable:
+        pre-conditions: *id008
+    Waiters:
+      applicable:
+        pre-conditions:
+          Messages: Full
+          MqDes: Valid
+    Open:
+      applicable:
+        pre-conditions: *id008
+    Abstime:
+      applicable:
+        pre-conditions:
+          Messages: Zero
+          MqDes: Valid
+          NonBlock: 'No'
+    Context: all
+type: requirement
