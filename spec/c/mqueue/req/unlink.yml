@@ -1,0 +1,361 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/unlink
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/unlink:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/unlink:/name} shall be minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified by the
+      ${../if/unlink:/name} call.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  - name: NameTooLong
+    test-code: |
+      T_eq_int( ctx->errno_value, ENAMETOOLONG );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be
+      ${/c/errno/if/enametoolong:/name}.
+  - name: NoEnt
+    test-code: |
+      T_eq_int( ctx->errno_value, ENOENT );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/enoent:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Removed
+    test-code: |
+      T_null( GetQueueByName( NAME ) );
+      T_false( ctx->queue->linked );
+      T_eq_ptr( GetQueueByName( OTHER_NAME ), ctx->other );
+    text: |
+      The name specified by the ${../if/unlink:/params[0]/name} parameter shall be
+      removed from the ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_ptr( GetQueueByName( NAME ), ctx->queue );
+      T_eq_ptr( GetQueueByName( OTHER_NAME ), ctx->other );
+    text: |
+      No name of a ${/glossary/messagequeue:/term} shall be removed by the
+      ${../if/unlink:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Deleted
+    test-code: |
+      T_eq_sz( GetInactiveCount(), ctx->inactive_count + 1 );
+    text: |
+      The ${/glossary/messagequeue:/term} shall be deleted.
+  - name: Nop
+    test-code: |
+      T_eq_sz( GetInactiveCount(), ctx->inactive_count );
+    text: |
+      No ${/glossary/messagequeue:/term} shall be deleted by the
+      ${../if/unlink:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Name
+  states:
+  - name: Valid
+    test-code: |
+      ctx->name = NAME;
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter references a string which
+      is not longer than the maximum length of a ${/glossary/messagequeue:/term}
+      name.
+  - name: 'Null'
+    test-code: |
+      ctx->name = NULL;
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter is ${/c/if/null:/name}.
+  - name: TooLong
+    test-code: |
+      ctx->name = ctx->long_name;
+    text: |
+      While the ${../if/unlink:/params[0]/name} parameter references a string which
+      is longer than the maximum length of a ${/glossary/messagequeue:/term} name.
+  test-epilogue: null
+  test-prologue: null
+- name: Exists
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->queue_id = mq_open( NAME, O_CREAT | O_EXCL | O_RDWR, 0, NULL );
+      T_ne_u32( ctx->queue_id, (mqd_t) -1 );
+      ctx->queue = GetQueue( ctx->queue_id );
+      T_assert_not_null( ctx->queue );
+    text: |
+      While a ${/glossary/messagequeue:/term} has the name specified by the
+      ${../if/unlink:/params[0]/name} parameter.
+  - name: 'No'
+    test-code: |
+      /* No message queue has the name */
+    text: |
+      While no ${/glossary/messagequeue:/term} has the name specified by the
+      ${../if/unlink:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The message queue was opened by its creation */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/mq-unlink:/name} specifies that ${../if/unlink:/name}
+  removes the name of the ${/glossary/messagequeue:/term} and that the
+  ${/glossary/messagequeue:/term} is destroyed when it is not open, otherwise
+  when the last open is closed. This gives the pre-conditions Exists and Open and
+  the post-conditions Name and Queue. The error ${/c/errno/if/enametoolong:/name}
+  gives state TooLong of pre-condition Name, the error
+  ${/c/errno/if/enoent:/name} gives state No of pre-condition Exists. A second
+  ${/glossary/messagequeue:/term}, which the test does not unlink, shows that no
+  other name is removed.
+
+  The standard does not define the behaviour where the
+  ${../if/unlink:/params[0]/name} parameter is ${/c/if/null:/name}. The state
+  Null of pre-condition Name specifies the behaviour of RTEMS which returns minus
+  one and sets ${/c/errno/if/errno:/name} to ${/c/errno/if/einval:/name}.
+
+  The standard requires an error if the caller has no permission to unlink the
+  ${/glossary/messagequeue:/term}. RTEMS has no permissions for message queues,
+  so this error is not returned.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->inactive_count = GetInactiveCount();
+  errno = ERRNO_POISON;
+  ctx->status = mq_unlink( ctx->name );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: |
+  if ( ctx->queue != NULL ) {
+    if ( ctx->queue->linked ) {
+      T_eq_int( mq_unlink( NAME ), 0 );
+    }
+
+    if ( ctx->queue->open_count > 0 ) {
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    }
+
+    ctx->queue = NULL;
+  }
+test-context:
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} created for the test.
+  description: null
+  member: |
+    mqd_t queue_id
+- brief: |
+    This member references the control block of the ${/glossary/messagequeue:/term}
+    created for the test.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *queue
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the other
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    mqd_t other_id
+- brief: |
+    This member references the control block of the other
+    ${/glossary/messagequeue:/term}.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *other
+- brief: |
+    This member contains the number of inactive message queue objects before the
+    ${../if/unlink:/name} call.
+  description: null
+  member: |
+    size_t inactive_count
+- brief: |
+    This member contains a name which is longer than the maximum length of a
+    ${/glossary/messagequeue:/term} name.
+  description: null
+  member: |
+    char long_name[ _POSIX_PATH_MAX + 2 ]
+- brief: |
+    This member specifies the ${../if/unlink:/params[0]/name} parameter value.
+  description: null
+  member: |
+    const char *name
+- brief: |
+    This member contains the return value of the ${../if/unlink:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/unlink:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- string.h
+- rtems/posix/mqueueimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->queue = NULL;
+test-setup:
+  brief: null
+  code: |
+    memset( ctx->long_name, 'a', sizeof( ctx->long_name ) - 1 );
+    ctx->long_name[ 0 ] = '/';
+    ctx->long_name[ sizeof( ctx->long_name ) - 1 ] = '\0';
+    ctx->other_id = mq_open( OTHER_NAME, O_CREAT | O_EXCL | O_RDWR, 0, NULL );
+    T_ne_u32( ctx->other_id, (mqd_t) -1 );
+    ctx->other = GetQueue( ctx->other_id );
+    T_assert_not_null( ctx->other );
+  description: null
+test-stop: null
+test-support: |
+  #define NAME "/mq-unlink"
+
+  #define OTHER_NAME "/mq-unlink-other"
+
+  #define ERRNO_POISON -1
+
+  static POSIX_Message_queue_Control *GetQueue( mqd_t mqdes )
+  {
+    return (POSIX_Message_queue_Control *) _Objects_Get_no_protection(
+      (Objects_Id) mqdes,
+      &_POSIX_Message_queue_Information
+    );
+  }
+
+  static POSIX_Message_queue_Control *GetQueueByName( const char *name )
+  {
+    POSIX_Message_queue_Control *queue;
+    Objects_Get_by_name_error    error;
+
+    _Objects_Allocator_lock();
+    queue = _POSIX_Message_queue_Get_by_name( name, NULL, &error );
+    _Objects_Allocator_unlock();
+
+    return queue;
+  }
+
+  static size_t GetInactiveCount( void )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+    size_t               count;
+
+    chain = &_POSIX_Message_queue_Information.Inactive;
+    node = _Chain_Immutable_first( chain );
+    count = 0;
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      ++count;
+      node = _Chain_Immutable_next( node );
+    }
+
+    return count;
+  }
+test-target: testsuites/validation/tc-posix-mq-unlink.c
+test-teardown:
+  brief: null
+  code: |
+    T_eq_int( mq_unlink( OTHER_NAME ), 0 );
+    T_eq_int( mq_close( ctx->other_id ), 0 );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Exists: 'Yes'
+          Name: Valid
+      then: Zero
+    - else: MinusOne
+    Errno:
+    - if:
+        pre-conditions:
+          Name: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Name: TooLong
+      then: NameTooLong
+    - if:
+        pre-conditions:
+          Exists: 'No'
+      then: NoEnt
+    - else: Nop
+    Name:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Removed
+    - else: Nop
+    Queue:
+    - if:
+        pre-conditions:
+          Exists: 'Yes'
+          Open: 'No'
+      then: Deleted
+    - else: Nop
+  pre-conditions:
+    Name: all
+    Exists:
+      applicable:
+        pre-conditions:
+          Name: Valid
+    Open:
+      applicable:
+        pre-conditions:
+          Exists: 'Yes'
+type: requirement

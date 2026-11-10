@@ -1,0 +1,103 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Receive a ${/glossary/message:/term} from the ${/glossary/messagequeue:/term}
+  specified by ${.:/params[0]/name} with the ${/glossary/timeout:/term}
+  referenced by ${.:/params[4]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - char *restrict ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    - unsigned int *restrict ${.:/params[3]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[4]/name}
+    return: ${/c/if/ssize_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter was not a ${../glossary/mqdes:/term}.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was open
+    for writing only.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${.:/params[2]/name} parameter was less than the maximum
+    ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/emsgsize
+- description: |
+    The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+    open.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${/glossary/messagequeue:/term} was empty and the
+    ${/c/fcntl/if/o-nonblock:/name} flag of the ${/glossary/messagequeue:/term} was
+    set.
+  role: errno
+  uid: /c/errno/if/eagain
+- description: |
+    The call would block and the ${.:/params[4]/name} parameter was
+    ${/c/if/null:/name} or referenced an invalid time.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The time specified by ${.:/params[4]/name} was reached before the call could
+    complete.
+  role: errno
+  uid: /c/errno/if/etimedout
+- role: reference
+  uid: /ref/std/posix-2024/mq-receive
+name: mq_timedreceive
+notes: |
+  See ${/ref/std/posix-2024/mq-receive:/name}.
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to the buffer which receives the ${/glossary/message:/term}.
+  dir: out
+  name: msg_ptr
+- description: |
+    is the size in bytes of the buffer referenced by ${.:/params[1]/name}.
+  dir: null
+  name: msg_len
+- description: |
+    is ${/c/if/null:/name} or the pointer to an object. The
+    ${../glossary/msgprio:/term} of the received ${/glossary/message:/term} is
+    stored in this object.
+  dir: out
+  name: msg_prio
+- description: |
+    is the absolute time of the ${/glossary/timeout:/term} measured by the
+    ${/glossary/clock-realtime:/term}.
+  dir: in
+  name: abs_timeout
+return:
+  return: |
+    On success, the ${../glossary/msgsize:/term} of the received
+    ${/glossary/message:/term} is returned.
+  return-values:
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
+type: interface

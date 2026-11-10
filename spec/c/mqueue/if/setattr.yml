@@ -1,0 +1,75 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the flags of the ${/glossary/messagequeue:/term} specified by
+  ${.:/params[0]/name} to the value referenced by ${.:/params[1]/name} and store
+  the previous ${../glossary/mqattr:/term}s in the object referenced by
+  ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - const ${/c/if/mq_attr:/name} *restrict ${.:/params[1]/name}
+    - ${/c/if/mq_attr:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter was not a ${../glossary/mqdes:/term}.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} was not
+    open.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The ${.:/params[1]/name} parameter was ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/mq-setattr
+name: mq_setattr
+notes: |
+  See ${/ref/std/posix-2024/mq-setattr:/name}.
+
+  RTEMS sets all flags of the ${/glossary/messagequeue:/term} to the value of the
+  ${/c/if/mq_attr:/definition[0]/default/name} member, this includes the access
+  mode.
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to an ${/c/if/mq_attr:/name} object with the new flags.
+  dir: in
+  name: mqstat
+- description: |
+    is ${/c/if/null:/name} or the pointer to an ${/c/if/mq_attr:/name} object. The
+    previous ${../glossary/mqattr:/term}s are stored in this object.
+  dir: out
+  name: omqstat
+return:
+  return: null
+  return-values:
+  - description: |
+      On success, zero is returned.
+    value: 0
+  - description: |
+      On error, -1 is returned, and ${/c/errno/if/errno:/name} is set to indicate the
+      error.
+    value: -1
+type: interface

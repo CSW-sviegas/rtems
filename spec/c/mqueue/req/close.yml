@@ -1,0 +1,324 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/close
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/close:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/close:/name} shall be minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified by the
+      ${../if/close:/name} call.
+  - name: Badf
+    test-code: |
+      T_eq_int( ctx->errno_value, EBADF );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/ebadf:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'No'
+    test-code: |
+      T_eq_u32( ctx->queue->open_count, 0 );
+    text: |
+      The ${/glossary/messagequeue:/term} shall not be open.
+  - name: Once
+    test-code: |
+      T_eq_u32( ctx->queue->open_count, 1 );
+    text: |
+      The ${/glossary/messagequeue:/term} shall be open once.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->queue->open_count, ctx->open_count );
+    text: |
+      The number of opens of the ${/glossary/messagequeue:/term} shall not be
+      modified by the ${../if/close:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Deleted
+    test-code: |
+      T_eq_sz( GetInactiveCount(), ctx->inactive_count + 1 );
+    text: |
+      The ${/glossary/messagequeue:/term} shall be deleted.
+  - name: Nop
+    test-code: |
+      T_eq_sz( GetInactiveCount(), ctx->inactive_count );
+    text: |
+      No ${/glossary/messagequeue:/term} shall be deleted by the ${../if/close:/name}
+      call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: MqDes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->mqdes = ctx->queue_id;
+    text: |
+      While the ${../if/close:/params[0]/name} parameter is the
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = (mqd_t) INVALID_ID;
+    text: |
+      While the ${../if/close:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
+  - name: Once
+    test-code: |
+      /* The message queue was opened once by the preparation */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open once.
+  - name: Twice
+    test-code: |
+      T_eq_int( mq_open( NAME, O_RDWR ), ctx->queue_id );
+    text: |
+      While the ${/glossary/messagequeue:/term} is open twice.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The message queue was created with a name */
+    text: |
+      While the ${/glossary/messagequeue:/term} has a name.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_unlink( NAME ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} has no name.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The dimensions follow the reads of the implementation. The
+  ${../if/close:/params[0]/name} parameter selects the
+  ${/glossary/messagequeue:/term}, the number of opens decides whether the
+  ${../glossary/mqdes:/term} is open, and the name decides whether closing the
+  last open deletes the ${/glossary/messagequeue:/term}, see
+  ${/ref/std/posix-2024/mq-close:/name} and
+  ${/ref/std/posix-2024/mq-unlink:/name}.
+
+  In RTEMS, each ${../if/open:/name} call for a ${/glossary/messagequeue:/term}
+  returns the same ${../glossary/mqdes:/term}, so the state Twice of the
+  pre-condition Open stands for two ${../glossary/mqdes:/term}s which refer to
+  the same ${/glossary/messagequeue:/term}. A ${/glossary/messagequeue:/term}
+  which is not open and has no name is deleted, so this combination is skipped.
+
+  The standard requires that ${../if/close:/name} removes a notification request
+  of the calling process. RTEMS does not do this. A notification request can be
+  registered only if RTEMS is built with the option RTEMS_POSIX_API enabled, and
+  the function which registers it is not specified by this item.
+requirement-type: functional
+skip-reasons:
+  Deleted: |
+    A ${/glossary/messagequeue:/term} which is not open and has no name is deleted.
+test-action: |
+  ctx->open_count = ctx->queue->open_count;
+  ctx->inactive_count = GetInactiveCount();
+  errno = ERRNO_POISON;
+  ctx->status = mq_close( ctx->mqdes );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: |
+  int i;
+
+  if ( ctx->queue->linked ) {
+    T_eq_int( mq_unlink( NAME ), 0 );
+  }
+
+  for ( i = 0; i < 2 && ctx->queue->open_count > 0; ++i ) {
+    T_eq_int( mq_close( ctx->queue_id ), 0 );
+  }
+test-context:
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} created for the test.
+  description: null
+  member: |
+    mqd_t queue_id
+- brief: |
+    This member references the control block of the ${/glossary/messagequeue:/term}
+    created for the test.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *queue
+- brief: |
+    This member contains the number of opens before the ${../if/close:/name} call.
+  description: null
+  member: |
+    uint32_t open_count
+- brief: |
+    This member contains the number of inactive message queue objects before the
+    ${../if/close:/name} call.
+  description: null
+  member: |
+    size_t inactive_count
+- brief: |
+    This member specifies the ${../if/close:/params[0]/name} parameter value.
+  description: null
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member contains the return value of the ${../if/close:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/close:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- mqueue.h
+- rtems/posix/mqueueimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->queue_id = mq_open( NAME, O_CREAT | O_EXCL | O_RDWR, 0, NULL );
+  T_ne_u32( ctx->queue_id, (mqd_t) -1 );
+  ctx->queue = GetQueue( ctx->queue_id );
+  T_assert_not_null( ctx->queue );
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define NAME "/mq-close"
+
+  #define ERRNO_POISON -1
+
+  static POSIX_Message_queue_Control *GetQueue( mqd_t mqdes )
+  {
+    return (POSIX_Message_queue_Control *) _Objects_Get_no_protection(
+      (Objects_Id) mqdes,
+      &_POSIX_Message_queue_Information
+    );
+  }
+
+  static size_t GetInactiveCount( void )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+    size_t               count;
+
+    chain = &_POSIX_Message_queue_Information.Inactive;
+    node = _Chain_Immutable_first( chain );
+    count = 0;
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      ++count;
+      node = _Chain_Immutable_next( node );
+    }
+
+    return count;
+  }
+test-target: testsuites/validation/tc-posix-mq-close.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          MqDes: Valid
+          Open:
+          - Once
+          - Twice
+      then: Zero
+    - else: MinusOne
+    Errno:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Nop
+    - else: Badf
+    Open:
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          Name: 'No'
+          Open: Once
+      then: N/A
+    - if:
+        pre-conditions:
+          Open: Once
+      then: 'No'
+    - if:
+        pre-conditions:
+          Open: Twice
+      then: Once
+    - else: Nop
+    Queue:
+    - if:
+        pre-conditions:
+          MqDes: Valid
+          Name: 'No'
+          Open: Once
+      then: Deleted
+    - else: Nop
+  pre-conditions:
+    MqDes: all
+    Open:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    Name:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+- enabled-by: true
+  post-conditions: Deleted
+  pre-conditions:
+    MqDes:
+    - Valid
+    Open:
+    - 'No'
+    Name:
+    - 'No'
+type: requirement
