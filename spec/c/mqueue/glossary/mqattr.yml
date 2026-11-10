@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/mqueue-h
+term: message queue attribute
+text: |
+  A set of attributes defining the behavior and limits of a message queue,
+  including the ${maxmsgs:/term}, the maximum ${msgsize:/term}, and blocking
+  behavior flags. See ${/ref/std/posix-2024/mqueue-h:/name}.
+type: glossary
