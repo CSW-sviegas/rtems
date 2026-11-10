@@ -81,6 +81,8 @@ links:
 - role: validation
   uid: /c/if/false
 - role: validation
+  uid: /c/limits/if/mq-prio-max
+- role: validation
   uid: /c/sched/if/fifo
 - role: validation
   uid: /c/sched/if/other
