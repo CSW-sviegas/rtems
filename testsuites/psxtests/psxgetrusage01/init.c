@@ -92,8 +92,10 @@ rtems_task Init( rtems_task_argument argument )
   rtems_test_assert( usage.ru_utime.tv_usec != 0 );
 
   /* System is the IDLE time and user is the total of task time */
-  rtems_test_assert( usage.ru_utime.tv_sec != usage.ru_stime.tv_sec );
-  rtems_test_assert( usage.ru_utime.tv_usec != usage.ru_stime.tv_usec );
+  rtems_test_assert(
+    usage.ru_utime.tv_sec != usage.ru_stime.tv_sec ||
+    usage.ru_utime.tv_usec != usage.ru_stime.tv_usec
+  );
 
   puts( "getrusage( RUSAGE_THREAD, &usage ) -- 0" );
   sc = getrusage( RUSAGE_THREAD, &usage );

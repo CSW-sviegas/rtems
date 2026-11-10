@@ -111,6 +111,9 @@ static void _Thread_Create_idle_for_CPU(
   cpu->ancestor = idle;
 #endif
 
+  /* The uptime of the timecounter starts at one second. */
+  cpu->cpu_usage_timestamp = SBT_1S;
+
   idle->is_idle = true;
   idle->Start.Entry.adaptor = _Thread_Entry_adaptor_idle;
   idle->Start.Entry.Kinds.Idle.entry = _Thread_Idle_body;
