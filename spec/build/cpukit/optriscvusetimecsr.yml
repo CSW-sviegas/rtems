@@ -7,6 +7,8 @@ build-type: option
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 default:
+- enabled-by: riscv/gr765
+  value: true
 - enabled-by: true
   value: false
 description: |
@@ -14,6 +16,7 @@ description: |
   Set it only if the processor executes a read of the time CSR without a trap
   and if all harts read the same value.  If set to false, then in machine mode
   the CPU counter and the clock driver read the mtime register of the CLINT.
+  The GR765 implements the time CSR, see GR765-DSUM, section 12.1.1, table 54.
 enabled-by: riscv
 format: '{}'
 links: []
