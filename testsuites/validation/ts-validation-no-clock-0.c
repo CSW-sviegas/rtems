@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +59,11 @@ const char rtems_test_name[] = "TestsuitesValidationNoClock0";
 #define CONFIGURE_MAXIMUM_PROCESSORS 5
 
 #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+#define CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES 2
+
+#define CONFIGURE_MESSAGE_BUFFER_MEMORY \
+  ( 2 * CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE( 10, 16 ) )
 
 #include "ts-default.h"
 
