@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
@@ -9,6 +9,6 @@ links:
 rationale: null
 requirement-type: functional
 text: |
-  When ${../if/reset:/name} is called, the CPU usage shall be set to zero for
-  each thread.
+  The ${../if/reset:/name} directive shall set the CPU usage of each thread to
+  zero.
 type: requirement
