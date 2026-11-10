@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -157,7 +157,7 @@ static void ScoreSemReqSeizeWait_Pre_Count_Prepare(
       /*
        * While the count of the semaphore is greater than zero.
        */
-      TQSemSetCount( ctx->tq_ctx, 1 );
+      TQSemSetCount( ctx->tq_ctx, 2 );
       break;
     }
 
@@ -229,7 +229,7 @@ static void ScoreSemReqSeizeWait_Post_Count_Check(
       /*
        * The count of the semaphore shall be decremented by one.
        */
-      T_eq_u32( TQSemGetCount( ctx->tq_ctx ), 0 );
+      T_eq_u32( TQSemGetCount( ctx->tq_ctx ), 1 );
       break;
     }
 

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -144,7 +144,7 @@ static void ScoreSemReqSeizeTry_Pre_Count_Prepare(
       /*
        * While the count of the semaphore is greater than zero.
        */
-      ctx->count_before = 1;
+      ctx->count_before = 2;
       break;
     }
 
