@@ -1,0 +1,785 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/send
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/send:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/send:/name} shall be minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified by the
+      ${../if/send:/name} call.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  - name: Badf
+    test-code: |
+      T_eq_int( ctx->errno_value, EBADF );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/ebadf:/name}.
+  - name: MsgSize
+    test-code: |
+      T_eq_int( ctx->errno_value, EMSGSIZE );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/emsgsize:/name}.
+  - name: Again
+    test-code: |
+      T_eq_int( ctx->errno_value, EAGAIN );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/eagain:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Message
+  states:
+  - name: Receiver
+    test-code: |
+      T_true( ctx->received );
+      T_eq_u8( ctx->recv_buf[ 0 ], SEND_BYTE );
+      T_null( FindSentMessage( ctx ) );
+    text: |
+      The ${/glossary/message:/term} shall be received by the thread which waits to
+      receive a ${/glossary/message:/term} from the ${/glossary/messagequeue:/term}.
+  - name: Front
+    test-code: |
+      T_false( ctx->received );
+      T_eq_ptr( FindSentMessage( ctx ), GetFirstMessage( ctx ) );
+    text: |
+      The ${/glossary/message:/term} shall be the first ${/glossary/message:/term} of
+      the ${/glossary/messagequeue:/term}.
+  - name: Back
+    test-code: |
+      T_false( ctx->received );
+      T_eq_ptr( FindSentMessage( ctx ), GetLastMessage( ctx ) );
+    text: |
+      The ${/glossary/message:/term} shall be the last ${/glossary/message:/term} of
+      the ${/glossary/messagequeue:/term}.
+  - name: Nop
+    test-code: |
+      T_false( ctx->received );
+      T_null( FindSentMessage( ctx ) );
+      T_eq_u32( GetPendingCount( ctx ), ctx->pending_count );
+    text: |
+      Neither the ${/glossary/messagequeue:/term} nor a waiting thread shall receive
+      the ${/glossary/message:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Priority
+  states:
+  - name: Low
+    test-code: |
+      T_eq_uint( GetSentPriority( ctx ), 0 );
+    text: |
+      The ${../glossary/msgprio:/term} of the ${/glossary/message:/term} shall be
+      zero.
+  - name: Mid
+    test-code: |
+      T_eq_uint( GetSentPriority( ctx ), PRIO_MID );
+    text: |
+      The ${../glossary/msgprio:/term} of the ${/glossary/message:/term} shall be the
+      value of the ${../if/send:/params[3]/name} parameter.
+  - name: High
+    test-code: |
+      T_eq_uint( GetSentPriority( ctx ), MQ_PRIO_MAX );
+    text: |
+      The ${../glossary/msgprio:/term} of the ${/glossary/message:/term} shall be
+      ${/c/limits/if/mq-prio-max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Size
+  states:
+  - name: One
+    test-code: |
+      CheckSentContent( ctx, 1 );
+    text: |
+      The ${/glossary/message:/term} shall consist of the first byte referenced by
+      the ${../if/send:/params[1]/name} parameter.
+  - name: Max
+    test-code: |
+      CheckSentContent( ctx, MSG_SIZE );
+    text: |
+      The ${/glossary/message:/term} shall consist of the bytes referenced by the
+      ${../if/send:/params[1]/name} parameter of the size specified by the
+      ${../if/send:/params[2]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: MsgPrio
+  states:
+  - name: Low
+    test-code: |
+      ctx->msg_prio = 0;
+    text: |
+      While the ${../if/send:/params[3]/name} parameter is zero.
+  - name: Mid
+    test-code: |
+      ctx->msg_prio = PRIO_MID;
+    text: |
+      While the ${../if/send:/params[3]/name} parameter is equal to the
+      ${../glossary/msgprio:/term} of the ${/glossary/message:/term}s in the
+      ${/glossary/messagequeue:/term}.
+  - name: High
+    test-code: |
+      ctx->msg_prio = MQ_PRIO_MAX;
+    text: |
+      While the ${../if/send:/params[3]/name} parameter is equal to
+      ${/c/limits/if/mq-prio-max:/name}.
+  - name: TooHigh
+    test-code: |
+      ctx->msg_prio = MQ_PRIO_MAX + 1;
+    text: |
+      While the ${../if/send:/params[3]/name} parameter is greater than
+      ${/c/limits/if/mq-prio-max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MsgLen
+  states:
+  - name: One
+    test-code: |
+      ctx->msg_len = 1;
+    text: |
+      While the ${../if/send:/params[2]/name} parameter is one.
+  - name: Max
+    test-code: |
+      ctx->msg_len = MSG_SIZE;
+    text: |
+      While the ${../if/send:/params[2]/name} parameter is equal to the maximum
+      ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  - name: TooLong
+    test-code: |
+      ctx->msg_len = MSG_SIZE + 1;
+    text: |
+      While the ${../if/send:/params[2]/name} parameter is greater than the maximum
+      ${../glossary/msgsize:/term} of the ${/glossary/messagequeue:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: MqDes
+  states:
+  - name: Valid
+    test-code: |
+      ctx->mqdes = ctx->queue_id;
+    text: |
+      While the ${../if/send:/params[0]/name} parameter is the
+      ${../glossary/mqdes:/term} of a ${/glossary/messagequeue:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->mqdes = (mqd_t) INVALID_ID;
+    text: |
+      While the ${../if/send:/params[0]/name} parameter is not a
+      ${../glossary/mqdes:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Empty
+    test-code: |
+      /* The message queue was created without messages */
+    text: |
+      While the ${/glossary/messagequeue:/term} contains no
+      ${/glossary/message:/term} and no thread waits to receive a
+      ${/glossary/message:/term} from the ${/glossary/messagequeue:/term}.
+  - name: Receiver
+    test-code: |
+      ctx->receiver_waits = true;
+      SendEvents( ctx->receiver_id, EVENT_RECEIVE );
+      WaitForExecutionStop( ctx->receiver_id );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains no
+      ${/glossary/message:/term} and a thread waits to receive a
+      ${/glossary/message:/term} from the ${/glossary/messagequeue:/term}.
+  - name: Pending
+    test-code: |
+      SendFiller( ctx );
+    text: |
+      While the ${/glossary/messagequeue:/term} contains a ${/glossary/message:/term}
+      and is not full.
+  - name: Full
+    test-code: |
+      ctx->full = true;
+
+      while ( GetPendingCount( ctx ) < MAX_MSG ) {
+        SendFiller( ctx );
+      }
+    text: |
+      While the ${/glossary/messagequeue:/term} is full and a thread receives a
+      ${/glossary/message:/term} from the ${/glossary/messagequeue:/term} when the
+      calling thread waits for space.
+  test-epilogue: null
+  test-prologue: null
+- name: Access
+  states:
+  - name: ReadWrite
+    test-code: |
+      ctx->oflag = O_RDWR;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for reading and writing.
+  - name: WriteOnly
+    test-code: |
+      ctx->oflag = O_WRONLY;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for writing only.
+  - name: ReadOnly
+    test-code: |
+      ctx->oflag = O_RDONLY;
+    text: |
+      While the ${/glossary/messagequeue:/term} is open for reading only.
+  test-epilogue: null
+  test-prologue: null
+- name: NonBlock
+  states:
+  - name: 'Yes'
+    test-code: |
+      SetFlags( ctx, ctx->oflag | O_NONBLOCK );
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  - name: 'No'
+    test-code: |
+      SetFlags( ctx, ctx->oflag );
+    text: |
+      While the flags of the ${/glossary/messagequeue:/term} do not contain
+      ${/c/fcntl/if/o-nonblock:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Open
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The message queue was opened by its creation */
+    text: |
+      While the ${/glossary/messagequeue:/term} is open.
+  - name: 'No'
+    test-code: |
+      T_eq_int( mq_close( ctx->queue_id ), 0 );
+    text: |
+      While the ${/glossary/messagequeue:/term} is not open.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/mq-send:/name} specifies that ${../if/send:/name} adds
+  the ${/glossary/message:/term} referenced by the ${../if/send:/params[1]/name}
+  parameter of the size specified by the ${../if/send:/params[2]/name} parameter
+  to the ${/glossary/messagequeue:/term} at the position given by the
+  ${../if/send:/params[3]/name} parameter, after the ${/glossary/message:/term}s
+  of equal priority. This gives the pre-conditions MsgPrio and MsgLen, the states
+  Pending and Full of pre-condition Queue, and the post-conditions Message,
+  Priority, and Size. The standard requires that a full
+  ${/glossary/messagequeue:/term} blocks the call unless
+  ${/c/fcntl/if/o-nonblock:/name} is set, which gives pre-condition NonBlock. The
+  ${/glossary/messagequeue:/term} of the test can hold two
+  ${/glossary/message:/term}s. The state Full lets another thread receive a
+  ${/glossary/message:/term} while the calling thread waits.
+
+  A thread which waits in a receive call gets the ${/glossary/message:/term}
+  directly, see state Receiver of pre-condition Queue. The standard leaves the
+  choice of the thread to the implementation.
+
+  The standard requires ${/c/errno/if/ebadf:/name} if the
+  ${../if/send:/params[0]/name} parameter is not a valid
+  ${../glossary/mqdes:/term} open for writing. This gives pre-condition MqDes,
+  the state ReadOnly of pre-condition Access, and state No of pre-condition Open.
+
+  The standard requires ${/c/errno/if/einval:/name} for a
+  ${../if/send:/params[3]/name} value outside of the valid range, which is less
+  than ${/c/limits/if/mq-prio-max:/name}. RTEMS returns this error only for
+  values greater than ${/c/limits/if/mq-prio-max:/name}. It accepts the value
+  ${/c/limits/if/mq-prio-max:/name}, see state High of pre-condition MsgPrio.
+  This deviation of RTEMS is stated in the notes of ${../if/send:/name}.
+
+  The interruption of a waiting call by a signal is not covered, since RTEMS
+  provides signals only if it is built with the option RTEMS_POSIX_API enabled.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->pending_count = GetPendingCount( ctx );
+  ResumeTask( ctx->worker_id );
+  WaitForExecutionStop( ctx->worker_id );
+
+  if ( !ctx->done ) {
+    T_true( ctx->full );
+    ReceiveFiller( ctx );
+    WaitForExecutionStop( ctx->worker_id );
+    T_true( ctx->done );
+  }
+
+  ctx->received = ctx->receiver_waits && !ctx->receiver->is_waiting;
+test-brief: null
+test-cleanup: |
+  if ( ctx->queue->open_count == 0 ) {
+    T_eq_u32( mq_open( NAME, O_RDWR ), ctx->queue_id );
+  }
+
+  SetFlags( ctx, O_RDWR );
+
+  if ( ctx->receiver_waits && !ctx->received ) {
+    T_eq_int( mq_send( ctx->queue_id, "X", 1, 0 ), 0 );
+    WaitForExecutionStop( ctx->receiver_id );
+  }
+
+  T_eq_int( mq_close( ctx->queue_id ), 0 );
+  T_eq_int( mq_unlink( NAME ), 0 );
+test-context:
+- brief: |
+    This member contains the ${../glossary/mqdes:/term} of the
+    ${/glossary/messagequeue:/term} created for the test.
+  description: null
+  member: |
+    mqd_t queue_id
+- brief: |
+    This member references the control block of the ${/glossary/messagequeue:/term}
+    created for the test.
+  description: null
+  member: |
+    POSIX_Message_queue_Control *queue
+- brief: |
+    This member contains the flags of the ${/glossary/messagequeue:/term} without
+    ${/c/fcntl/if/o-nonblock:/name}.
+  description: null
+  member: |
+    int oflag
+- brief: |
+    This member contains the number of pending ${/glossary/message:/term}s before
+    the ${../if/send:/name} call.
+  description: null
+  member: |
+    uint32_t pending_count
+- brief: |
+    If this member is true, then the ${/glossary/messagequeue:/term} was full.
+  description: null
+  member: |
+    bool full
+- brief: |
+    This member contains the identifier of the task which calls
+    ${../if/send:/name}.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    If this member is true, then the ${../if/send:/name} call returned.
+  description: null
+  member: |
+    volatile bool done
+- brief: |
+    This member contains the identifier of the task which waits to receive a
+    ${/glossary/message:/term}.
+  description: null
+  member: |
+    rtems_id receiver_id
+- brief: |
+    This member provides the state of the receiving task.
+  description: null
+  member: |
+    Receiver receiver[ 1 ]
+- brief: |
+    If this member is true, then the receiving task waited for a
+    ${/glossary/message:/term} before the ${../if/send:/name} call.
+  description: null
+  member: |
+    bool receiver_waits
+- brief: |
+    If this member is true, then the receiving task received a
+    ${/glossary/message:/term} by the ${../if/send:/name} call.
+  description: null
+  member: |
+    bool received
+- brief: |
+    This member contains the ${/glossary/message:/term} received by the receiving
+    task.
+  description: null
+  member: |
+    char recv_buf[ MSG_SIZE ]
+- brief: |
+    This member contains the ${/glossary/message:/term} to send.
+  description: null
+  member: |
+    char msg[ MSG_SIZE + 1 ]
+- brief: |
+    This member specifies the ${../if/send:/params[0]/name} parameter value.
+  description: null
+  member: |
+    mqd_t mqdes
+- brief: |
+    This member specifies the ${../if/send:/params[2]/name} parameter value.
+  description: null
+  member: |
+    size_t msg_len
+- brief: |
+    This member specifies the ${../if/send:/params[3]/name} parameter value.
+  description: null
+  member: |
+    unsigned int msg_prio
+- brief: |
+    This member contains the return value of the ${../if/send:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/send:/name} call.
+  description: null
+  member: |
+    int errno_value
+test-context-support: |
+  #define MSG_SIZE 4
+
+  typedef struct {
+    volatile bool is_waiting;
+    uint32_t      wait_count;
+  } Receiver;
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- string.h
+- rtems/posix/mqueueimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  static const struct mq_attr attr = {
+    .mq_maxmsg = MAX_MSG,
+    .mq_msgsize = MSG_SIZE
+  };
+
+  ctx->queue_id = mq_open( NAME, O_CREAT | O_EXCL | O_RDWR, 0, &attr );
+  T_ne_u32( ctx->queue_id, (mqd_t) -1 );
+  ctx->queue = GetQueue( ctx->queue_id );
+  T_assert_not_null( ctx->queue );
+  ctx->full = false;
+  ctx->done = false;
+  ctx->receiver_waits = false;
+  ctx->received = false;
+  memset( ctx->recv_buf, RECV_POISON, sizeof( ctx->recv_buf ) );
+test-setup:
+  brief: null
+  code: |
+    memset( ctx->msg, SEND_BYTE, sizeof( ctx->msg ) );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( ctx->worker_id, Worker, ctx );
+    WaitForExecutionStop( ctx->worker_id );
+    ctx->receiver_id = CreateTask( "RECV", PRIO_HIGH );
+    StartTask( ctx->receiver_id, ReceiverTask, ctx );
+    WaitForExecutionStop( ctx->receiver_id );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define NAME "/mq-send"
+
+  #define ERRNO_POISON -1
+
+  #define MAX_MSG 2
+
+  #define PRIO_MID ( MQ_PRIO_MAX / 2 )
+
+  #define SEND_BYTE 0x5a
+
+  #define FILLER_BYTE 0xa5
+
+  #define RECV_POISON 0xff
+
+  #define EVENT_RECEIVE RTEMS_EVENT_0
+
+  static POSIX_Message_queue_Control *GetQueue( mqd_t mqdes )
+  {
+    return (POSIX_Message_queue_Control *) _Objects_Get_no_protection(
+      (Objects_Id) mqdes,
+      &_POSIX_Message_queue_Information
+    );
+  }
+
+  static uint32_t GetPendingCount( const Context *ctx )
+  {
+    return ctx->queue->Message_queue.number_of_pending_messages;
+  }
+
+  static const CORE_message_queue_Buffer *GetFirstMessage( const Context *ctx )
+  {
+    return (const CORE_message_queue_Buffer *) _Chain_Immutable_first(
+      &ctx->queue->Message_queue.Pending_messages
+    );
+  }
+
+  static const CORE_message_queue_Buffer *GetLastMessage( const Context *ctx )
+  {
+    return (const CORE_message_queue_Buffer *) _Chain_Immutable_last(
+      &ctx->queue->Message_queue.Pending_messages
+    );
+  }
+
+  static const CORE_message_queue_Buffer *FindSentMessage( const Context *ctx )
+  {
+    const Chain_Control *chain;
+    const Chain_Node    *node;
+
+    chain = &ctx->queue->Message_queue.Pending_messages;
+    node = _Chain_Immutable_first( chain );
+
+    while ( node != _Chain_Immutable_tail( chain ) ) {
+      const CORE_message_queue_Buffer *buffer;
+      const uint8_t                   *content;
+
+      buffer = (const CORE_message_queue_Buffer *) node;
+      content = (const uint8_t *) &buffer->buffer[ 0 ];
+
+      if ( content[ 0 ] == SEND_BYTE ) {
+        return buffer;
+      }
+
+      node = _Chain_Immutable_next( node );
+    }
+
+    return NULL;
+  }
+
+  static unsigned int GetSentPriority( const Context *ctx )
+  {
+    const CORE_message_queue_Buffer *buffer;
+
+    if ( ctx->received ) {
+      return _POSIX_Message_queue_Priority_from_core(
+        (CORE_message_queue_Submit_types) ctx->receiver->wait_count
+      );
+    }
+
+    buffer = FindSentMessage( ctx );
+    T_quiet_assert_not_null( buffer );
+
+    return _POSIX_Message_queue_Priority_from_core( buffer->priority );
+  }
+
+  static void CheckSentContent( const Context *ctx, size_t size )
+  {
+    const CORE_message_queue_Buffer *buffer;
+    const char                      *content;
+
+    if ( ctx->received ) {
+      size_t i;
+
+      /* The sending call copies the message to the buffer of the receiver */
+      for ( i = size; i < sizeof( ctx->recv_buf ); ++i ) {
+        T_eq_u8( (uint8_t) ctx->recv_buf[ i ], RECV_POISON );
+      }
+
+      content = ctx->recv_buf;
+    } else {
+      buffer = FindSentMessage( ctx );
+      T_quiet_assert_not_null( buffer );
+      T_eq_sz( buffer->size, size );
+      content = (const char *) &buffer->buffer[ 0 ];
+    }
+
+    T_eq_mem( content, ctx->msg, size );
+  }
+
+  static void SetFlags( Context *ctx, int oflag )
+  {
+    struct mq_attr attr;
+
+    memset( &attr, 0, sizeof( attr ) );
+    attr.mq_flags = oflag;
+    T_eq_int( mq_setattr( ctx->queue_id, &attr, NULL ), 0 );
+  }
+
+  static void SendFiller( Context *ctx )
+  {
+    char filler[ MSG_SIZE ];
+
+    memset( filler, FILLER_BYTE, sizeof( filler ) );
+    T_eq_int( mq_send( ctx->queue_id, filler, MSG_SIZE, PRIO_MID ), 0 );
+  }
+
+  static void ReceiveFiller( Context *ctx )
+  {
+    char         buf[ MSG_SIZE ];
+    unsigned int prio;
+    int          oflag;
+
+    oflag = ctx->queue->oflag;
+    SetFlags( ctx, O_RDWR );
+    T_eq_ssz( mq_receive( ctx->queue_id, buf, sizeof( buf ), &prio ), MSG_SIZE );
+    T_eq_u8( (uint8_t) buf[ 0 ], FILLER_BYTE );
+    SetFlags( ctx, oflag );
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      SuspendSelf();
+      errno = ERRNO_POISON;
+      ctx->status = mq_send( ctx->mqdes, ctx->msg, ctx->msg_len, ctx->msg_prio );
+      ctx->errno_value = errno;
+      ctx->done = true;
+    }
+  }
+
+  static void ReceiverTask( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+      ctx->receiver->is_waiting = true;
+      (void) mq_receive(
+        ctx->queue_id,
+        ctx->recv_buf,
+        sizeof( ctx->recv_buf ),
+        NULL
+      );
+
+      /* The sending call stores the priority in the waiting thread */
+      ctx->receiver->wait_count = GetExecuting()->Wait.count;
+      ctx->receiver->is_waiting = false;
+    }
+  }
+test-target: testsuites/validation/tc-posix-mq-send.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    DeleteTask( ctx->receiver_id );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          MsgPrio: TooHigh
+      then: MinusOne
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Access: ReadOnly
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Open: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          MsgLen: TooLong
+      then: MinusOne
+    - if:
+        pre-conditions:
+          NonBlock: 'Yes'
+          Queue: Full
+      then: MinusOne
+    - else: Zero
+    Errno:
+    - if:
+        post-conditions:
+          Status: Zero
+      then: Nop
+    - if:
+        pre-conditions:
+          MsgPrio: TooHigh
+      then: Inval
+    - if:
+        pre-conditions:
+          MqDes: Invalid
+      then: Badf
+    - if:
+        pre-conditions:
+          Access: ReadOnly
+      then: Badf
+    - if:
+        pre-conditions:
+          Open: 'No'
+      then: Badf
+    - if:
+        pre-conditions:
+          MsgLen: TooLong
+      then: MsgSize
+    - else: Again
+    Message:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Nop
+    - if:
+        pre-conditions:
+          Queue: Receiver
+      then: Receiver
+    - if:
+        pre-conditions:
+          Queue: Empty
+      then: Back
+    - if:
+        pre-conditions:
+          MsgPrio: High
+      then: Front
+    - else: Back
+    Priority:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: N/A
+    - specified-by: MsgPrio
+    Size:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: N/A
+    - specified-by: MsgLen
+  pre-conditions:
+    MsgPrio: all
+    MsgLen: all
+    MqDes: all
+    Queue:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    Access:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    NonBlock:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+    Open:
+      applicable:
+        pre-conditions:
+          MqDes: Valid
+type: requirement
