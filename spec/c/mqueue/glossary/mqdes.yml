@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/mqueue-h
+term: message queue descriptor
+text: |
+  An opaque descriptor representing an open POSIX message queue, used to
+  reference the queue in subsequent operations. See
+  ${/ref/std/posix-2024/mqueue-h:/name}.
+type: glossary

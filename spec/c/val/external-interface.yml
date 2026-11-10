@@ -117,11 +117,19 @@ links:
 - role: validation
   uid: /c/pthread/if/scope-system
 - role: validation
+  uid: /c/if/mode_t
+- role: validation
+  uid: /c/if/mq_attr
+- role: validation
+  uid: /c/if/mqd_t
+- role: validation
   uid: /c/if/sched_param
 - role: validation
   uid: /c/if/size_max
 - role: validation
   uid: /c/if/size_t
+- role: validation
+  uid: /c/if/ssize_t
 - role: validation
   uid: /c/if/time_t
 - role: validation
