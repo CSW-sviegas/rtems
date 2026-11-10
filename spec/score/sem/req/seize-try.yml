@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -47,7 +47,7 @@ pre-conditions:
       While the count of the semaphore is zero.
   - name: Positive
     test-code: |
-      ctx->count_before = 1;
+      ctx->count_before = 2;
     text: |
       While the count of the semaphore is greater than zero.
   test-epilogue: null
