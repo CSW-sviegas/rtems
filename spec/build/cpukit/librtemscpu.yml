@@ -28,6 +28,7 @@ includes: []
 install:
 - destination: ${BSP_INCLUDEDIR}
   source:
+  - cpukit/include/mqueue.h
   - cpukit/include/rtems.h
   - cpukit/contrib/include/sha224.h
   - cpukit/contrib/include/sha256.h
@@ -97,6 +98,8 @@ install:
   - cpukit/include/rtems/dev/io.h
 - destination: ${BSP_INCLUDEDIR}/rtems/posix
   source:
+  - cpukit/include/rtems/posix/mqueue.h
+  - cpukit/include/rtems/posix/mqueueimpl.h
   - cpukit/include/rtems/posix/posixapi.h
   - cpukit/include/rtems/posix/priorityimpl.h
   - cpukit/include/rtems/posix/pthread.h
@@ -259,6 +262,7 @@ install:
   - cpukit/include/rtems/score/watchdog.h
   - cpukit/include/rtems/score/watchdogimpl.h
   - cpukit/include/rtems/score/watchdogticks.h
+  - cpukit/include/rtems/score/wkspace.h
   - cpukit/include/rtems/score/wkspacedata.h
 - destination: ${BSP_INCLUDEDIR}/sys
   source:
@@ -347,6 +351,21 @@ source:
 - cpukit/libmisc/cpuuse/cpuusagereset.c
 - cpukit/posix/src/cancel.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/mqueue.c
+- cpukit/posix/src/mqueueclose.c
+- cpukit/posix/src/mqueueconfig.c
+- cpukit/posix/src/mqueuedeletesupp.c
+- cpukit/posix/src/mqueuegetattr.c
+- cpukit/posix/src/mqueueopen.c
+- cpukit/posix/src/mqueuereceive.c
+- cpukit/posix/src/mqueuerecvsupp.c
+- cpukit/posix/src/mqueuesend.c
+- cpukit/posix/src/mqueuesendsupp.c
+- cpukit/posix/src/mqueuesetattr.c
+- cpukit/posix/src/mqueuetimedreceive.c
+- cpukit/posix/src/mqueuetimedsend.c
+- cpukit/posix/src/mqueueunlink.c
+- cpukit/posix/src/psxnametoid.c
 - cpukit/posix/src/pthreadattrdefault.c
 - cpukit/posix/src/pthreadattrdestroy.c
 - cpukit/posix/src/pthreadattrgetdetachstate.c
@@ -510,6 +529,7 @@ source:
 - cpukit/score/src/coremsginsert.c
 - cpukit/score/src/coremsgseize.c
 - cpukit/score/src/coremsgsubmit.c
+- cpukit/score/src/coremsgwkspace.c
 - cpukit/score/src/coremutexseize.c
 - cpukit/score/src/coresem.c
 - cpukit/score/src/coretod.c
@@ -534,7 +554,9 @@ source:
 - cpukit/score/src/objectgetnameasstring.c
 - cpukit/score/src/objectgetnoprotection.c
 - cpukit/score/src/objectinitializeinformation.c
+- cpukit/score/src/objectnamespaceremove.c
 - cpukit/score/src/objectnametoid.c
+- cpukit/score/src/objectnametoidstring.c
 - cpukit/score/src/percpu.c
 - cpukit/score/src/percpuasm.c
 - cpukit/score/src/processormaskcopy.c

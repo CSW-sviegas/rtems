@@ -27,7 +27,6 @@ install:
   - cpukit/include/aio.h
   - cpukit/include/endian.h
   - cpukit/include/memory.h
-  - cpukit/include/mqueue.h
 - destination: ${BSP_INCLUDEDIR}/arpa
   source:
   - cpukit/contrib/include/arpa/ftp.h
@@ -173,8 +172,6 @@ install:
   - cpukit/include/rtems/posix/key.h
   - cpukit/include/rtems/posix/keyimpl.h
   - cpukit/include/rtems/posix/mmanimpl.h
-  - cpukit/include/rtems/posix/mqueue.h
-  - cpukit/include/rtems/posix/mqueueimpl.h
   - cpukit/include/rtems/posix/muteximpl.h
   - cpukit/include/rtems/posix/psignal.h
   - cpukit/include/rtems/posix/psignalimpl.h
@@ -229,7 +226,6 @@ install:
   - cpukit/include/rtems/score/schedulersimplesmp.h
   - cpukit/include/rtems/score/schedulerstrongapa.h
   - cpukit/include/rtems/score/threadmp.h
-  - cpukit/include/rtems/score/wkspace.h
   - cpukit/include/rtems/score/wkspaceinitone.h
 - destination: ${BSP_INCLUDEDIR}/rtems/trace
   source:
@@ -748,20 +744,6 @@ source:
 - cpukit/posix/src/mlockall.c
 - cpukit/posix/src/mmap.c
 - cpukit/posix/src/mprotect.c
-- cpukit/posix/src/mqueue.c
-- cpukit/posix/src/mqueueclose.c
-- cpukit/posix/src/mqueueconfig.c
-- cpukit/posix/src/mqueuedeletesupp.c
-- cpukit/posix/src/mqueuegetattr.c
-- cpukit/posix/src/mqueueopen.c
-- cpukit/posix/src/mqueuereceive.c
-- cpukit/posix/src/mqueuerecvsupp.c
-- cpukit/posix/src/mqueuesend.c
-- cpukit/posix/src/mqueuesendsupp.c
-- cpukit/posix/src/mqueuesetattr.c
-- cpukit/posix/src/mqueuetimedreceive.c
-- cpukit/posix/src/mqueuetimedsend.c
-- cpukit/posix/src/mqueueunlink.c
 - cpukit/posix/src/msync.c
 - cpukit/posix/src/munlock.c
 - cpukit/posix/src/munlockall.c
@@ -807,7 +789,6 @@ source:
 - cpukit/posix/src/pspininit.c
 - cpukit/posix/src/pspinlock.c
 - cpukit/posix/src/pspinunlock.c
-- cpukit/posix/src/psxnametoid.c
 - cpukit/posix/src/psxpriorityisvalid.c
 - cpukit/posix/src/psxsemaphore.c
 - cpukit/posix/src/psxsemaphoreconfig.c
@@ -955,7 +936,6 @@ source:
 - cpukit/score/src/configstackspacesize.c
 - cpukit/score/src/contrib/kern_ntptime.c
 - cpukit/score/src/coremsgflushwait.c
-- cpukit/score/src/coremsgwkspace.c
 - cpukit/score/src/corerwlock.c
 - cpukit/score/src/corerwlockobtainread.c
 - cpukit/score/src/corerwlockobtainwrite.c
@@ -996,8 +976,6 @@ source:
 - cpukit/score/src/objectgetinfoid.c
 - cpukit/score/src/objectgetnext.c
 - cpukit/score/src/objectidtoname.c
-- cpukit/score/src/objectnamespaceremove.c
-- cpukit/score/src/objectnametoidstring.c
 - cpukit/score/src/objectsetname.c
 - cpukit/score/src/objectshrinkinformation.c
 - cpukit/score/src/once.c
