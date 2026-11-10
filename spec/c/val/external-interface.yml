@@ -35,15 +35,29 @@ links:
 - role: validation
   uid: /c/errno/if/eagain
 - role: validation
+  uid: /c/errno/if/ebadf
+- role: validation
   uid: /c/errno/if/ebusy
 - role: validation
   uid: /c/errno/if/edeadlk
+- role: validation
+  uid: /c/errno/if/eexist
 - role: validation
   uid: /c/errno/if/efault
 - role: validation
   uid: /c/errno/if/einval
 - role: validation
+  uid: /c/errno/if/emsgsize
+- role: validation
+  uid: /c/errno/if/enametoolong
+- role: validation
+  uid: /c/errno/if/enfile
+- role: validation
+  uid: /c/errno/if/enoent
+- role: validation
   uid: /c/errno/if/enomem
+- role: validation
+  uid: /c/errno/if/enospc
 - role: validation
   uid: /c/errno/if/enotsup
 - role: validation
