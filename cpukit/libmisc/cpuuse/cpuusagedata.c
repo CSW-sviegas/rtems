@@ -39,6 +39,9 @@
 #include "config.h"
 #endif
 
+#include <sys/time.h>
+
 #include <rtems/cpuuseimpl.h>
 
-Timestamp_Control CPU_usage_Uptime_at_last_reset;
+/* The uptime of the timecounter starts at one second. */
+Timestamp_Control CPU_usage_Uptime_at_last_reset = SBT_1S;
