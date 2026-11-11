@@ -46,6 +46,14 @@
 #include <string.h>
 
 /**
+ * @defgroup RTEMSAPITracing Tracing
+ *
+ * @ingroup RTEMSAPI
+ *
+ * @brief This group contains the capture engine.
+ */
+
+/**
  *  @defgroup libmisc_capture RTEMS Capture Engine
  *
  *  @ingroup RTEMSAPITracing

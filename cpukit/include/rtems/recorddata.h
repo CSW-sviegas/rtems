@@ -3,14 +3,16 @@
 /**
  * @file
  *
- * @ingroup RTEMSImplRecord
+ * @ingroup RTEMSRecord
  *
- * @brief This header file provides the data definitions of the event
- *   recording.
+ * @brief This header file provides the data types of the event recording.
+ *
+ * The header file includes no header file of RTEMS, so that host programs can
+ * use it.
  */
 
 /*
- * Copyright (C) 2018, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,9 +37,11 @@
  */
 
 /*
- * This file must be compatible to general purpose POSIX system, e.g. Linux,
- * FreeBSD.  It may be used for utility programs.
+ * The spec:/... comments allow you to identify content which is
+ * duplicated in the rtems and rtems-docs repositories.
  */
+
+/* Find related documentation with spec:/rtems/record/if/header-data */
 
 #ifndef _RTEMS_RECORDDATA_H
 #define _RTEMS_RECORDDATA_H
@@ -46,63 +50,39 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif /* __cplusplus */
+#endif
 
-/**
- * @defgroup RTEMSAPITracing Tracing
- *
- * @ingroup RTEMSAPI
- *
- * @brief This group contains the event recording and the capture engine.
- */
+/* Find related documentation with spec:/rtems/record/if/group */
 
 /**
  * @defgroup RTEMSRecord Event Recording
  *
- * @ingroup RTEMSAPITracing
+ * @ingroup RTEMSAPI
  *
- * @brief Low-level event recording support.
+ * @brief This group contains the event recording API.
+ */
+
+/* Find related documentation with spec:/rtems/record/if/data */
+
+/**
+ * @ingroup RTEMSRecord
  *
- * @{
- */
-
-/**
- * @brief The record version.
+ * @brief This integer type holds the data of a record item.
  *
- * The record version reflects the record event definitions.  It is reported by
- * the RTEMS_RECORD_VERSION event.
+ * The type can hold a 32-bit integer and a pointer.
  */
-#define RTEMS_RECORD_THE_VERSION 10
+typedef unsigned long rtems_record_data;
+
+/* Find related documentation with spec:/rtems/record/if/event */
 
 /**
- * @brief The items are in 32-bit little-endian format.
- */
-#define RTEMS_RECORD_FORMAT_LE_32 0x11111111
-
-/**
- * @brief The items are in 64-bit little-endian format.
- */
-#define RTEMS_RECORD_FORMAT_LE_64 0x22222222
-
-/**
- * @brief The items are in 32-bit big-endian format.
- */
-#define RTEMS_RECORD_FORMAT_BE_32 0x33333333
-
-/**
- * @brief The items are in 64-bit big-endian format.
- */
-#define RTEMS_RECORD_FORMAT_BE_64 0x44444444
-
-/**
- * @brief Magic number to identify a record item stream.
+ * @ingroup RTEMSRecord
  *
- * This is a random number.
- */
-#define RTEMS_RECORD_MAGIC 0x82e14ec1
-
-/**
- * @brief The record events.
+ * @brief This enumeration defines the record events.
+ *
+ * The system owns the events from ::RTEMS_RECORD_EMPTY up to and including
+ * ::RTEMS_RECORD_SYSTEM_511. The application owns the events from
+ * ::RTEMS_RECORD_USER_0 up to and including ::RTEMS_RECORD_USER_511.
  */
 typedef enum {
   /*
@@ -1152,87 +1132,237 @@ typedef enum {
   RTEMS_RECORD_USER_511
 } rtems_record_event;
 
-/**
- * @brief This constant represents the last system event number which may have
- *   no time stamp.
- */
-#define RTEMS_RECORD_NO_TIME_LAST RTEMS_RECORD_VERSION_CONTROL_KEY
-
-#define RTEMS_RECORD_LAST RTEMS_RECORD_USER_511
-
-#define RTEMS_RECORD_USER( index ) ( RTEMS_RECORD_USER_0 + ( index ) )
+/* Find related documentation with spec:/rtems/record/if/event-bits */
 
 /**
- * @brief Bits in the record item event member reserved for the actual event.
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant defines the count of bits of a time event which hold
+ *   the event.
  */
 #define RTEMS_RECORD_EVENT_BITS 10
 
-/**
- * @brief Bits in the record item event member reserved for the time of the
- * event.
- */
-#define RTEMS_RECORD_TIME_BITS 22
+/* Find related documentation with spec:/rtems/record/if/event-text */
 
 /**
- * @brief Builds a time event for the specified time stamp and event.
+ * @ingroup RTEMSRecord
  *
- * The events are stored in the record item with a time stamp.  There are 22
- * bits allocated to the time stamp and 10 bits allocated to the event.  The 22
- * bits are enough to get reliable time stamps on a system with a 4GHz CPU
- * counter and a 1000Hz clock tick.
+ * @brief Gets the text of the event.
+ *
+ * @param[in] event is the event.
+ *
+ * @return Returns the name of the event specified by `event` without the
+ *   `RTEMS_RECORD_` prefix.
  */
-#define RTEMS_RECORD_TIME_EVENT( time, event ) \
-  ( ( ( time ) << RTEMS_RECORD_EVENT_BITS ) | ( event ) )
+const char *rtems_record_event_text( rtems_record_event event );
+
+/* Find related documentation with spec:/rtems/record/if/format-be-32 */
 
 /**
- * @brief Gets the time of a time event.
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant indicates that the record items are in the 32-bit
+ *   big-endian format.
  */
-#define RTEMS_RECORD_GET_TIME( time_event ) \
-  ( ( time_event ) >> RTEMS_RECORD_EVENT_BITS )
+#define RTEMS_RECORD_FORMAT_BE_32 0x33333333
+
+/* Find related documentation with spec:/rtems/record/if/format-be-64 */
 
 /**
- * @brief Gets the event of a time event.
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant indicates that the record items are in the 64-bit
+ *   big-endian format.
+ */
+#define RTEMS_RECORD_FORMAT_BE_64 0x44444444
+
+/* Find related documentation with spec:/rtems/record/if/format-le-32 */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant indicates that the record items are in the 32-bit
+ *   little-endian format.
+ */
+#define RTEMS_RECORD_FORMAT_LE_32 0x11111111
+
+/* Find related documentation with spec:/rtems/record/if/format-le-64 */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant indicates that the record items are in the 64-bit
+ *   little-endian format.
+ */
+#define RTEMS_RECORD_FORMAT_LE_64 0x22222222
+
+/* Find related documentation with spec:/rtems/record/if/get-event */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief Gets the event of the time event.
+ *
+ * @param[in] time_event is the time event.
+ *
+ * @return Returns the event of the time event specified by `time_event`.
  */
 #define RTEMS_RECORD_GET_EVENT( time_event ) \
   ( ( time_event ) & ( ( 1U << RTEMS_RECORD_EVENT_BITS ) - 1U ) )
 
-/**
- * @brief The record data integer type.
- *
- * It is big enough to store 32-bit integers and pointers.
- */
-typedef unsigned long rtems_record_data;
+/* Find related documentation with spec:/rtems/record/if/get-time */
 
 /**
- * @brief The native record item.
+ * @ingroup RTEMSRecord
+ *
+ * @brief Gets the time stamp of the time event.
+ *
+ * @param[in] time_event is the time event.
+ *
+ * @return Returns the time stamp of the time event specified by `time_event`.
+ */
+#define RTEMS_RECORD_GET_TIME( time_event ) \
+  ( ( time_event ) >> RTEMS_RECORD_EVENT_BITS )
+
+/* Find related documentation with spec:/rtems/record/if/item */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This structure represents a record item in the native format.
+ *
+ * The event member contains the time event. The data member contains the event
+ * data.
+ *
+ * @par Notes
+ * The structure is packed.
  */
 typedef struct __attribute__(( __packed__ )) {
   uint32_t          event;
   rtems_record_data data;
 } rtems_record_item;
 
+/* Find related documentation with spec:/rtems/record/if/item-32 */
+
 /**
- * @brief The 32-bit format record item.
+ * @ingroup RTEMSRecord
+ *
+ * @brief This structure represents a record item in the 32-bit format.
  */
 typedef struct {
+  /**
+   * @brief This member contains the time event.
+   */
   uint32_t event;
+
+  /**
+   * @brief This member contains the event data.
+   */
   uint32_t data;
 } rtems_record_item_32;
 
+/* Find related documentation with spec:/rtems/record/if/item-64 */
+
 /**
- * @brief The 64-bit format record item.
+ * @ingroup RTEMSRecord
+ *
+ * @brief This structure represents a record item in the 64-bit format.
+ *
+ * The event member contains the time event. The data member contains the event
+ * data.
+ *
+ * @par Notes
+ * The structure is packed.
  */
 typedef struct __attribute__(( __packed__ )) {
   uint32_t event;
   uint64_t data;
 } rtems_record_item_64;
 
-const char *rtems_record_event_text( rtems_record_event event );
+/* Find related documentation with spec:/rtems/record/if/last */
 
-/** @} */
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant defines the last record event.
+ */
+#define RTEMS_RECORD_LAST RTEMS_RECORD_USER_511
+
+/* Find related documentation with spec:/rtems/record/if/magic */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant identifies a record item stream.
+ */
+#define RTEMS_RECORD_MAGIC 0x82e14ec1
+
+/* Find related documentation with spec:/rtems/record/if/no-time-last */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant defines the last system event which may have no time
+ *   stamp.
+ */
+#define RTEMS_RECORD_NO_TIME_LAST RTEMS_RECORD_VERSION_CONTROL_KEY
+
+/* Find related documentation with spec:/rtems/record/if/the-version */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant defines the version of the record event definitions.
+ *
+ * The ::RTEMS_RECORD_VERSION event reports the version.
+ */
+#define RTEMS_RECORD_THE_VERSION 10
+
+/* Find related documentation with spec:/rtems/record/if/time-bits */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief This constant defines the count of bits of a time event which hold
+ *   the time stamp.
+ */
+#define RTEMS_RECORD_TIME_BITS 22
+
+/* Find related documentation with spec:/rtems/record/if/time-event */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief Builds the time event of the time stamp and the event.
+ *
+ * @param[in] time is the time stamp.
+ *
+ * @param[in] event is the event.
+ *
+ * A time event holds the time stamp in the upper #RTEMS_RECORD_TIME_BITS bits
+ * and the event in the lower #RTEMS_RECORD_EVENT_BITS bits.
+ *
+ * @return Returns the time event of the time stamp specified by `time` and the
+ *   event specified by `event`.
+ */
+#define RTEMS_RECORD_TIME_EVENT( time, event ) \
+  ( ( ( time ) << RTEMS_RECORD_EVENT_BITS ) | ( event ) )
+
+/* Find related documentation with spec:/rtems/record/if/user */
+
+/**
+ * @ingroup RTEMSRecord
+ *
+ * @brief Gets the user event of the index.
+ *
+ * @param[in] index is the index of the user event.
+ *
+ * @return Returns the user event with the index specified by `index`.
+ */
+#define RTEMS_RECORD_USER( index ) ( RTEMS_RECORD_USER_0 + ( index ) )
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif
 
 #endif /* _RTEMS_RECORDDATA_H */
