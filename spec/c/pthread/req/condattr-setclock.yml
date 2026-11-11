@@ -1,0 +1,268 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/condattr-setclock
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-condattr-getclock
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/condattr-setclock:/name} shall be
+      zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/condattr-setclock:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      T_eq_ulong( ctx->attr_obj.clock, CLOCK_REALTIME );
+    text: |
+      The ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-setclock:/params[0]/name} parameter shall be
+      ${../../time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      T_eq_ulong( ctx->attr_obj.clock, CLOCK_MONOTONIC );
+    text: |
+      The ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-setclock:/params[0]/name} parameter shall be
+      ${../../time/if/clock-monotonic:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_ulong( ctx->attr_obj.clock, ctx->attr_before.clock );
+    text: |
+      The ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-setclock:/params[0]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: Nop
+    test-code: |
+      pthread_condattr_t expected;
+
+      memcpy( &expected, &ctx->attr_before, sizeof( expected ) );
+      expected.clock = ctx->attr_obj.clock;
+      T_eq_mem( &ctx->attr_obj, &expected, sizeof( expected ) );
+    text: |
+      The content of the ${../glossary/condition-variable:/term} attributes object
+      referenced by the ${../if/condattr-setclock:/params[0]/name} parameter, other
+      than its ${../glossary/cond-clock:/term}, shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+    text: |
+      While the ${../if/condattr-setclock:/params[0]/name} parameter references an
+      object of type ${/c/if/pthread_condattr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/condattr-setclock:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eno_success( pthread_condattr_init( &ctx->attr_obj ) );
+      ctx->attr_obj.clock = CLOCK_POISON;
+    text: |
+      While the object referenced by the ${../if/condattr-setclock:/params[0]/name}
+      parameter is an initialized ${../glossary/condition-variable:/term} attributes
+      object.
+  - name: 'No'
+    test-code: |
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.is_initialized = 0;
+      ctx->attr_obj.clock = CLOCK_POISON;
+    text: |
+      While the object referenced by the ${../if/condattr-setclock:/params[0]/name}
+      parameter is not an initialized ${../glossary/condition-variable:/term}
+      attributes object.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      ctx->clock = CLOCK_REALTIME;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      ctx->clock = CLOCK_MONOTONIC;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-monotonic:/name}.
+  - name: ProcessCpuTime
+    test-code: |
+      ctx->clock = CLOCK_PROCESS_CPUTIME_ID;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-process-cputime-id:/name}.
+  - name: ThreadCpuTime
+    test-code: |
+      ctx->clock = CLOCK_THREAD_CPUTIME_ID;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is equal to
+      ${../../time/if/clock-thread-cputime-id:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->clock = CLOCK_INVALID;
+    text: |
+      While the ${../if/condattr-setclock:/params[1]/name} parameter is neither
+      ${../../time/if/clock-realtime:/name}, nor
+      ${../../time/if/clock-monotonic:/name}, nor
+      ${../../time/if/clock-process-cputime-id:/name}, nor
+      ${../../time/if/clock-thread-cputime-id:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-condattr-getclock:/name} specifies that
+  ${../if/condattr-setclock:/name} sets the ${../glossary/cond-clock:/term} of
+  the attributes object. RTEMS accepts ${../../time/if/clock-realtime:/name} and
+  ${../../time/if/clock-monotonic:/name}, which gives post-condition Clock.
+
+  The standard requires that the call fails where the
+  ${../if/condattr-setclock:/params[1]/name} parameter refers to a CPU-time
+  clock. It permits ${/c/errno/if/einval:/name} for this case and where the
+  parameter does not refer to a known clock. RTEMS returns
+  ${/c/errno/if/einval:/name} for
+  ${../../time/if/clock-process-cputime-id:/name},
+  ${../../time/if/clock-thread-cputime-id:/name} and each other value, which
+  gives the states ProcessCpuTime, ThreadCpuTime and Invalid of pre-condition
+  Clock. The further clock identifiers of the C library, which the standard does
+  not define, give ${/c/errno/if/einval:/name} as well. State Invalid uses a
+  value which identifies no clock.
+
+  The standard leaves the behaviour undefined where the
+  ${../if/condattr-setclock:/params[0]/name} parameter references no initialized
+  ${../glossary/condition-variable:/term} attributes object.
+  ${../if/condattr-setclock:/name} does not check whether the object is
+  initialized. State No of pre-condition Initialized specifies the behaviour of
+  RTEMS which sets the ${../glossary/cond-clock:/term} of the object in this case
+  as well. The standard does not define the behaviour where the
+  ${../if/condattr-setclock:/params[0]/name} parameter is ${/c/if/null:/name}.
+  State Null of pre-condition Attr specifies the behaviour of RTEMS which returns
+  ${/c/errno/if/einval:/name}.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->attr_before, &ctx->attr_obj, sizeof( ctx->attr_before ) );
+  ctx->status = pthread_condattr_setclock( ctx->attr, ctx->clock );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/condattr-setclock:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_condattr_t *attr
+- brief: |
+    This member specifies the ${../if/condattr-setclock:/params[1]/name} parameter
+    value.
+  description: null
+  member: clockid_t clock
+- brief: |
+    This member contains the return value of the ${../if/condattr-setclock:/name}
+    call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/condition-variable:/term} attributes
+    object.
+  description: null
+  member: pthread_condattr_t attr_obj
+- brief: |
+    This member contains a copy of the ${../glossary/condition-variable:/term}
+    attributes object before the call.
+  description: null
+  member: pthread_condattr_t attr_before
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+- time.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  #define CLOCK_POISON 123
+
+  #define CLOCK_INVALID ( (clockid_t) 0x7fffffff )
+test-target: testsuites/validation/tc-pthread-condattr-setclock.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Clock:
+          - ProcessCpuTime
+          - ThreadCpuTime
+          - Invalid
+      then: Inval
+    - else: Ok
+    Clock:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Clock
+    - else: Nop
+    Other:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Attr: all
+    Initialized:
+      applicable:
+        pre-conditions:
+          Attr: Obj
+    Clock: all
+type: requirement

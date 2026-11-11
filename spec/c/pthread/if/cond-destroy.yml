@@ -1,0 +1,72 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Destroy the ${../glossary/condition-variable:/term} referenced by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_cond_t:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    A ${../glossary/thread:/term} is blocked on the
+    ${../glossary/condition-variable:/term} referenced by the ${.:/params[0]/name}
+    parameter.
+  role: errno
+  uid: /c/errno/if/ebusy
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The object referenced by the ${.:/params[0]/name} parameter is neither an
+    initialized ${../glossary/condition-variable:/term} nor filled with zero bytes.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/pthread-cond-destroy
+name: pthread_cond_destroy
+notes: |
+  See ${/ref/std/posix-2024/pthread-cond-destroy:/name}.
+
+  An object filled with zero bytes, such as one initialized by the static
+  initializer of the standard, is initialized by the call with the default
+  attributes and then destroyed.
+params:
+- description: |
+    is the pointer to the ${../glossary/condition-variable:/term} to destroy.
+  dir: inout
+  name: cond
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      A ${../glossary/thread:/term} was blocked on the
+      ${../glossary/condition-variable:/term} referenced by the ${.:/params[0]/name}
+      parameter.
+    value: ${/c/errno/if/ebusy:/name}
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The object referenced by the ${.:/params[0]/name} parameter was neither an
+      initialized ${../glossary/condition-variable:/term} nor filled with zero bytes.
+    value: ${/c/errno/if/einval:/name}
+type: interface

@@ -1,0 +1,1265 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/cond-timedwait
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-cond-clockwait
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-timedwait:/name} shall be
+      zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-timedwait:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  - name: Perm
+    test-code: |
+      T_eq_int( ctx->status, EPERM );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-timedwait:/name} shall be
+      ${/c/errno/if/eperm:/name}.
+  - name: TimedOut
+    test-code: |
+      T_eq_int( ctx->status, ETIMEDOUT );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-timedwait:/name} shall be
+      ${/c/errno/if/etimedout:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Init
+  states:
+  - name: Default
+    test-code: |
+      T_eq_ulong( ctx->cond_obj._flags, COND_FLAGS_REALTIME( &ctx->cond_obj ) );
+    text: |
+      The object referenced by the ${../if/cond-timedwait:/params[0]/name} parameter
+      shall be a ${../glossary/condition-variable:/term} initialized with the
+      ${../glossary/cond-clock:/term} ${/c/time/if/clock-realtime:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_ulong( ctx->cond_obj._flags, ctx->cond_before._flags );
+    text: |
+      The initialization state and the ${../glossary/cond-clock:/term} of the object
+      referenced by the ${../if/cond-timedwait:/params[0]/name} parameter shall not
+      be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Binding
+  states:
+  - name: Mutex
+    test-code: |
+      T_eq_ptr( ctx->cond_obj._mutex, &ctx->mutex_obj );
+    text: |
+      The ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter shall be bound to the mutex
+      referenced by the ${../if/cond-timedwait:/params[1]/name} parameter.
+  - name: None
+    test-code: |
+      T_null( ctx->cond_obj._mutex );
+    text: |
+      The ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter shall be bound to no mutex.
+  - name: Nop
+    test-code: |
+      T_eq_ptr( ctx->cond_obj._mutex, ctx->cond_before._mutex );
+    text: |
+      The binding of the object referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter to a mutex shall not be
+      modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Caller
+    test-code: |
+      T_eq_ptr( ctx->mutex_obj._Recursive._Mutex._Queue._owner, ctx->runner );
+    text: |
+      The mutex referenced by the ${../if/cond-timedwait:/params[1]/name} parameter
+      shall be owned by the calling thread.
+  - name: Other
+    test-code: |
+      T_eq_ptr( ctx->mutex_obj._Recursive._Mutex._Queue._owner, ctx->owner );
+    text: |
+      The mutex referenced by the ${../if/cond-timedwait:/params[1]/name} parameter
+      shall be owned by the thread other than the calling thread which owned it
+      before the call.
+  - name: Nobody
+    test-code: |
+      T_null( ctx->mutex_obj._Recursive._Mutex._Queue._owner );
+    text: |
+      The mutex referenced by the ${../if/cond-timedwait:/params[1]/name} parameter
+      shall not be owned by any thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Blocking
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_true( ctx->blocked );
+    text: |
+      The calling thread shall block on the ${../glossary/condition-variable:/term}
+      until the condition variable is signaled or broadcast, or until the timeout of
+      the wait for the time point referenced by the
+      ${../if/cond-timedwait:/params[2]/name} parameter expires.
+  - name: 'No'
+    test-code: |
+      T_false( ctx->blocked );
+    text: |
+      The calling thread shall not block on the
+      ${../glossary/condition-variable:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      T_eq_ptr(
+        ctx->timer_header,
+        &_Per_CPU_Get_by_index( 0 )->Watchdog.Header[ PER_CPU_WATCHDOG_REALTIME ]
+      );
+    text: |
+      The time point referenced by the ${../if/cond-timedwait:/params[2]/name}
+      parameter shall be measured against ${/c/time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      T_eq_ptr(
+        ctx->timer_header,
+        &_Per_CPU_Get_by_index( 0 )->Watchdog.Header[ PER_CPU_WATCHDOG_MONOTONIC ]
+      );
+    text: |
+      The time point referenced by the ${../if/cond-timedwait:/params[2]/name}
+      parameter shall be measured against ${/c/time/if/clock-monotonic:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Cond
+  states:
+  - name: Obj
+    test-code: |
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-timedwait:/params[0]/name} parameter references an
+      object of type ${/c/if/pthread_cond_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->cond = NULL;
+    text: |
+      While the ${../if/cond-timedwait:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: CondInit
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->cond_init = COND_INIT_YES;
+    text: |
+      While the object referenced by the ${../if/cond-timedwait:/params[0]/name}
+      parameter is an initialized ${../glossary/condition-variable:/term}.
+  - name: Zeroed
+    test-code: |
+      ctx->cond_init = COND_INIT_ZEROED;
+    text: |
+      While the object referenced by the ${../if/cond-timedwait:/params[0]/name}
+      parameter is filled with zero bytes.
+  - name: 'No'
+    test-code: |
+      ctx->cond_init = COND_INIT_NO;
+    text: |
+      While the object referenced by the ${../if/cond-timedwait:/params[0]/name}
+      parameter is neither an initialized ${../glossary/condition-variable:/term} nor
+      filled with zero bytes.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      ctx->clock = CLOCK_REALTIME;
+    text: |
+      While the ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter is
+      ${/c/time/if/clock-realtime:/name}.
+  - name: Monotonic
+    test-code: |
+      ctx->clock = CLOCK_MONOTONIC;
+    text: |
+      While the ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter is
+      ${/c/time/if/clock-monotonic:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Binding
+  states:
+  - name: None
+    test-code: |
+      ctx->binding = NULL;
+    text: |
+      While the ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter is bound to no mutex.
+  - name: Same
+    test-code: |
+      ctx->binding = &ctx->mutex_obj;
+    text: |
+      While the ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter is bound to the mutex
+      referenced by the ${../if/cond-timedwait:/params[1]/name} parameter.
+  - name: Other
+    test-code: |
+      ctx->binding = &ctx->other_mutex_obj;
+    text: |
+      While the ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-timedwait:/params[0]/name} parameter is bound to a mutex other
+      than the one referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Mutex
+  states:
+  - name: Obj
+    test-code: |
+      ctx->mutex = &ctx->mutex_obj;
+    text: |
+      While the ${../if/cond-timedwait:/params[1]/name} parameter references an
+      object of type ${/c/if/pthread_mutex_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->mutex = NULL;
+    text: |
+      While the ${../if/cond-timedwait:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MutexInit
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->mutex_init = true;
+    text: |
+      While the object referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is an initialized mutex.
+  - name: 'No'
+    test-code: |
+      ctx->mutex_init = false;
+    text: |
+      While the object referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is neither an initialized mutex nor filled with zero bytes.
+  test-epilogue: null
+  test-prologue: null
+- name: MutexOwner
+  states:
+  - name: Caller
+    test-code: |
+      ctx->mutex_owner = MUTEX_OWNER_CALLER;
+    text: |
+      While the mutex referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is owned by the calling thread.
+  - name: Other
+    test-code: |
+      ctx->mutex_owner = MUTEX_OWNER_OTHER;
+    text: |
+      While the mutex referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is owned by a thread other than the calling thread.
+  - name: Nobody
+    test-code: |
+      ctx->mutex_owner = MUTEX_OWNER_NOBODY;
+    text: |
+      While the mutex referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is not owned by any thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Abstime
+  states:
+  - name: Obj
+    test-code: |
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references an
+      object of type ${/c/if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->abstime = NULL;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Time
+  states:
+  - name: Future
+    test-code: |
+      ctx->abstime_obj.tv_sec = FAR_FUTURE;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references a time
+      point in the future.
+  - name: Past
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references a time
+      point in the past with a seconds value of zero or more and a nanoseconds value
+      of zero or more and less than one billion.
+  - name: NegSec
+    test-code: |
+      ctx->abstime_obj.tv_sec = -1;
+      ctx->abstime_obj.tv_nsec = 0;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references a time
+      point with a negative seconds value and a nanoseconds value of zero or more and
+      less than one billion.
+  - name: NegNsec
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = -1;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references a time
+      point with a negative nanoseconds value.
+  - name: BigNsec
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 1000000000;
+    text: |
+      While the ${../if/cond-timedwait:/params[2]/name} parameter references a time
+      point with a nanoseconds value greater than or equal to one billion.
+  test-epilogue: null
+  test-prologue: null
+- name: Wake
+  states:
+  - name: Broadcast
+    test-code: |
+      ctx->wake = WAKE_BROADCAST;
+    text: |
+      While the ${../glossary/condition-variable:/term} is broadcast after the
+      calling thread blocked on it and before the timeout of the wait for the time
+      point referenced by the ${../if/cond-timedwait:/params[2]/name} parameter
+      expires.
+  - name: Timeout
+    test-code: |
+      ctx->wake = WAKE_TIMEOUT;
+    text: |
+      While the timeout of the wait for the time point referenced by the
+      ${../if/cond-timedwait:/params[2]/name} parameter expires after the calling
+      thread blocked on the ${../glossary/condition-variable:/term} and before the
+      condition variable is broadcast.
+  - name: MutexDestroyed
+    test-code: |
+      ctx->wake = WAKE_MUTEX_DESTROYED;
+    text: |
+      While the mutex referenced by the ${../if/cond-timedwait:/params[1]/name}
+      parameter is destroyed and then the ${../glossary/condition-variable:/term} is
+      broadcast after the calling thread blocked on the condition variable and before
+      the time point referenced by the ${../if/cond-timedwait:/params[2]/name}
+      parameter is reached.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-cond-clockwait:/name} specifies
+  ${../if/cond-timedwait:/name}.
+
+  Pre-condition Abstime comes from the first check of the call. A
+  ${/c/if/null:/name} ${../if/cond-timedwait:/params[2]/name} parameter gives
+  ${/c/errno/if/einval:/name} before the call reads the
+  ${../glossary/condition-variable:/term}. The standard does not define this
+  case. The state specifies the behaviour of RTEMS.
+
+  Pre-conditions Cond and CondInit come from the validation of the condition
+  variable. A ${/c/if/null:/name} pointer and an object which is neither
+  initialized nor filled with zero bytes give ${/c/errno/if/einval:/name}. The
+  call initializes an object filled with zero bytes with the default attributes,
+  which post-condition Init specifies. The standard leaves the behaviour
+  undefined where the object is not an initialized condition variable and
+  recommends ${/c/errno/if/einval:/name}. The states specify the behaviour of
+  RTEMS which follows that recommendation.
+
+  Pre-condition Clock comes from the ${../glossary/cond-clock:/term} which the
+  call reads from the condition variable. The standard demands that this clock
+  measures the time point. Post-condition Clock specifies the clock of the
+  timeout. An object filled with zero bytes gets the default clock
+  ${/c/time/if/clock-realtime:/name}.
+
+  Pre-condition Binding comes from the mutex to which the condition variable is
+  bound. The call binds the condition variable to the mutex referenced by the
+  ${../if/cond-timedwait:/params[1]/name} parameter before it checks the time
+  point and releases the mutex, which post-condition Binding specifies. Where a
+  broadcast ends the wait, the broadcast removes the binding. The item of
+  ${../if/cond-broadcast:/name} covers this, so post-condition Binding is not
+  applicable there. A call of ${../if/cond-signal:/name} or
+  ${../if/cond-broadcast:/name} which finds no waiting thread and a call of
+  ${../if/cond-init:/name} remove the binding. The source reads the binding, not
+  whether a thread waits, so the states describe the binding. The standard leaves
+  a wait with a different mutex undefined while a thread waits on the condition
+  variable. State Other specifies the behaviour of RTEMS which returns
+  ${/c/errno/if/einval:/name}. The standard requires that the next wait forms a
+  new binding once all waiting threads were unblocked. RTEMS keeps the binding
+  after a timeout, after an error, and after ${../if/cond-signal:/name} unblocks
+  the last waiting thread. A later wait with another mutex then returns
+  ${/c/errno/if/einval:/name}. This deviates from the standard.
+
+  Pre-condition Time comes from the check of the time point when the call blocks
+  the calling thread. A nanoseconds value out of range gives
+  ${/c/errno/if/einval:/name}, which the standard demands. A time point in the
+  past, which includes a negative seconds value, gives
+  ${/c/errno/if/etimedout:/name}. The standard demands that error checks other
+  than ${/c/errno/if/etimedout:/name} return before the call modifies the mutex
+  or the condition variable. RTEMS checks the time point after it bound the
+  condition variable to the mutex and released the mutex. It then reacquires the
+  mutex before it returns ${/c/errno/if/einval:/name}. This deviates from the
+  standard. State Future uses a fixed time point beyond the range of the
+  watchdog, so the timeout gets the maximum expiration time and the test needs no
+  reading of a clock.
+
+  Pre-conditions Mutex, MutexInit and MutexOwner come from the release of the
+  mutex. The call releases the mutex before it checks the time point. Where the
+  release fails, the call returns ${/c/errno/if/eperm:/name} without a
+  reacquisition of the mutex for every time point. The item uses mutexes with the
+  default attributes. The standard demands ${/c/errno/if/eperm:/name} only for
+  error checking and robust mutexes. For other mutexes it leaves the behaviour
+  undefined where the calling thread does not own the mutex, and where the
+  ${../if/cond-timedwait:/params[1]/name} parameter references no initialized
+  mutex. The states specify the behaviour of RTEMS. For a mutex which is not
+  initialized the standard recommends ${/c/errno/if/einval:/name}. RTEMS returns
+  ${/c/errno/if/eperm:/name}, which does not follow that recommendation. RTEMS
+  handles an error checking mutex like a mutex with the default attributes. The
+  item does not cover error checking mutexes. For them the standard demands that
+  the error return happens before the call modifies the mutex or the condition
+  variable. RTEMS binds the condition variable to the mutex before it detects the
+  error. This deviates from the standard.
+
+  Pre-condition Wake covers the end of the wait. Post-condition Blocking checks
+  that the call returns only after the condition variable was broadcast or the
+  timeout expired. The timeout expires when the clock reaches the time point. The
+  test ends the wait through the expiration of the timeout of the calling thread
+  without a change of the clocks, so the clocks do not reach the time point. The
+  call reacquires the mutex after the wait. Where this fails, the call returns
+  ${/c/errno/if/einval:/name}. The standard leaves the destruction of a mutex
+  which a thread uses in a condition wait undefined. State MutexDestroyed
+  specifies the behaviour of RTEMS.
+
+  RTEMS provides no robust mutexes, so the call returns none of the three errors
+  which the standard names for robust mutexes. The standard permits that a thread
+  which a signal interrupts resumes the wait as if it was not interrupted. A
+  POSIX signal does not end the wait in RTEMS. POSIX signals are available only
+  if RTEMS is built with the option RTEMS_POSIX_API enabled. The standard makes
+  the call a ${../glossary/cancellation-point:/term}. RTEMS implements no
+  ${../glossary/cancellation-point:/term}, which deviates from the standard. The
+  item does not cover signals, thread cancellation, recursive mutexes, and mutex
+  protocols. The order in which waiting threads are unblocked belongs to the
+  items of ${../if/cond-signal:/name} and ${../if/cond-broadcast:/name}.
+requirement-type: functional
+skip-reasons:
+  NullMutexSame: |
+    A ${/c/if/null:/name} ${../if/cond-timedwait:/params[1]/name} parameter
+    references no mutex, so the ${../glossary/condition-variable:/term} cannot be
+    bound to it.
+test-action: |
+  PrepareCond( ctx );
+  PrepareMutex( ctx );
+  ctx->waker_id = CreateTask( "WAKE", PRIO_LOW );
+  SetAffinityOne( ctx->waker_id, 0 );
+  StartTask( ctx->waker_id, Waker, ctx );
+  memcpy( &ctx->cond_before, &ctx->cond_obj, sizeof( ctx->cond_before ) );
+  ctx->status = pthread_cond_timedwait( ctx->cond, ctx->mutex, ctx->abstime );
+  ctx->blocked = ctx->woken;
+test-brief: null
+test-cleanup: |
+  DeleteTask( ctx->waker_id );
+
+  if ( ctx->owner_locked ) {
+    SendEvents( ctx->owner_id, EVENT_UNLOCK );
+  }
+
+  (void) pthread_mutex_unlock( &ctx->mutex_obj );
+  (void) pthread_mutex_destroy( &ctx->mutex_obj );
+  (void) pthread_cond_destroy( &ctx->cond_obj );
+test-context:
+- brief: |
+    This member specifies the ${../if/cond-timedwait:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    pthread_cond_t *cond
+- brief: |
+    This member specifies the ${../if/cond-timedwait:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    pthread_mutex_t *mutex
+- brief: |
+    This member specifies the ${../if/cond-timedwait:/params[2]/name} parameter
+    value.
+  description: null
+  member: |
+    const struct timespec *abstime
+- brief: |
+    This member contains the return value of the ${../if/cond-timedwait:/name}
+    call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member provides the condition variable object.
+  description: null
+  member: |
+    pthread_cond_t cond_obj
+- brief: |
+    This member contains a copy of the condition variable object before the call.
+  description: null
+  member: |
+    pthread_cond_t cond_before
+- brief: |
+    This member provides the mutex object.
+  description: null
+  member: |
+    pthread_mutex_t mutex_obj
+- brief: |
+    This member provides the object of the mutex other than the one referenced by
+    the ${../if/cond-timedwait:/params[1]/name} parameter.
+  description: null
+  member: |
+    pthread_mutex_t other_mutex_obj
+- brief: |
+    This member provides the time point object.
+  description: null
+  member: |
+    struct timespec abstime_obj
+- brief: |
+    This member specifies the initialization state of the condition variable
+    object.
+  description: null
+  member: |
+    CondInit cond_init
+- brief: |
+    This member specifies the clock attribute of the condition variable.
+  description: null
+  member: |
+    clockid_t clock
+- brief: |
+    This member specifies the mutex to which the condition variable is bound.
+  description: null
+  member: |
+    pthread_mutex_t *binding
+- brief: |
+    This member is true, if the mutex object is initialized.
+  description: null
+  member: |
+    bool mutex_init
+- brief: |
+    This member specifies the owner of the mutex.
+  description: null
+  member: |
+    MutexOwner mutex_owner
+- brief: |
+    This member specifies how the wait ends.
+  description: null
+  member: |
+    Wake wake
+- brief: |
+    This member references the TCB of the runner task.
+  description: null
+  member: |
+    Thread_Control *runner
+- brief: |
+    This member contains the identifier of the owner task.
+  description: null
+  member: |
+    rtems_id owner_id
+- brief: |
+    This member references the TCB of the owner task.
+  description: null
+  member: |
+    Thread_Control *owner
+- brief: |
+    This member is true, if the owner task owns the mutex.
+  description: null
+  member: |
+    bool owner_locked
+- brief: |
+    This member contains the identifier of the waker task.
+  description: null
+  member: |
+    rtems_id waker_id
+- brief: |
+    This member is true, if the waker task found the runner task blocked on the
+    condition variable.
+  description: null
+  member: |
+    bool woken
+- brief: |
+    This member is true, if the waker task found the runner task blocked on the
+    condition variable before the call returned.
+  description: null
+  member: |
+    bool blocked
+- brief: |
+    This member references the watchdog header of the timeout of the runner task
+    while it was blocked on the condition variable.
+  description: null
+  member: |
+    Watchdog_Header *timer_header
+test-context-support: |
+  typedef enum { COND_INIT_YES, COND_INIT_ZEROED, COND_INIT_NO } CondInit;
+
+  typedef enum {
+    MUTEX_OWNER_CALLER,
+    MUTEX_OWNER_OTHER,
+    MUTEX_OWNER_NOBODY
+  } MutexOwner;
+
+  typedef enum { WAKE_BROADCAST, WAKE_TIMEOUT, WAKE_MUTEX_DESTROYED } Wake;
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+- time.h
+- rtems.h
+- rtems/posix/condimpl.h
+- rtems/score/percpu.h
+- rtems/score/statesimpl.h
+- rtems/score/threadimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->cond = NULL;
+  ctx->mutex = NULL;
+  ctx->abstime = NULL;
+  ctx->status = -1;
+  ctx->cond_init = COND_INIT_NO;
+  ctx->clock = CLOCK_REALTIME;
+  ctx->binding = NULL;
+  ctx->mutex_init = false;
+  ctx->mutex_owner = MUTEX_OWNER_NOBODY;
+  ctx->wake = WAKE_BROADCAST;
+  ctx->waker_id = 0;
+  ctx->woken = false;
+  ctx->blocked = false;
+  ctx->timer_header = NULL;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    SetSelfAffinityOne( 0 );
+    ctx->runner = GetThread( rtems_task_self() );
+    ctx->owner_id = CreateTask( "OWNR", PRIO_HIGH );
+    SetAffinityOne( ctx->owner_id, 0 );
+    StartTask( ctx->owner_id, Owner, ctx );
+    ctx->owner = GetThread( ctx->owner_id );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define EVENT_LOCK RTEMS_EVENT_0
+
+  #define EVENT_UNLOCK RTEMS_EVENT_1
+
+  #define FAR_FUTURE ( (time_t) 0x400000000 )
+
+  #define COND_FLAGS_REALTIME( cond )                              \
+    ( ( (uintptr_t) ( cond ) ^ POSIX_CONDITION_VARIABLES_MAGIC ) & \
+      ~POSIX_CONDITION_VARIABLES_FLAGS_MASK )
+
+  static void PrepareCond( Context *ctx )
+  {
+    pthread_condattr_t attr;
+    int                eno;
+
+    switch ( ctx->cond_init ) {
+      case COND_INIT_YES:
+        eno = pthread_condattr_init( &attr );
+        T_eq_int( eno, 0 );
+        eno = pthread_condattr_setclock( &attr, ctx->clock );
+        T_eq_int( eno, 0 );
+        eno = pthread_cond_init( &ctx->cond_obj, &attr );
+        T_eq_int( eno, 0 );
+        eno = pthread_condattr_destroy( &attr );
+        T_eq_int( eno, 0 );
+        ctx->cond_obj._mutex = ctx->binding;
+        break;
+      case COND_INIT_ZEROED:
+        memset( &ctx->cond_obj, 0, sizeof( ctx->cond_obj ) );
+        break;
+      default:
+        memset( &ctx->cond_obj, 0xff, sizeof( ctx->cond_obj ) );
+        break;
+    }
+  }
+
+  static void PrepareMutex( Context *ctx )
+  {
+    int eno;
+
+    if ( !ctx->mutex_init ) {
+      memset( &ctx->mutex_obj, 0xff, sizeof( ctx->mutex_obj ) );
+      return;
+    }
+
+    eno = pthread_mutex_init( &ctx->mutex_obj, NULL );
+    T_eq_int( eno, 0 );
+
+    switch ( ctx->mutex_owner ) {
+      case MUTEX_OWNER_CALLER:
+        eno = pthread_mutex_lock( &ctx->mutex_obj );
+        T_eq_int( eno, 0 );
+        break;
+      case MUTEX_OWNER_OTHER:
+        SendEvents( ctx->owner_id, EVENT_LOCK );
+        T_true( ctx->owner_locked );
+        break;
+      default:
+        break;
+    }
+  }
+
+  static void Owner( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      rtems_event_set events;
+      int             eno;
+
+      events = ReceiveAnyEvents();
+
+      if ( ( events & EVENT_LOCK ) != 0 ) {
+        eno = pthread_mutex_lock( &ctx->mutex_obj );
+        T_eq_int( eno, 0 );
+        ctx->owner_locked = true;
+      }
+
+      if ( ( events & EVENT_UNLOCK ) != 0 ) {
+        eno = pthread_mutex_unlock( &ctx->mutex_obj );
+        T_eq_int( eno, 0 );
+        ctx->owner_locked = false;
+      }
+    }
+  }
+
+  static void Waker( rtems_task_argument arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = (Context *) arg;
+
+    /*
+     * The runner and this task share processor 0, and the runner has the
+     * higher priority.  This task runs only while the runner is blocked.
+     */
+    T_ne_u32(
+      ctx->runner->current_state & STATES_WAITING_FOR_CONDITION_VARIABLE,
+      0
+    );
+    ctx->timer_header = ctx->runner->Timer.header;
+    ctx->woken = true;
+
+    if ( ctx->wake == WAKE_TIMEOUT ) {
+      FinalClockTick();
+    } else {
+      if ( ctx->wake == WAKE_MUTEX_DESTROYED ) {
+        eno = pthread_mutex_destroy( &ctx->mutex_obj );
+        T_eq_int( eno, 0 );
+      }
+
+      eno = pthread_cond_broadcast( &ctx->cond_obj );
+      T_eq_int( eno, 0 );
+    }
+
+    SuspendSelf();
+  }
+test-target: testsuites/validation/tc-pthread-cond-timedwait.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->owner_id );
+    SetSelfAffinityAll();
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Inval
+    Init:
+    - if:
+        pre-conditions:
+          Cond: Obj
+      then: Nop
+    - else: N/A
+    Binding:
+    - if:
+        pre-conditions:
+          Cond: Obj
+      then: Nop
+    - else: N/A
+    Owner: N/A
+    Blocking: 'No'
+    Clock: N/A
+  pre-conditions:
+    Cond: all
+    CondInit:
+      applicable:
+        pre-conditions:
+          Cond: Obj
+    Clock: N/A
+    Binding: N/A
+    Mutex: N/A
+    MutexInit: N/A
+    MutexOwner: N/A
+    Abstime:
+    - 'Null'
+    Time: N/A
+    Wake: N/A
+- enabled-by: true
+  post-conditions:
+    Status: Inval
+    Init: N/A
+    Binding: N/A
+    Owner: N/A
+    Blocking: 'No'
+    Clock: N/A
+  pre-conditions:
+    Cond:
+    - 'Null'
+    CondInit: N/A
+    Clock: N/A
+    Binding: N/A
+    Mutex: N/A
+    MutexInit: N/A
+    MutexOwner: N/A
+    Abstime:
+    - Obj
+    Time: N/A
+    Wake: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Inval
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          MutexOwner:
+          - Other
+          - Nobody
+      then: Perm
+    - if:
+        pre-conditions:
+          Time:
+          - NegNsec
+          - BigNsec
+      then: Inval
+    - if:
+        pre-conditions:
+          Time:
+          - Past
+          - NegSec
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: Timeout
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: MutexDestroyed
+      then: Inval
+    - else: Ok
+    Init:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+      then: Default
+    - else: Nop
+    Binding:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Nop
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - MutexDestroyed
+      then: N/A
+    - if:
+        pre-conditions:
+          Mutex: 'Null'
+      then: None
+    - else: Mutex
+    Owner:
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          Wake: MutexDestroyed
+      then: N/A
+    - if:
+      - post-conditions:
+          Status: Perm
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then-specified-by: MutexOwner
+    - else: Caller
+    Blocking:
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: 'Yes'
+    - else: 'No'
+    Clock:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: Realtime
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then-specified-by: Clock
+    - else: N/A
+  pre-conditions:
+    Cond:
+    - Obj
+    CondInit: all
+    Clock:
+      applicable:
+        pre-conditions:
+          CondInit: 'Yes'
+    Binding:
+      applicable:
+        pre-conditions:
+          CondInit: 'Yes'
+    Mutex:
+    - Obj
+    MutexInit: all
+    MutexOwner:
+      applicable:
+        pre-conditions:
+          MutexInit: 'Yes'
+    Abstime:
+    - Obj
+    Time: all
+    Wake:
+      applicable:
+        and:
+        - pre-conditions:
+            CondInit:
+            - 'Yes'
+            - Zeroed
+            MutexOwner: Caller
+            Time: Future
+        - not:
+            pre-conditions:
+              Binding: Other
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Inval
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          MutexOwner:
+          - Other
+          - Nobody
+      then: Perm
+    - if:
+        pre-conditions:
+          Time:
+          - NegNsec
+          - BigNsec
+      then: Inval
+    - if:
+        pre-conditions:
+          Time:
+          - Past
+          - NegSec
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: Timeout
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: MutexDestroyed
+      then: Inval
+    - else: Ok
+    Init:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+      then: Default
+    - else: Nop
+    Binding:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Nop
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - MutexDestroyed
+      then: N/A
+    - if:
+        pre-conditions:
+          Mutex: 'Null'
+      then: None
+    - else: Mutex
+    Owner:
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          Wake: MutexDestroyed
+      then: N/A
+    - if:
+      - post-conditions:
+          Status: Perm
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then-specified-by: MutexOwner
+    - else: Caller
+    Blocking:
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: 'Yes'
+    - else: 'No'
+    Clock:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: Realtime
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then-specified-by: Clock
+    - else: N/A
+  pre-conditions:
+    Cond:
+    - Obj
+    CondInit:
+    - 'Yes'
+    Clock: all
+    Binding:
+    - None
+    - Other
+    Mutex:
+    - 'Null'
+    MutexInit: N/A
+    MutexOwner: N/A
+    Abstime:
+    - Obj
+    Time: all
+    Wake: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Inval
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          MutexOwner:
+          - Other
+          - Nobody
+      then: Perm
+    - if:
+        pre-conditions:
+          Time:
+          - NegNsec
+          - BigNsec
+      then: Inval
+    - if:
+        pre-conditions:
+          Time:
+          - Past
+          - NegSec
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: Timeout
+      then: TimedOut
+    - if:
+        pre-conditions:
+          Wake: MutexDestroyed
+      then: Inval
+    - else: Ok
+    Init:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+      then: Default
+    - else: Nop
+    Binding:
+    - if:
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then: Nop
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - MutexDestroyed
+      then: N/A
+    - if:
+        pre-conditions:
+          Mutex: 'Null'
+      then: None
+    - else: Mutex
+    Owner:
+    - if:
+      - pre-conditions:
+          Mutex: 'Null'
+      - pre-conditions:
+          MutexInit: 'No'
+      - pre-conditions:
+          Wake: MutexDestroyed
+      then: N/A
+    - if:
+      - post-conditions:
+          Status: Perm
+      - pre-conditions:
+          CondInit: 'No'
+      - pre-conditions:
+          Binding: Other
+      then-specified-by: MutexOwner
+    - else: Caller
+    Blocking:
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: 'Yes'
+    - else: 'No'
+    Clock:
+    - if:
+        pre-conditions:
+          CondInit: Zeroed
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then: Realtime
+    - if:
+        pre-conditions:
+          Wake:
+          - Broadcast
+          - Timeout
+          - MutexDestroyed
+      then-specified-by: Clock
+    - else: N/A
+  pre-conditions:
+    Cond:
+    - Obj
+    CondInit:
+    - Zeroed
+    - 'No'
+    Clock: N/A
+    Binding: N/A
+    Mutex:
+    - 'Null'
+    MutexInit: N/A
+    MutexOwner: N/A
+    Abstime:
+    - Obj
+    Time: all
+    Wake: N/A
+- enabled-by: true
+  post-conditions: NullMutexSame
+  pre-conditions:
+    Cond:
+    - Obj
+    CondInit:
+    - 'Yes'
+    Clock: all
+    Binding:
+    - Same
+    Mutex:
+    - 'Null'
+    MutexInit: N/A
+    MutexOwner: N/A
+    Abstime:
+    - Obj
+    Time: all
+    Wake: N/A
+type: requirement

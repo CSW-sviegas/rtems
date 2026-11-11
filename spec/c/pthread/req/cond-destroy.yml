@@ -1,0 +1,353 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/cond-destroy
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-cond-destroy
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-destroy:/name} shall be
+      zero.
+  - name: Busy
+    test-code: |
+      T_eq_int( ctx->status, EBUSY );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-destroy:/name} shall be
+      ${/c/errno/if/ebusy:/name}.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/cond-destroy:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: Destroyed
+    test-code: |
+      T_eq_ulong( ctx->cond_obj._flags, ~InitializedFlags( &ctx->cond_obj ) );
+    text: |
+      The object referenced by the ${../if/cond-destroy:/params[0]/name} parameter
+      shall be neither an initialized ${../glossary/condition-variable:/term} nor
+      filled with zero bytes.
+  - name: Nop
+    test-code: |
+      T_eq_ulong( ctx->cond_obj._flags, ctx->cond_before._flags );
+    text: |
+      Whether the object referenced by the ${../if/cond-destroy:/params[0]/name}
+      parameter is an initialized ${../glossary/condition-variable:/term} shall not
+      be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Other
+  states:
+  - name: Nop
+    test-code: |
+      pthread_cond_t expected;
+
+      memcpy( &expected, &ctx->cond_before, sizeof( expected ) );
+      expected._flags = ctx->cond_obj._flags;
+      expected._Queue._Lock = ctx->cond_obj._Queue._Lock;
+      T_eq_mem( &ctx->cond_obj, &expected, sizeof( expected ) );
+    text: |
+      The content of the object referenced by the
+      ${../if/cond-destroy:/params[0]/name} parameter, other than whether it is an
+      initialized ${../glossary/condition-variable:/term} and the lock which protects
+      it, shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Cond
+  states:
+  - name: Obj
+    test-code: |
+      ctx->cond = &ctx->cond_obj;
+    text: |
+      While the ${../if/cond-destroy:/params[0]/name} parameter references an object
+      of type ${/c/if/pthread_cond_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->cond = NULL;
+    text: |
+      While the ${../if/cond-destroy:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: Initialized
+    test-code: |
+      T_eno_success( pthread_cond_init( &ctx->cond_obj, NULL ) );
+    text: |
+      While the object referenced by the ${../if/cond-destroy:/params[0]/name}
+      parameter is an initialized ${../glossary/condition-variable:/term}.
+  - name: Zeroed
+    test-code: |
+      memset( &ctx->cond_obj, 0, sizeof( ctx->cond_obj ) );
+    text: |
+      While the object referenced by the ${../if/cond-destroy:/params[0]/name}
+      parameter is filled with zero bytes.
+  - name: Other
+    test-code: |
+      memset( &ctx->cond_obj, 0xff, sizeof( ctx->cond_obj ) );
+    text: |
+      While the object referenced by the ${../if/cond-destroy:/params[0]/name}
+      parameter is neither an initialized ${../glossary/condition-variable:/term} nor
+      filled with zero bytes.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: None
+    test-code: |
+      StartWorker( ctx, false );
+    text: |
+      While no ${../glossary/thread:/term} is blocked on the
+      ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-destroy:/params[0]/name} parameter.
+  - name: One
+    test-code: |
+      StartWorker( ctx, true );
+    text: |
+      While exactly one ${../glossary/thread:/term} is blocked on the
+      ${../glossary/condition-variable:/term} referenced by the
+      ${../if/cond-destroy:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-cond-destroy:/name} specifies that
+  ${../if/cond-destroy:/name} destroys the
+  ${../glossary/condition-variable:/term}, so that the object becomes, in effect,
+  uninitialized, and permits an implementation to set the object to an invalid
+  value. It shall be safe to destroy an initialized condition variable on which
+  no threads are blocked. RTEMS inverts the value which records whether the
+  object is initialized and its ${../glossary/cond-clock:/term}, which
+  post-condition State specifies. The call keeps the other content of the object,
+  which post-condition Other specifies. In SMP configurations, the call obtains
+  and releases the lock of the object, so post-condition Other excludes the lock.
+  The initialized condition variable of the test has the default attributes,
+  since the call does not distinguish the ${../glossary/cond-clock:/term}.
+
+  The standard states that attempting to destroy a condition variable upon which
+  other threads are currently blocked results in undefined behavior. Its
+  rationale recommends that the function should fail and report
+  ${/c/errno/if/ebusy:/name} where the implementation detects that the condition
+  variable is in use, for example in a wait, by another thread. RTEMS returns
+  ${/c/errno/if/ebusy:/name} only where a thread is blocked on the
+  ${../glossary/condition-variable:/term}, which pre-condition Waiters gives. It
+  does not detect other uses, such as a thread which executes
+  ${../if/cond-signal:/name} on the condition variable.
+
+  The standard states that the behavior is undefined if the value specified by
+  the ${../if/cond-destroy:/params[0]/name} argument does not refer to an
+  initialized condition variable. Its rationale recommends that the function
+  should fail and report ${/c/errno/if/einval:/name} where the implementation
+  detects this. RTEMS checks one member of the object, which
+  ${../if/cond-init:/name} derives from the address of the object. RTEMS
+  initializes an object filled with zero bytes with the default attributes and
+  destroys it, which state Zeroed of pre-condition State specifies. The static
+  initializer of the standard gives such an object. For the ${/c/if/null:/name}
+  pointer and for every other object, RTEMS returns ${/c/errno/if/einval:/name}
+  and follows the recommendation, which state Null of pre-condition Cond and
+  state Other of pre-condition State specify.
+
+  The standard specifies no error for ${../if/cond-destroy:/name} and states that
+  it shall not return the error number of an interrupted function call. RTEMS
+  returns only zero, ${/c/errno/if/ebusy:/name} and ${/c/errno/if/einval:/name}.
+  Concurrent calls on other processors are not covered.
+requirement-type: functional
+skip-reasons:
+  NoWaiters: |
+    A ${../glossary/thread:/term} blocks on a
+    ${../glossary/condition-variable:/term} only through a wait. A wait initializes
+    an object filled with zero bytes and rejects every other object which is not an
+    initialized condition variable. Threads are therefore blocked only on an
+    initialized condition variable.
+test-action: |
+  memcpy( &ctx->cond_before, &ctx->cond_obj, sizeof( ctx->cond_before ) );
+  ctx->status = pthread_cond_destroy( ctx->cond );
+test-brief: null
+test-cleanup: |
+  if ( ctx->worker_id != 0 ) {
+    (void) pthread_cond_signal( &ctx->cond_obj );
+    DeleteTask( ctx->worker_id );
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/cond-destroy:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_cond_t *cond
+- brief: |
+    This member contains the return value of the ${../if/cond-destroy:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/condition-variable:/term} object.
+  description: null
+  member: pthread_cond_t cond_obj
+- brief: |
+    This member contains a copy of the ${../glossary/condition-variable:/term}
+    object before the call.
+  description: null
+  member: pthread_cond_t cond_before
+- brief: |
+    This member contains the mutex used by the worker.
+  description: null
+  member: pthread_mutex_t mutex_obj
+- brief: |
+    This member contains the worker identifier.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member is true, if the worker is blocked in the wait.
+  description: null
+  member: bool waiting
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems.h
+- stdbool.h
+- stdint.h
+- string.h
+- rtems/posix/condimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->worker_id = 0;
+  ctx->waiting = false;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    SetSelfAffinityOne( 0 );
+    T_eno_success( pthread_mutex_init( &ctx->mutex_obj, NULL ) );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static unsigned long InitializedFlags( const pthread_cond_t *cond )
+  {
+    return ( (uintptr_t) cond ^ POSIX_CONDITION_VARIABLES_MAGIC ) &
+           ~POSIX_CONDITION_VARIABLES_FLAGS_MASK;
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    T_eno_success( pthread_mutex_lock( &ctx->mutex_obj ) );
+    ctx->waiting = true;
+    T_eno_success( pthread_cond_wait( &ctx->cond_obj, &ctx->mutex_obj ) );
+    ctx->waiting = false;
+    T_eno_success( pthread_mutex_unlock( &ctx->mutex_obj ) );
+
+    SuspendSelf();
+  }
+
+  static void StartWorker( Context *ctx, bool start )
+  {
+    if ( start ) {
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      SetAffinityOne( ctx->worker_id, 0 );
+      StartTask( ctx->worker_id, Worker, ctx );
+      WaitForExecutionStop( ctx->worker_id );
+    }
+
+    T_eq_int( ctx->waiting, start );
+  }
+test-target: testsuites/validation/tc-pthread-cond-destroy.c
+test-teardown:
+  brief: null
+  code: |
+    T_eno_success( pthread_mutex_destroy( &ctx->mutex_obj ) );
+    RestoreRunnerPriority();
+    SetSelfAffinityAll();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Inval
+    State: N/A
+    Other: N/A
+  pre-conditions:
+    Cond:
+    - 'Null'
+    State: N/A
+    Waiters: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Waiters: One
+      then: Busy
+    - else: Ok
+    State:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Destroyed
+    - else: Nop
+    Other: Nop
+  pre-conditions:
+    Cond:
+    - Obj
+    State:
+    - Initialized
+    Waiters: all
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          State: Zeroed
+      then: Ok
+    - else: Inval
+    State:
+    - if:
+        pre-conditions:
+          State: Zeroed
+      then: Destroyed
+    - else: Nop
+    Other: Nop
+  pre-conditions:
+    Cond:
+    - Obj
+    State:
+    - Zeroed
+    - Other
+    Waiters:
+    - None
+- enabled-by: true
+  post-conditions: NoWaiters
+  pre-conditions:
+    Cond:
+    - Obj
+    State:
+    - Zeroed
+    - Other
+    Waiters:
+    - One
+type: requirement

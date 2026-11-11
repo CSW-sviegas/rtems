@@ -1,0 +1,10 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+links:
+- role: reference-location
+  uid: ../posix-2024
+name: POSIX.1-2024, System Interfaces, pthread_cond_clockwait()
+path: functions/pthread_cond_clockwait.html
+type: reference-location

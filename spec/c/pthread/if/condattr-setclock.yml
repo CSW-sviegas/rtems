@@ -1,0 +1,88 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/cond-clock:/term} of the
+  ${../glossary/condition-variable:/term} attributes object referenced by
+  ${.:/params[0]/name} to the value specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_condattr_t:/name} *${.:/params[0]/name}
+    - ${/c/if/clockid_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is
+    ${../../time/if/clock-process-cputime-id:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is
+    ${../../time/if/clock-thread-cputime-id:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is neither
+    ${../../time/if/clock-realtime:/name}, nor
+    ${../../time/if/clock-monotonic:/name}, nor
+    ${../../time/if/clock-process-cputime-id:/name}, nor
+    ${../../time/if/clock-thread-cputime-id:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/pthread-condattr-getclock
+name: pthread_condattr_setclock
+notes: |
+  See ${/ref/std/posix-2024/pthread-condattr-getclock:/name}.
+params:
+- description: |
+    is the pointer to the ${../glossary/condition-variable:/term} attributes
+    object.
+  dir: inout
+  name: attr
+- description: |
+    is the ${../glossary/cond-clock:/term} to set.
+  dir: null
+  name: clock_id
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was
+      ${../../time/if/clock-process-cputime-id:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was
+      ${../../time/if/clock-thread-cputime-id:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was neither
+      ${../../time/if/clock-realtime:/name}, nor
+      ${../../time/if/clock-monotonic:/name}, nor
+      ${../../time/if/clock-process-cputime-id:/name}, nor
+      ${../../time/if/clock-thread-cputime-id:/name}.
+    value: ${/c/errno/if/einval:/name}
+type: interface
