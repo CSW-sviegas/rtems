@@ -1,0 +1,1447 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/fetch
+- role: requirement-refinement
+  uid: buffer
+post-conditions:
+- name: Status
+  states:
+  - name: Done
+    test-code: |
+      T_eq_int( ctx->status, RTEMS_RECORD_FETCH_DONE );
+    text: |
+      The return status of ${../if/fetch:/name} shall be ${../if/fetch-done:/name}.
+  - name: Continue
+    test-code: |
+      T_eq_int( ctx->status, RTEMS_RECORD_FETCH_CONTINUE );
+    text: |
+      The return status of ${../if/fetch:/name} shall be
+      ${../if/fetch-continue:/name}.
+  - name: InvalidItemCount
+    test-code: |
+      T_eq_int( ctx->status, RTEMS_RECORD_FETCH_INVALID_ITEM_COUNT );
+    text: |
+      The return status of ${../if/fetch:/name} shall be
+      ${../if/fetch-invalid-item-count:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Fetched
+  states:
+  - name: None
+    test-code: |
+      T_null( ctx->fetched_items );
+    text: |
+      The `fetched_items` member of the record fetch control shall be
+      ${/c/if/null:/name}.
+  - name: Header
+    test-code: |
+      CheckFetched( ctx, false, 0 );
+    text: |
+      The record fetch control shall reference exactly one fetched
+      ${../glossary/recorditem:/term} with the event
+      ${../if/event:/enumerators[9]/name} and the index of the processor as event
+      data.
+  - name: All
+    test-code: |
+      CheckFetched( ctx, false, ctx->expected_count );
+    text: |
+      The record fetch control shall reference a ${../glossary/recorditem:/term} with
+      the event ${../if/event:/enumerators[9]/name} and the index of the processor as
+      event data, followed by all ${../glossary/recorditem:/plural} which the
+      ${../glossary/recordbuffer:/term} of the processor provided, from the oldest to
+      the newest.
+  - name: Part
+    test-code: |
+      T_eq_sz( ctx->expected_count, ctx->count - 2 );
+      CheckFetched( ctx, false, ctx->expected_count );
+    text: |
+      The record fetch control shall reference a ${../glossary/recorditem:/term} with
+      the event ${../if/event:/enumerators[9]/name} and the index of the processor as
+      event data, followed by the oldest ${../glossary/recorditem:/plural} which the
+      ${../glossary/recordbuffer:/term} of the processor provided with a count of the
+      item count of the record fetch control minus two.
+  - name: Overflow
+    test-code: |
+      CheckFetched( ctx, true, ctx->expected_count );
+    text: |
+      The record fetch control shall reference a ${../glossary/recorditem:/term} with
+      the event ${../if/event:/enumerators[9]/name} and the index of the processor as
+      event data, followed by a ${../glossary/recorditem:/term} with the event
+      ${../if/event:/enumerators[8]/name} and the count of the lost
+      ${../glossary/recorditem:/plural} as event data, followed by the oldest
+      ${../glossary/recorditem:/plural} of the fetch which the
+      ${../glossary/recordbuffer:/term} of the processor still provided.
+  - name: OverflowOnly
+    test-code: |
+      T_eq_sz( ctx->expected_count, 0 );
+      CheckFetched( ctx, true, 0 );
+    text: |
+      The record fetch control shall reference a ${../glossary/recorditem:/term} with
+      the event ${../if/event:/enumerators[9]/name} and the index of the processor as
+      event data, followed by a ${../glossary/recorditem:/term} with the event
+      ${../if/event:/enumerators[8]/name} and the count of the lost
+      ${../glossary/recorditem:/plural} as event data, and no other
+      ${../glossary/recorditem:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Copy
+  states:
+  - name: Provided
+    test-code: |
+      CheckProvided( ctx );
+    text: |
+      Each ${../glossary/recorditem:/term} which the record fetch control references
+      after the ${../if/event:/enumerators[9]/name} item and the optional
+      ${../if/event:/enumerators[8]/name} item shall be a
+      ${../glossary/recorditem:/term} which the ${../glossary/recordbuffer:/term} of
+      the processor provided at the start of the call.
+  - name: Replaced
+    test-code: |
+      CheckReplaced( ctx );
+    text: |
+      For each ${../glossary/recorditem:/term} which the call copied after the
+      producer overwrote it, the record fetch control shall reference the
+      ${../glossary/recorditem:/term} which the producer wrote in place of the
+      overwritten ${../glossary/recorditem:/term}, or a
+      ${../glossary/recorditem:/term} which consists of parts of the overwritten
+      ${../glossary/recorditem:/term} and of the ${../glossary/recorditem:/term}
+      which the producer wrote.
+  test-epilogue: null
+  test-prologue: null
+- name: Lost
+  states:
+  - name: Uncounted
+    test-code: |
+      CheckUncounted( ctx );
+    text: |
+      The count of the lost ${../glossary/recorditem:/plural} which the record fetch
+      control references shall not include a ${../glossary/recorditem:/term} which
+      the call copied after the producer overwrote it.
+  test-epilogue: null
+  test-prologue: null
+- name: Next
+  states:
+  - name: Same
+    test-code: |
+      T_eq_u32( ctx->next_cpu_index, ctx->cpu_index );
+
+      if ( ctx->next_data_valid ) {
+        T_eq_ulong( ctx->next_first_data, ctx->expected_next_data );
+      }
+    text: |
+      The next call of ${../if/fetch:/name} with the record fetch control shall fetch
+      the remaining ${../glossary/recorditem:/plural} of the same processor.
+  - name: Following
+    test-code: |
+      T_eq_u32( ctx->next_cpu_index, ctx->cpu_index + 1 );
+    text: |
+      The next call of ${../if/fetch:/name} with the record fetch control shall fetch
+      the ${../glossary/recorditem:/plural} of the processor with the next index.
+  - name: First
+    test-code: |
+      T_eq_u32( ctx->next_cpu_index, 0 );
+    text: |
+      The next call of ${../if/fetch:/name} with the record fetch control shall fetch
+      the ${../glossary/recorditem:/plural} of the processor with index zero.
+  - name: Rejected
+    test-code: |
+      T_eq_int( ctx->next_status, RTEMS_RECORD_FETCH_INVALID_ITEM_COUNT );
+    text: |
+      The next call of ${../if/fetch:/name} with the record fetch control shall
+      return ${../if/fetch-invalid-item-count:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: LastProcessor
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->cpu_index = rtems_scheduler_get_processor_maximum() - 1;
+    text: |
+      While the index of the processor of the record fetch control is one less than
+      the value returned by ${/rtems/scheduler/if/get-processor-maximum:/name}.
+  - name: 'No'
+    test-code: |
+      if ( rtems_scheduler_get_processor_maximum() < 2 ) {
+        ${.:skip}
+      } else {
+        ctx->cpu_index = 0;
+      }
+    text: |
+      While the index of the processor of the record fetch control is less than the
+      value returned by ${/rtems/scheduler/if/get-processor-maximum:/name} minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Resume
+  states:
+  - name: 'No'
+    test-code: |
+      ctx->resume = false;
+    text: |
+      While the previous call of ${../if/fetch:/name} with the record fetch control
+      fetched all ${../glossary/recorditem:/plural} of the processor which the
+      ${../glossary/recordbuffer:/term} provided, or while no call of
+      ${../if/fetch:/name} used the record fetch control.
+  - name: 'Yes'
+    test-code: |
+      ctx->resume = true;
+    text: |
+      While the previous call of ${../if/fetch:/name} with the record fetch control
+      left ${../glossary/recorditem:/plural} of the processor.
+  test-epilogue: null
+  test-prologue: null
+- name: ItemCount
+  states:
+  - name: Invalid
+    test-code: |
+      ctx->item_count = ITEM_COUNT_INVALID;
+    text: |
+      While the item count of the record fetch control is less than three.
+  - name: Small
+    test-code: |
+      ctx->item_count = ITEM_COUNT_SMALL;
+    text: |
+      While the item count of the record fetch control is at least three, while the
+      item count is less than the count of the ${../glossary/recorditem:/plural}
+      which the ${../glossary/recordbuffer:/term} of the processor provides plus two.
+  - name: Enough
+    test-code: |
+      ctx->item_count = ITEM_COUNT_ENOUGH;
+    text: |
+      While the item count of the record fetch control is greater than or equal to
+      the count of the ${../glossary/recorditem:/plural} which the
+      ${../glossary/recordbuffer:/term} of the processor provides plus two.
+  test-epilogue: null
+  test-prologue: null
+- name: Buffer
+  states:
+  - name: Empty
+    test-code: |
+      ctx->buffer = BUFFER_EMPTY;
+    text: |
+      While the ${../glossary/recordbuffer:/term} of the processor provides no
+      ${../glossary/recorditem:/term}.
+  - name: Partial
+    test-code: |
+      ctx->buffer = BUFFER_PARTIAL;
+    text: |
+      While the ${../glossary/recordbuffer:/term} of the processor provides at least
+      one ${../glossary/recorditem:/term}, while no ${../glossary/recorditem:/term}
+      was lost since the previous call of ${../if/fetch:/name} with the record fetch
+      control.
+  - name: Overflow
+    test-code: |
+      ctx->buffer = BUFFER_OVERFLOW;
+    text: |
+      While ${../glossary/recorditem:/plural} of the
+      ${../glossary/recordbuffer:/term} of the processor were lost since the previous
+      call of ${../if/fetch:/name} with the record fetch control, while the
+      ${../glossary/recordbuffer:/term} still provides at least one
+      ${../glossary/recorditem:/term} of the fetch.
+  - name: Lost
+    test-code: |
+      ctx->buffer = BUFFER_LOST;
+    text: |
+      While all remaining ${../glossary/recorditem:/plural} of a continued fetch were
+      lost since the previous call of ${../if/fetch:/name} with the record fetch
+      control.
+  test-epilogue: null
+  test-prologue: null
+- name: Producer
+  states:
+  - name: Idle
+    test-code: |
+      ctx->producer = PRODUCER_IDLE;
+    text: |
+      While no producer writes a ${../glossary/recorditem:/term} to the
+      ${../glossary/recordbuffer:/term} of the processor during the call.
+  - name: Some
+    test-code: |
+      ctx->producer = PRODUCER_SOME;
+    text: |
+      While a producer writes and commits ${../glossary/recorditem:/plural} during
+      the call which overwrite some of the ${../glossary/recorditem:/plural} which
+      the call copies from the ${../glossary/recordbuffer:/term} of the processor.
+  - name: All
+    test-code: |
+      ctx->producer = PRODUCER_ALL;
+    text: |
+      While a producer writes and commits ${../glossary/recorditem:/plural} during
+      the call which overwrite all ${../glossary/recorditem:/plural} which the call
+      copies from the ${../glossary/recordbuffer:/term} of the processor and at least
+      one more ${../glossary/recorditem:/term}.
+  - name: Uncommitted
+    test-code: |
+      ctx->producer = PRODUCER_UNCOMMITTED;
+    text: |
+      While a producer on another processor writes ${../glossary/recorditem:/plural}
+      during the call which overwrite ${../glossary/recorditem:/plural} which the
+      call copies from the ${../glossary/recordbuffer:/term} of the processor after
+      the write, while the producer commits these ${../glossary/recorditem:/plural}
+      after the call.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension LastProcessor covers the index of the processor of the record fetch
+  control, 2 states. Dimension Resume covers the calls with the record fetch
+  control, 2 states. Dimension ItemCount covers the item count of the record
+  fetch control, 3 states. Dimension Buffer covers the
+  ${../glossary/recorditem:/plural} of the ${../glossary/recordbuffer:/term} of
+  the processor since the previous call, 4 states. Dimension Producer covers the
+  ${../glossary/recorditem:/plural} which a producer writes during the call, 4
+  states.
+
+  A call of ${../if/fetch:/name} leaves ${../glossary/recorditem:/plural} of the
+  processor, if the item count of the record fetch control is less than the count
+  of the provided ${../glossary/recorditem:/plural} plus two. Pre-condition
+  Resume state Yes covers the next call.
+
+  A record fetch control holds one item for the
+  ${../if/event:/enumerators[9]/name} event and one item for the optional
+  ${../if/event:/enumerators[8]/name} event. An item count of less than three
+  leaves no room for a ${../glossary/recorditem:/term} of the
+  ${../glossary/recordbuffer:/term}.
+
+  In SMP configurations, a producer on another processor writes the
+  ${../glossary/recorditem:/plural} of a production to the
+  ${../glossary/recordbuffer:/term} before it commits them. ${../if/fetch:/name}
+  sees only committed ${../glossary/recorditem:/plural}. It does not copy the
+  ${../glossary/recorditem:/term} after the newest committed
+  ${../glossary/recorditem:/term}, so a production of one
+  ${../glossary/recorditem:/term} does not overwrite a copied
+  ${../glossary/recorditem:/term}. The ${../glossary/recordbuffer:/term}
+  therefore provides at most its capacity minus one
+  ${../glossary/recorditem:/plural} to ${../if/fetch:/name}.
+
+  A production of more than one ${../glossary/recorditem:/term} can overwrite the
+  oldest ${../glossary/recorditem:/plural} which ${../if/fetch:/name} copies, and
+  ${../if/fetch:/name} does not count them as lost. Producer state Uncommitted
+  covers this case. A host program judges through the time stamps whether such a
+  production replaced the oldest fetched ${../glossary/recorditem:/plural}.
+requirement-type: functional
+skip-reasons:
+  Unreachable: |
+    An empty ${../glossary/recordbuffer:/term} provides no
+    ${../glossary/recorditem:/term}, so every item count of at least three is
+    enough for it. A continued fetch has remaining
+    ${../glossary/recorditem:/plural}, so the ${../glossary/recordbuffer:/term} is
+    not empty. The item count of a record fetch control does not change, so a
+    continued fetch has an item count of at least three. Only a continued fetch has
+    remaining ${../glossary/recorditem:/plural} which can be lost. After the loss
+    of all remaining ${../glossary/recorditem:/plural}, no item count is too small
+    for them. Where the system was built with SMP support disabled, the only
+    processor is the processor with the highest index. Where the system was built
+    with SMP support disabled, a production runs with interrupts disabled from its
+    first write to its commit, so it does not overlap with a call. A call which
+    copies no ${../glossary/recorditem:/term} because of an invalid item count, an
+    empty ${../glossary/recordbuffer:/term}, or the loss of all remaining
+    ${../glossary/recorditem:/plural} gives a producer no copied
+    ${../glossary/recorditem:/term} to overwrite.
+test-action: |
+  if ( ctx->producer == PRODUCER_IDLE || ctx->Map.entry.Skip ) {
+    Arrange( ctx );
+    ctx->status = rtems_record_fetch( &ctx->control );
+  } else {
+    InterruptFetch( ctx );
+  }
+
+  if ( ctx->producer == PRODUCER_UNCOMMITTED && !ctx->Map.entry.Skip ) {
+    CommitUncommitted( ctx );
+  }
+
+  ctx->fetched_items = ctx->control.fetched_items;
+
+  if ( ctx->fetched_items != NULL ) {
+    T_quiet_le_sz(
+      ctx->control.fetched_count,
+      RTEMS_ARRAY_SIZE( ctx->fetched )
+    );
+    memcpy(
+      ctx->fetched,
+      ctx->control.fetched_items,
+      ctx->control.fetched_count * sizeof( ctx->fetched[ 0 ] )
+    );
+    ctx->fetched_count = ctx->control.fetched_count;
+  }
+
+  ctx->next_status = rtems_record_fetch( &ctx->control );
+
+  if ( ctx->control.fetched_items != NULL ) {
+    ctx->next_cpu_index = (uint32_t) ctx->control.fetched_items[ 0 ].data;
+    ctx->next_first_data = FirstUserData( &ctx->control );
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the record fetch control.
+  description: null
+  member: rtems_record_fetch_control control
+- brief: |
+    This member provides the storage of the record fetch control.
+  description: null
+  member: rtems_record_item storage[ ITEM_COUNT_ENOUGH_MAX ]
+- brief: |
+    This member contains a copy of the items which the call fetched.
+  description: null
+  member: rtems_record_item fetched[ ITEM_COUNT_ENOUGH_MAX ]
+- brief: |
+    This member contains the count of the items which the call fetched.
+  description: null
+  member: size_t fetched_count
+- brief: |
+    This member contains the fetched items reference after the call.
+  description: null
+  member: const rtems_record_item *fetched_items
+- brief: |
+    This member contains the index of the processor of the fetch.
+  description: null
+  member: uint32_t cpu_index
+- brief: |
+    This member specifies if the call continues a fetch.
+  description: null
+  member: bool resume
+- brief: |
+    This member specifies the item count state.
+  description: null
+  member: int item_count
+- brief: |
+    This member specifies the record buffer state.
+  description: null
+  member: int buffer
+- brief: |
+    This member contains the item count of the record fetch control.
+  description: null
+  member: size_t count
+- brief: |
+    This member contains the data of the next produced item.
+  description: null
+  member: rtems_record_data next_data
+- brief: |
+    This member contains the expected data of the first fetched item of the record
+    buffer.
+  description: null
+  member: rtems_record_data expected_first_data
+- brief: |
+    This member contains the expected count of the fetched items of the record
+    buffer.
+  description: null
+  member: size_t expected_count
+- brief: |
+    This member contains the expected count of the lost items.
+  description: null
+  member: rtems_record_data expected_overflow
+- brief: |
+    This member contains the expected data of the first item of the record buffer
+    which the next call fetches.
+  description: null
+  member: rtems_record_data expected_next_data
+- brief: |
+    This member contains the return status of the call.
+  description: null
+  member: rtems_record_fetch_status status
+- brief: |
+    This member contains the return status of the next call.
+  description: null
+  member: rtems_record_fetch_status next_status
+- brief: |
+    This member contains the processor index which the next call fetched.
+  description: null
+  member: uint32_t next_cpu_index
+- brief: |
+    This member contains the data of the first item of the record buffer which the
+    next call fetched.
+  description: null
+  member: rtems_record_data next_first_data
+- brief: |
+    This member specifies the producer state.
+  description: null
+  member: int producer
+- brief: |
+    This member contains the tail of the record buffer before the call.
+  description: null
+  member: unsigned int tail_before
+- brief: |
+    This member is true, if the call returned.
+  description: null
+  member: volatile bool action_done
+- brief: |
+    This member is true, if the next first data can be predicted.
+  description: null
+  member: bool next_data_valid
+- brief: |
+    This member is true, if the call started.
+  description: null
+  member: volatile bool in_action
+- brief: |
+    This member is true, if the interrupt produced the items of the action.
+  description: null
+  member: volatile bool interrupt_produced
+- brief: |
+    This member contains the record context of the uncommitted production.
+  description: null
+  member: rtems_record_context uncommitted
+- brief: |
+    This member is true, if the uncommitted production waits for its commit.
+  description: null
+  member: bool uncommitted_pending
+- brief: |
+    This member contains the head of the record buffer at the start of the
+    uncommitted production.
+  description: null
+  member: unsigned int uncommitted_head
+- brief: |
+    This member contains the data of the first item of the uncommitted production.
+  description: null
+  member: rtems_record_data uncommitted_data
+- brief: |
+    This member contains the position of the first copied item of the call.
+  description: null
+  member: unsigned int copied_begin
+- brief: |
+    This member contains the count of the copied items with a stored data word at
+    the start of the uncommitted production.
+  description: null
+  member: size_t stored_before
+- brief: |
+    This member contains the expiration time of the uptime watchdog of each
+    processor.
+  description: null
+  member: uint64_t expire[ CPU_MAXIMUM_PROCESSORS ]
+test-context-support: |
+  #define ITEM_COUNT_INVALID 0
+
+  #define ITEM_COUNT_SMALL 1
+
+  #define ITEM_COUNT_ENOUGH 2
+
+  #define ITEM_COUNT_ENOUGH_MAX 64
+
+  #define BUFFER_EMPTY 0
+
+  #define BUFFER_PARTIAL 1
+
+  #define BUFFER_OVERFLOW 2
+
+  #define BUFFER_LOST 3
+
+  #define PRODUCER_IDLE 0
+
+  #define PRODUCER_SOME 1
+
+  #define PRODUCER_ALL 2
+
+  #define PRODUCER_UNCOMMITTED 3
+test-description: |
+  The setup removes the uptime watchdog of each processor, so that only the test
+  produces items. The test produces the items of a processor through
+  ${../if/prepare-critical:/name} with the control of that processor. The data of
+  the produced items increments by one for each item. A second call of
+  ${../if/fetch:/name} after the action observes the processor which the record
+  fetch control selected. For the producer states, an interrupt produces items
+  while the call copies them. The interrupt produces only after the call moved
+  the tail of the record buffer and before the call returned. The test repeats
+  the interrupt test until the fetched items show the overwrite. For the
+  uncommitted production, the interrupt writes the items without a commit, and
+  the test commits them after the call returned. This emulates a producer on
+  another processor. The call copies the items byte by byte, so the test does not
+  check the data of the items which were in the copy at the interrupt.
+test-header: null
+test-includes:
+- rtems.h
+- rtems/record.h
+- rtems/score/percpu.h
+- rtems/score/watchdogimpl.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    uint32_t cpu_index;
+
+    for (
+      cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+      ++cpu_index
+    ) {
+      rtems_interrupt_level level;
+      Watchdog_Control     *watchdog;
+
+      watchdog = &_Per_CPU_Get_by_index( cpu_index )->record->Watchdog;
+      rtems_interrupt_local_disable( level );
+      _Watchdog_Per_CPU_remove_ticks( watchdog );
+      ctx->expire[ cpu_index ] = watchdog->expire;
+      rtems_interrupt_local_enable( level );
+    }
+  description: null
+test-stop: null
+test-support: |
+  typedef RtemsRecordReqFetch_Context Context;
+
+  static size_t Capacity( void )
+  {
+    return rtems_record_get_item_count_for_fetch() - 2;
+  }
+
+  static Record_Control *GetControl( const Context *ctx )
+  {
+    return _Per_CPU_Get_by_index( ctx->cpu_index )->record;
+  }
+
+  static void Produce( Context *ctx, size_t n )
+  {
+    rtems_interrupt_level level;
+    size_t                i;
+
+    rtems_interrupt_local_disable( level );
+
+    for ( i = 0; i < n; ++i ) {
+      rtems_record_context context;
+
+      rtems_record_prepare_critical(
+        &context,
+        _Per_CPU_Get_by_index( ctx->cpu_index )
+      );
+      rtems_record_add( &context, RTEMS_RECORD_USER_0, ctx->next_data );
+      rtems_record_commit_critical( &context );
+      ++ctx->next_data;
+    }
+
+    rtems_interrupt_local_enable( level );
+  }
+
+  static void ProduceUncommitted( Context *ctx, size_t n )
+  {
+    size_t i;
+
+    rtems_record_prepare_critical(
+      &ctx->uncommitted,
+      _Per_CPU_Get_by_index( ctx->cpu_index )
+    );
+    ctx->uncommitted_head = ctx->uncommitted.head;
+    ctx->uncommitted_data = ctx->next_data;
+
+    for ( i = 0; i < n; ++i ) {
+      rtems_record_add( &ctx->uncommitted, RTEMS_RECORD_USER_0, ctx->next_data );
+      ++ctx->next_data;
+    }
+
+    ctx->uncommitted_pending = true;
+  }
+
+  static void CommitUncommitted( Context *ctx )
+  {
+    rtems_interrupt_level level;
+
+    T_true( ctx->uncommitted_pending );
+
+    if ( ctx->uncommitted_pending ) {
+      rtems_interrupt_local_disable( level );
+      rtems_record_commit_critical( &ctx->uncommitted );
+      rtems_interrupt_local_enable( level );
+      ctx->uncommitted_pending = false;
+    }
+
+    ctx->next_data_valid = false;
+  }
+
+  static void Initialize( Context *ctx, size_t count )
+  {
+    ctx->count = count;
+    rtems_record_fetch_initialize( &ctx->control, &ctx->storage[ 0 ], count );
+  #if defined( RTEMS_SMP )
+    ctx->control.internal.cpu_index = ctx->cpu_index;
+  #endif
+  }
+
+  static size_t Minimum( size_t a, size_t b )
+  {
+    return a < b ? a : b;
+  }
+
+  static void Arrange( Context *ctx )
+  {
+    Record_Control   *control;
+    size_t            capacity;
+    size_t            produced;
+    size_t            remaining;
+    rtems_record_data first;
+
+    control = GetControl( ctx );
+    control->tail = _Record_Head( control );
+    capacity = Capacity();
+    ctx->next_data = 1000;
+    ctx->fetched_items = NULL;
+    ctx->fetched_count = 0;
+    ctx->expected_overflow = 0;
+    ctx->expected_count = 0;
+    ctx->next_cpu_index = UINT32_MAX;
+    ctx->next_first_data = 0;
+    ctx->next_data_valid = true;
+    ctx->in_action = false;
+    ctx->action_done = false;
+    ctx->interrupt_produced = false;
+    ctx->uncommitted_pending = false;
+
+    if ( ctx->buffer == BUFFER_EMPTY ) {
+      produced = 0;
+    } else if ( ctx->buffer == BUFFER_PARTIAL ) {
+      produced = 5;
+    } else {
+      produced = capacity + 3;
+    }
+
+    if ( ctx->item_count == ITEM_COUNT_INVALID ) {
+      Initialize( ctx, 2 );
+      Produce( ctx, produced );
+      return;
+    }
+
+    if ( !ctx->resume ) {
+      if ( ctx->item_count == ITEM_COUNT_SMALL ) {
+        Initialize( ctx, 6 );
+      } else {
+        Initialize( ctx, capacity + 2 );
+      }
+
+      first = ctx->next_data;
+      Produce( ctx, produced );
+
+      if ( produced > capacity ) {
+        ctx->expected_overflow = produced - capacity;
+      }
+
+      remaining = produced - ctx->expected_overflow;
+      ctx->expected_first_data = first + ctx->expected_overflow;
+    } else {
+      rtems_record_fetch_status status;
+      size_t                    lost;
+
+      Initialize( ctx, 6 );
+
+      if ( ctx->item_count == ITEM_COUNT_SMALL ) {
+        remaining = ctx->buffer == BUFFER_OVERFLOW ? 7 : 5;
+      } else {
+        remaining = 4;
+      }
+
+      first = ctx->next_data;
+      Produce( ctx, 4 + remaining );
+      status = rtems_record_fetch( &ctx->control );
+      T_quiet_eq_int( status, RTEMS_RECORD_FETCH_CONTINUE );
+      first += 4;
+
+      if ( ctx->buffer == BUFFER_OVERFLOW || ctx->buffer == BUFFER_LOST ) {
+        size_t produced_after;
+
+        if ( ctx->item_count == ITEM_COUNT_SMALL ) {
+          produced_after = capacity - 5;
+        } else if ( ctx->buffer == BUFFER_OVERFLOW ) {
+          produced_after = capacity - 2;
+        } else {
+          produced_after = capacity;
+        }
+
+        Produce( ctx, produced_after );
+        lost = remaining + produced_after - capacity;
+        ctx->expected_overflow = lost;
+        remaining -= lost;
+        first += lost;
+      }
+
+      ctx->expected_first_data = first;
+    }
+
+    ctx->expected_count = Minimum( remaining, ctx->count - 2 );
+    ctx->expected_next_data = ctx->expected_first_data + ctx->expected_count;
+    ctx->tail_before = control->tail;
+    memset( ctx->storage, 0, sizeof( ctx->storage ) );
+  }
+
+  static void InterruptPrepare( void *arg )
+  {
+    Arrange( arg );
+  }
+
+  static void InterruptAction( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ctx->in_action = true;
+    ctx->status = rtems_record_fetch( &ctx->control );
+    ctx->action_done = true;
+  }
+
+  static T_interrupt_test_state Interrupt( void *arg )
+  {
+    Context        *ctx;
+    Record_Control *control;
+    unsigned int    copied_begin;
+    unsigned int    filled;
+    size_t          capacity;
+    size_t          copied;
+    size_t          produced;
+    size_t          overwritten;
+
+    ctx = arg;
+
+    if ( !ctx->in_action ) {
+      return T_INTERRUPT_TEST_EARLY;
+    }
+
+    if ( ctx->action_done ) {
+      return T_INTERRUPT_TEST_LATE;
+    }
+
+    /*
+     * The watchdog of the interrupt test calls this handler on each clock tick.
+     * The action may last more than one clock tick.
+     */
+    if ( ctx->interrupt_produced ) {
+      return T_INTERRUPT_TEST_DONE;
+    }
+
+    control = GetControl( ctx );
+
+    if ( control->tail == ctx->tail_before ) {
+      return T_INTERRUPT_TEST_EARLY;
+    }
+
+    /*
+     * The fetch checks for overwritten items after it copied the last item.
+     * An overwrite after the copy of the last item is not visible to it.
+     */
+    if (
+      ctx->expected_count > 0 &&
+      ctx->storage[ 1 + ctx->expected_count ].data != 0
+    ) {
+      return T_INTERRUPT_TEST_LATE;
+    }
+
+    capacity = Capacity();
+    copied = ctx->expected_count;
+    copied_begin = control->tail - (unsigned int) copied;
+    filled = _Record_Head( control ) - copied_begin;
+
+    if ( ctx->producer == PRODUCER_UNCOMMITTED ) {
+      size_t stored;
+
+      stored = 0;
+
+      while ( stored < copied && ctx->storage[ 2 + stored ].data != 0 ) {
+        ++stored;
+      }
+
+      /*
+       * The call copies the items byte by byte.  The copy of the last item with
+       * a stored data word and of the item after it may be in progress.  The
+       * check needs a later item which the call copies after the production.
+       */
+      if ( stored + 1 >= copied ) {
+        return T_INTERRUPT_TEST_LATE;
+      }
+
+      ctx->copied_begin = copied_begin;
+      ctx->stored_before = stored;
+      ProduceUncommitted( ctx, capacity + 1 - filled + copied );
+      ctx->interrupt_produced = true;
+
+      return T_INTERRUPT_TEST_DONE;
+    }
+
+    if ( ctx->producer == PRODUCER_SOME ) {
+      produced = capacity + 1 - filled;
+    } else {
+      produced = capacity + 1 - filled + copied;
+    }
+
+    Produce( ctx, produced );
+    ctx->interrupt_produced = true;
+    overwritten = filled + produced - capacity;
+
+    if ( overwritten > copied ) {
+      overwritten = copied;
+    }
+
+    ctx->expected_overflow += overwritten;
+    ctx->expected_first_data += overwritten;
+    ctx->expected_count = copied - overwritten;
+    ctx->next_data_valid = false;
+
+    return T_INTERRUPT_TEST_DONE;
+  }
+
+  static const T_interrupt_test_config interrupt_config = {
+    .prepare = InterruptPrepare,
+    .action = InterruptAction,
+    .interrupt = Interrupt,
+    .max_iteration_count = 1000
+  };
+
+  static bool HasOverwrite( const Context *ctx )
+  {
+    const rtems_record_fetch_control *control;
+
+    control = &ctx->control;
+
+    return control->fetched_items != NULL && control->fetched_count >= 2 &&
+           control->fetched_items[ 1 ].event == RTEMS_RECORD_PER_CPU_OVERFLOW &&
+           control->fetched_items[ 1 ].data == ctx->expected_overflow;
+  }
+
+  static void InterruptFetch( Context *ctx )
+  {
+    T_interrupt_test_state state;
+    uint32_t               i;
+
+    state = T_INTERRUPT_TEST_INITIAL;
+
+    for ( i = 0; i < 10; ++i ) {
+      state = T_interrupt_test( &interrupt_config, ctx );
+
+      if (
+        state == T_INTERRUPT_TEST_DONE &&
+        ( ctx->producer == PRODUCER_UNCOMMITTED || HasOverwrite( ctx ) )
+      ) {
+        break;
+      }
+    }
+
+    T_eq_int( state, T_INTERRUPT_TEST_DONE );
+  }
+
+  static rtems_record_data FirstUserData(
+    const rtems_record_fetch_control *control
+  )
+  {
+    size_t i;
+
+    for ( i = 0; i < control->fetched_count; ++i ) {
+      const rtems_record_item *item;
+
+      item = &control->fetched_items[ i ];
+
+      if ( RTEMS_RECORD_GET_EVENT( item->event ) == RTEMS_RECORD_USER_0 ) {
+        return item->data;
+      }
+    }
+
+    return 0;
+  }
+
+  static void CheckFetched( const Context *ctx, bool overflow, size_t count )
+  {
+    size_t i;
+    size_t header;
+
+    header = overflow ? 2 : 1;
+    T_eq_sz( ctx->fetched_count, header + count );
+    T_eq_u32( ctx->fetched[ 0 ].event, RTEMS_RECORD_PROCESSOR );
+    T_eq_ulong( ctx->fetched[ 0 ].data, ctx->cpu_index );
+
+    if ( overflow ) {
+      T_eq_u32( ctx->fetched[ 1 ].event, RTEMS_RECORD_PER_CPU_OVERFLOW );
+      T_eq_ulong( ctx->fetched[ 1 ].data, ctx->expected_overflow );
+    }
+
+    for ( i = 0; i < count && header + i < ctx->fetched_count; ++i ) {
+      const rtems_record_item *item;
+
+      item = &ctx->fetched[ header + i ];
+      T_eq_u32( RTEMS_RECORD_GET_EVENT( item->event ), RTEMS_RECORD_USER_0 );
+    }
+  }
+
+  static size_t FetchedHeader( const Context *ctx )
+  {
+    return ctx->expected_overflow != 0 ? 2 : 1;
+  }
+
+  static void CheckProvided( const Context *ctx )
+  {
+    size_t header;
+    size_t i;
+
+    header = FetchedHeader( ctx );
+
+    for ( i = 0; header + i < ctx->fetched_count; ++i ) {
+      T_eq_ulong(
+        ctx->fetched[ header + i ].data,
+        ctx->expected_first_data + i
+      );
+    }
+  }
+
+  static void CheckUncounted( const Context *ctx )
+  {
+    if ( ctx->expected_overflow != 0 ) {
+      T_eq_u32( ctx->fetched[ 1 ].event, RTEMS_RECORD_PER_CPU_OVERFLOW );
+      T_eq_ulong( ctx->fetched[ 1 ].data, ctx->expected_overflow );
+    } else {
+      T_true(
+        ctx->fetched_count < 2 ||
+        ctx->fetched[ 1 ].event != RTEMS_RECORD_PER_CPU_OVERFLOW
+      );
+    }
+  }
+
+  static void CheckReplaced( const Context *ctx )
+  {
+    size_t       header;
+    size_t       i;
+    unsigned int ring;
+
+    header = FetchedHeader( ctx );
+    ring = GetControl( ctx )->mask + 1;
+
+    for ( i = 0; header + i < ctx->fetched_count; ++i ) {
+      const rtems_record_item *item;
+      rtems_record_data        provided;
+      rtems_record_data        replaced;
+
+      item = &ctx->fetched[ header + i ];
+      provided = ctx->expected_first_data + i;
+      replaced = ctx->uncommitted_data + ( ctx->copied_begin + (unsigned int) i +
+                                           ring - ctx->uncommitted_head );
+
+      if ( i + 1 < ctx->stored_before ) {
+        T_eq_ulong( item->data, provided );
+      } else if ( i > ctx->stored_before ) {
+        T_eq_ulong( item->data, replaced );
+      }
+    }
+  }
+test-target: testsuites/validation/tc-record-fetch.c
+test-teardown:
+  brief: null
+  code: |
+    uint32_t cpu_index;
+
+    for (
+      cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+      ++cpu_index
+    ) {
+      rtems_interrupt_level level;
+      Per_CPU_Control      *cpu;
+
+      cpu = _Per_CPU_Get_by_index( cpu_index );
+      rtems_interrupt_local_disable( level );
+      (void) _Watchdog_Per_CPU_insert(
+        &cpu->record->Watchdog,
+        cpu,
+        &cpu->Watchdog.Header[ PER_CPU_WATCHDOG_TICKS ],
+        ctx->expire[ cpu_index ]
+      );
+      rtems_interrupt_local_enable( level );
+    }
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: InvalidItemCount
+    Fetched: None
+    Copy: N/A
+    Lost: N/A
+    Next: Rejected
+  pre-conditions:
+    LastProcessor: all
+    Resume:
+    - 'No'
+    ItemCount:
+    - Invalid
+    Buffer:
+    - Empty
+    - Partial
+    - Overflow
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Continue
+    Fetched: Part
+    Copy: Provided
+    Lost: N/A
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Partial
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Partial
+    Producer:
+    - Some
+    - All
+- enabled-by: true
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Overflow
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Overflow
+    Producer:
+    - Some
+    - All
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: Header
+    Copy: N/A
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume:
+    - 'No'
+    ItemCount:
+    - Enough
+    Buffer:
+    - Empty
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: All
+    Copy: Provided
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Some
+    - All
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Some
+    - All
+- enabled-by: true
+  post-conditions:
+    Status: Done
+    Fetched: OverflowOnly
+    Copy: N/A
+    Lost: N/A
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume:
+    - 'Yes'
+    ItemCount:
+    - Enough
+    Buffer:
+    - Lost
+    Producer:
+    - Idle
+- enabled-by: true
+  post-conditions: Unreachable
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Header
+    Copy: N/A
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume:
+    - 'No'
+    ItemCount:
+    - Enough
+    Buffer:
+    - Empty
+    Producer:
+    - Idle
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: All
+    Copy: Provided
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Idle
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Some
+    - All
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Idle
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Provided
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Some
+    - All
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: OverflowOnly
+    Copy: N/A
+    Lost: N/A
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume:
+    - 'Yes'
+    ItemCount:
+    - Enough
+    Buffer:
+    - Lost
+    Producer:
+    - Idle
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Part
+    Copy: Replaced
+    Lost: Uncounted
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Partial
+    Producer:
+    - Uncommitted
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Replaced
+    Lost: Uncounted
+    Next: Same
+  pre-conditions:
+    LastProcessor: all
+    Resume: all
+    ItemCount:
+    - Small
+    Buffer:
+    - Overflow
+    Producer:
+    - Uncommitted
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Done
+    Fetched: All
+    Copy: Replaced
+    Lost: Uncounted
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Uncommitted
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Done
+    Fetched: Overflow
+    Copy: Replaced
+    Lost: Uncounted
+    Next: First
+  pre-conditions:
+    LastProcessor:
+    - 'Yes'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Uncommitted
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: All
+    Copy: Replaced
+    Lost: Uncounted
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Partial
+    Producer:
+    - Uncommitted
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Continue
+    Fetched: Overflow
+    Copy: Replaced
+    Lost: Uncounted
+    Next: Following
+  pre-conditions:
+    LastProcessor:
+    - 'No'
+    Resume: all
+    ItemCount:
+    - Enough
+    Buffer:
+    - Overflow
+    Producer:
+    - Uncommitted
+type: requirement
