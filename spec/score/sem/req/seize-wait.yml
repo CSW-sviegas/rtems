@@ -20,28 +20,28 @@ post-conditions:
     text: |
       The return status of the directive call shall be derived from
       ${../../status/if/successful:/name}.
-  - name: Enqueued
-    test-code: |
-      switch ( ctx->tq_ctx->base.discipline ) {
-        case TQ_FIFO:
-          ${../../tq/req/enqueue-fifo:/test-run}( &ctx->tq_ctx->base );
-          break;
-        case TQ_PRIORITY:
-          ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base );
-          break;
-        default:
-          T_unreachable();
-          break;
-      }
-    text: |
-      Where the thread queue uses the FIFO discipline, the calling thread shall be
-      enqueued in FIFO order.
-
-      Where the thread queue uses the priority discipline, the calling thread shall
-      be enqueued in priority order.
   test-epilogue: null
   test-prologue: |
     Status_Control status;
+- name: Enqueued
+  states:
+  - name: 'No'
+    test-code: |
+      /* The test runner would block if the worker is enqueued */
+    text: |
+      The calling thread shall not be enqueued on the thread queue of the semaphore.
+  - name: FIFO
+    test-code: |
+      ${../../tq/req/enqueue-fifo:/test-run}( &ctx->tq_ctx->base );
+    text: |
+      The calling thread shall be enqueued in FIFO order.
+  - name: Priority
+    test-code: |
+      ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base );
+    text: |
+      The calling thread shall be enqueued in priority order.
+  test-epilogue: null
+  test-prologue: null
 - name: Count
   states:
   - name: Nop
@@ -58,15 +58,12 @@ post-conditions:
   test-prologue: null
 - name: Timer
   states:
-  - name: Optional
+  - name: Ticks
     test-code: |
       /* Checked by GetProperties() */
     text: |
-      Where the directive was called with a timeout in clock ticks, the thread timer
-      of the calling task shall fire after the specified clock ticks.
-
-      Where the directive was called without a timeout, the thread timer of the
-      calling task shall be inactive.
+      The thread timer of the calling task shall fire after the specified clock
+      ticks.
   - name: 'No'
     test-code: |
       T_eq_int( T_get_thread_timer_state( RTEMS_SELF ), T_THREAD_TIMER_INACTIVE );
@@ -75,6 +72,42 @@ post-conditions:
   test-epilogue: null
   test-prologue: null
 pre-conditions:
+- name: Discipline
+  states:
+  - name: FIFO
+    test-code: |
+      if ( ctx->tq_ctx->base.discipline != TQ_FIFO ) {
+        ${.:skip}
+      }
+    text: |
+      Where the thread queue of the semaphore uses the FIFO discipline.
+  - name: Priority
+    test-code: |
+      if ( ctx->tq_ctx->base.discipline != TQ_PRIORITY ) {
+        ${.:skip}
+      }
+    text: |
+      Where the thread queue of the semaphore uses the priority discipline.
+  test-epilogue: null
+  test-prologue: null
+- name: Timeout
+  states:
+  - name: Ticks
+    test-code: |
+      if ( ctx->tq_ctx->base.wait != TQ_WAIT_TIMED ) {
+        ${.:skip}
+      }
+    text: |
+      Where the directive waits with a timeout in clock ticks.
+  - name: None
+    test-code: |
+      if ( ctx->tq_ctx->base.wait != TQ_WAIT_FOREVER ) {
+        ${.:skip}
+      }
+    text: |
+      Where the directive waits without a timeout.
+  test-epilogue: null
+  test-prologue: null
 - name: Count
   states:
   - name: Zero
@@ -95,10 +128,14 @@ skip-reasons: {}
 test-action: |
   /* Action performed by Status post-condition */
 test-brief: null
-test-cleanup: null
+test-cleanup: |
+  ctx->tq_ctx->base.get_properties = NULL;
 test-context: []
 test-context-support: null
-test-description: null
+test-description: |
+  The enqueue runners check the thread timer of a blocked worker against the
+  ticks of its watchdog. The test requires that no clock tick occurs between the
+  enqueue and the check.
 test-header:
   code: null
   freestanding: false
@@ -114,10 +151,12 @@ test-header:
   target: testsuites/validation/tr-sem-seize-wait.h
 test-includes:
 - rtems/score/statesimpl.h
+- rtems/score/threadimpl.h
 test-local-includes:
 - tr-sem-seize-wait.h
 - tr-tq-enqueue-fifo.h
 - tr-tq-enqueue-priority.h
+- tx-support.h
 test-prepare: |
   ctx->tq_ctx->base.enqueue_prepare = TQEnqueuePrepareDefault;
   ctx->tq_ctx->base.enqueue_done = TQEnqueueDoneDefault;
@@ -135,22 +174,30 @@ test-support: |
   static void GetProperties( TQContext *base, TQWorkerKind enqueued_worker )
   {
     TQSemContext        *ctx;
-    T_thread_timer_state timer_state;
+    Thread_Control      *thread;
+    Thread_queue_Context queue_context;
+    States_Control       state;
+    TaskTimerInfo        timer_info;
 
     ctx = (TQSemContext *) base;
-    T_eq_u32(
-      ctx->base.worker_tcb[ enqueued_worker ]->current_state,
-      STATES_WAITING_FOR_SEMAPHORE
-    );
+    thread = ctx->base.worker_tcb[ enqueued_worker ];
 
-    timer_state = T_get_thread_timer_state(
-      ctx->base.worker_id[ enqueued_worker ]
-    );
+    _Thread_queue_Context_initialize( &queue_context );
+    _Thread_State_acquire( thread, &queue_context.Lock_context.Lock_context );
+    state = thread->current_state;
+    _Thread_State_release( thread, &queue_context.Lock_context.Lock_context );
+    T_eq_u32( state, STATES_WAITING_FOR_SEMAPHORE );
+
+    GetTaskTimerInfoByThread( thread, &timer_info );
 
     if ( base->wait == TQ_WAIT_TIMED ) {
-      T_eq_int( timer_state, T_THREAD_TIMER_SCHEDULED );
+      T_eq_int( timer_info.state, TASK_TIMER_TICKS );
+      T_eq_u64(
+        timer_info.expire_ticks - timer_info.now_ticks,
+        base->timeout_ticks
+      );
     } else {
-      T_eq_int( timer_state, T_THREAD_TIMER_INACTIVE );
+      T_eq_int( timer_info.state, TASK_TIMER_INACTIVE );
     }
 
     T_eq_u32( TQSemGetCount( ctx ), 0 );
@@ -163,17 +210,38 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: Ok
+    Enqueued: 'No'
     Count: MinusOne
     Timer: 'No'
   pre-conditions:
+    Discipline: all
+    Timeout: all
     Count:
     - Positive
 - enabled-by: true
   post-conditions:
-    Status: Enqueued
+    Status: N/A
+    Enqueued:
+    - specified-by: Discipline
     Count: Nop
-    Timer: Optional
+    Timer: Ticks
   pre-conditions:
+    Discipline: all
+    Timeout:
+    - Ticks
+    Count:
+    - Zero
+- enabled-by: true
+  post-conditions:
+    Status: N/A
+    Enqueued:
+    - specified-by: Discipline
+    Count: Nop
+    Timer: 'No'
+  pre-conditions:
+    Discipline: all
+    Timeout:
+    - None
     Count:
     - Zero
 type: requirement

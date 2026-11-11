@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -58,6 +58,7 @@ test-action: |
 
   TQSchedulerRecordStart( ctx->tq_ctx );
   TQSend( ctx->tq_ctx, TQ_BLOCKER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+  TQGetProperties( ctx->tq_ctx, TQ_BLOCKER_C );
   TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
   TQSchedulerRecordStop( ctx->tq_ctx );
 test-brief: null

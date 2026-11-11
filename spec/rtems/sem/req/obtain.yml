@@ -32,14 +32,48 @@ post-conditions:
     text: |
       The calling task shall try to seize the semaphore as specified by
       ${/score/sem/req/seize-try:/spec}.
-  - name: SemSeizeWait
+  - name: SemSeizeWaitFIFOTimeout
+    test-code: |
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = 3;
+      ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = UINT32_MAX;
+    text: |
+      The calling task shall wait to seize the semaphore as specified by
+      ${/score/sem/req/seize-wait:/spec} where the thread queue of the semaphore uses
+      the FIFO discipline and the directive waits with a timeout in clock ticks.
+  - name: SemSeizeWaitFIFOForever
     test-code: |
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
       ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
     text: |
       The calling task shall wait to seize the semaphore as specified by
-      ${/score/sem/req/seize-wait:/spec}.
+      ${/score/sem/req/seize-wait:/spec} where the thread queue of the semaphore uses
+      the FIFO discipline and the directive waits without a timeout.
+  - name: SemSeizeWaitPriorityTimeout
+    test-code: |
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = 3;
+      ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
+      ctx->tq_ctx.timeout_ticks = UINT32_MAX;
+    text: |
+      The calling task shall wait to seize the semaphore as specified by
+      ${/score/sem/req/seize-wait:/spec} where the thread queue of the semaphore uses
+      the priority discipline and the directive waits with a timeout in clock ticks.
+  - name: SemSeizeWaitPriorityForever
+    test-code: |
+      ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
+      ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ${/score/sem/req/seize-wait:/test-run}( &ctx->tq_sem_ctx );
+    text: |
+      The calling task shall wait to seize the semaphore as specified by
+      ${/score/sem/req/seize-wait:/spec} where the thread queue of the semaphore uses
+      the priority discipline and the directive waits without a timeout.
   - name: MtxSeizeTryFIFO
     test-code: |
       ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
@@ -400,16 +434,55 @@ transition-map:
     - 'No'
 - enabled-by: true
   post-conditions:
-    Action: SemSeizeWait
+    Action: SemSeizeWaitFIFOTimeout
   pre-conditions:
     Class:
     - Counting
     - Simple
-    Discipline: all
+    Discipline:
+    - FIFO
     Id:
     - Valid
     Wait:
     - Timeout
+- enabled-by: true
+  post-conditions:
+    Action: SemSeizeWaitFIFOForever
+  pre-conditions:
+    Class:
+    - Counting
+    - Simple
+    Discipline:
+    - FIFO
+    Id:
+    - Valid
+    Wait:
+    - Forever
+- enabled-by: true
+  post-conditions:
+    Action: SemSeizeWaitPriorityTimeout
+  pre-conditions:
+    Class:
+    - Counting
+    - Simple
+    Discipline:
+    - Priority
+    Id:
+    - Valid
+    Wait:
+    - Timeout
+- enabled-by: true
+  post-conditions:
+    Action: SemSeizeWaitPriorityForever
+  pre-conditions:
+    Class:
+    - Counting
+    - Simple
+    Discipline:
+    - Priority
+    Id:
+    - Valid
+    Wait:
     - Forever
 - enabled-by: true
   post-conditions:
