@@ -129,6 +129,7 @@ install:
   - cpukit/include/rtems/recordclient.h
   - cpukit/include/rtems/recorddata.h
   - cpukit/include/rtems/recorddump.h
+  - cpukit/include/rtems/recordimpl.h
   - cpukit/include/rtems/recordserver.h
   - cpukit/include/rtems/regulator.h
   - cpukit/include/rtems/regulatorimpl.h
