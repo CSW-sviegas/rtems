@@ -1,0 +1,113 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Wait on the ${../glossary/condition-variable:/term} referenced by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_cond_t:/name} *restrict ${.:/params[0]/name}
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The object referenced by the ${.:/params[0]/name} parameter is neither an
+    initialized ${../glossary/condition-variable:/term} nor filled with zero bytes.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${../glossary/condition-variable:/term} referenced by the
+    ${.:/params[0]/name} parameter is bound to a mutex other than the one
+    referenced by the ${.:/params[1]/name} parameter.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The object referenced by the ${.:/params[1]/name} parameter is not an
+    initialized mutex when the calling thread reacquires the mutex.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    The object referenced by the ${.:/params[1]/name} parameter is not an
+    initialized mutex.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    The mutex referenced by the ${.:/params[1]/name} parameter is not owned by the
+    calling thread.
+  role: errno
+  uid: /c/errno/if/eperm
+- role: reference
+  uid: /ref/std/posix-2024/pthread-cond-clockwait
+name: pthread_cond_wait
+notes: |
+  See ${/ref/std/posix-2024/pthread-cond-clockwait:/name}.
+
+  The call binds the ${../glossary/condition-variable:/term} to the mutex
+  referenced by ${.:/params[1]/name}. The binding stays until a call of
+  ${cond-signal:/name} or ${cond-broadcast:/name} finds no thread waiting on the
+  condition variable, or until ${cond-init:/name} initializes the condition
+  variable. A broadcast which ends the wait removes it before the call returns.
+params:
+- description: |
+    is the pointer to the ${../glossary/condition-variable:/term} to wait on.
+  dir: inout
+  name: cond
+- description: |
+    is the pointer to the mutex which the call releases and reacquires.
+  dir: inout
+  name: mutex
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The object referenced by the ${.:/params[0]/name} parameter was neither an
+      initialized ${../glossary/condition-variable:/term} nor filled with zero bytes.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${../glossary/condition-variable:/term} referenced by the
+      ${.:/params[0]/name} parameter was bound to a mutex other than the one
+      referenced by the ${.:/params[1]/name} parameter.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The object referenced by the ${.:/params[1]/name} parameter was not an
+      initialized mutex when the calling thread reacquired the mutex.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/eperm:/name}
+  - description: |
+      The object referenced by the ${.:/params[1]/name} parameter was not an
+      initialized mutex.
+    value: ${/c/errno/if/eperm:/name}
+  - description: |
+      The mutex referenced by the ${.:/params[1]/name} parameter was not owned by the
+      calling thread.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

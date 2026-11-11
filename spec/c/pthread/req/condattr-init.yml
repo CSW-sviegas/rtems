@@ -1,0 +1,183 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/condattr-init
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-condattr-destroy
+- role: reference
+  uid: /ref/std/posix-2024/pthread-condattr-getclock
+- role: reference
+  uid: /ref/std/posix-2024/pthread-condattr-getpshared
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/condattr-init:/name} shall be
+      zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/condattr-init:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_true( ctx->attr_obj.is_initialized );
+    text: |
+      The object referenced by the ${../if/condattr-init:/params[0]/name} parameter
+      shall be an initialized ${../glossary/condition-variable:/term} attributes
+      object.
+  test-epilogue: null
+  test-prologue: null
+- name: Clock
+  states:
+  - name: Realtime
+    test-code: |
+      T_eq_ulong( ctx->attr_obj.clock, CLOCK_REALTIME );
+    text: |
+      The ${../glossary/cond-clock:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-init:/params[0]/name} parameter shall be
+      ${../../time/if/clock-realtime:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ProcessShared
+  states:
+  - name: Private
+    test-code: |
+      T_eq_int( ctx->attr_obj.process_shared, PTHREAD_PROCESS_PRIVATE );
+    text: |
+      The ${../glossary/process-shared:/term} of the
+      ${../glossary/condition-variable:/term} attributes object referenced by the
+      ${../if/condattr-init:/params[0]/name} parameter shall be
+      ${../if/process-private:/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Obj
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0xff, sizeof( ctx->attr_obj ) );
+      ctx->attr_obj.is_initialized = 0;
+    text: |
+      While the ${../if/condattr-init:/params[0]/name} parameter references an object
+      of type ${/c/if/pthread_condattr_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/condattr-init:/params[0]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-condattr-destroy:/name} specifies that
+  ${../if/condattr-init:/name} initializes the
+  ${../glossary/condition-variable:/term} attributes object with the default
+  value of each attribute. It requires the ${../glossary/cond-clock:/term} and
+  the ${../glossary/process-shared:/term}.
+  ${/ref/std/posix-2024/pthread-condattr-getclock:/name} requires that the
+  default ${../glossary/cond-clock:/term} refers to the system clock, which is
+  ${../../time/if/clock-realtime:/name} in RTEMS, and
+  ${/ref/std/posix-2024/pthread-condattr-getpshared:/name} defines the default
+  ${../glossary/process-shared:/term} as ${../if/process-private:/name}.
+  Post-conditions Clock and ProcessShared specify the default of each attribute
+  in RTEMS. Post-condition Initialized specifies that the object becomes an
+  initialized object.
+
+  The standard requires ${/c/errno/if/enomem:/name} where not enough memory
+  exists to initialize the object. ${../if/condattr-init:/name} copies the
+  default attributes into the object and allocates no memory, so this condition
+  never exists and RTEMS never returns this error.
+
+  The standard leaves the result undefined where the object is already
+  initialized. ${../if/condattr-init:/name} reads only the
+  ${../if/condattr-init:/params[0]/name} parameter and initializes the object in
+  each case, so the item has no pre-condition for the object. The standard does
+  not define the behaviour where the ${../if/condattr-init:/params[0]/name}
+  parameter is ${/c/if/null:/name}. State Null of pre-condition Attr specifies
+  the behaviour of RTEMS which returns ${/c/errno/if/einval:/name}.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_condattr_init( ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/condattr-init:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_condattr_t *attr
+- brief: |
+    This member contains the return value of the ${../if/condattr-init:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the ${../glossary/condition-variable:/term} attributes
+    object.
+  description: null
+  member: pthread_condattr_t attr_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+- time.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-condattr-init.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: Inval
+    - else: Ok
+    Initialized:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: 'Yes'
+    Clock:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Realtime
+    ProcessShared:
+    - if:
+        pre-conditions:
+          Attr: 'Null'
+      then: N/A
+    - else: Private
+  pre-conditions:
+    Attr: all
+type: requirement
