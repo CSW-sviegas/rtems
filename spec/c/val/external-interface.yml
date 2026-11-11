@@ -55,6 +55,8 @@ links:
 - role: validation
   uid: /c/errno/if/eoverflow
 - role: validation
+  uid: /c/errno/if/eperm
+- role: validation
   uid: /c/errno/if/eproto
 - role: validation
   uid: /c/errno/if/erange
