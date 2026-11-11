@@ -105,7 +105,8 @@ static const uintptr_t rtemsIRQs[
 ] = {
   (uintptr_t) rtems_irq_prologue_32,
   (uintptr_t) rtems_irq_prologue_33,
-  (uintptr_t) rtems_irq_prologue_34
+  (uintptr_t) rtems_irq_prologue_34,
+  (uintptr_t) rtems_irq_prologue_35
 };
 
 void lidt(struct idt_record *ptr)
