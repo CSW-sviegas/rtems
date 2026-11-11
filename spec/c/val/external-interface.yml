@@ -95,6 +95,10 @@ links:
 - role: validation
   uid: /c/if/offsetof
 - role: validation
+  uid: /c/pthread/if/process-private
+- role: validation
+  uid: /c/pthread/if/process-shared
+- role: validation
   uid: /c/if/pthread_attr_t
 - role: validation
   uid: /c/if/pthread_cond_t

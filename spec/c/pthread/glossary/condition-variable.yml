@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+- role: reference
+  uid: /ref/std/posix-2024/condition-variable
+term: condition variable
+text: |
+  A synchronization object which allows a thread to suspend execution,
+  repeatedly, until some associated predicate becomes true. See
+  ${/ref/std/posix-2024/condition-variable:/name}.
+type: glossary
