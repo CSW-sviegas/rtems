@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/sys-lock-semaphore-wait-timed-ticks
+- role: function-implementation
+  uid: /score/sem/req/seize-wait
+- role: requirement-refinement
+  uid: sys-lock-semaphore
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  While the timeout parameter is not zero, the
+  ${../if/sys-lock-semaphore-wait-timed-ticks:/name} directive shall seize the
+  semaphore as specified by ${/score/sem/req/seize-wait:/spec} where the thread
+  queue of the semaphore uses the priority discipline and the directive waits
+  with a timeout in clock ticks.
+type: requirement

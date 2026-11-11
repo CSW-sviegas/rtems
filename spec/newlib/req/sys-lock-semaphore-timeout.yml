@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/sys-lock-semaphore-wait-timed-ticks
+- role: function-implementation
+  uid: /score/tq/req/timeout
+- role: requirement-refinement
+  uid: sys-lock-semaphore
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  When a timeout of the ${../if/sys-lock-semaphore-wait-timed-ticks:/name}
+  directive happens, the timeout actions shall be done as specified by
+  ${/score/tq/req/timeout:/spec}.
+type: requirement

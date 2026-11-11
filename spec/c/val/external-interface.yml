@@ -1,7 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2026 Critical Software S.A.
-- Copyright (C) 2023 embedded brains GmbH & Co. KG
+- Copyright (C) 2023, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links:
 - role: validation
@@ -122,6 +122,8 @@ links:
   uid: /c/if/uint64_t
 - role: validation
   uid: /c/if/uint8_t
+- role: validation
+  uid: /c/if/uint_max
 - role: validation
   uid: /c/if/uintmax_t
 - role: validation

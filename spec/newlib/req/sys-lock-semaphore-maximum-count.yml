@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/sys-lock-semaphore-post
+- role: requirement-refinement
+  uid: sys-lock-semaphore
+rationale: |
+  The surrender requirement of a counting modulo semaphore refers to the maximum
+  count. The count of the semaphore has the type `unsigned int`.
+references: []
+requirement-type: functional
+text: |
+  The maximum count of the semaphore shall be ${/c/if/uint_max:/name}.
+type: requirement
