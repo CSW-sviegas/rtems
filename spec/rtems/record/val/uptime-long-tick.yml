@@ -1,0 +1,156 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Remove the items of each processor. Wait for four clock ticks. Fetch the items
+    of each processor.
+  action-code: |
+    sbintime_t before;
+    sbintime_t after;
+    uint32_t   cpu_index;
+    uint32_t   cpu_max;
+
+    cpu_max = rtems_scheduler_get_processor_maximum();
+
+    for ( cpu_index = 0; cpu_index < cpu_max; ++cpu_index ) {
+      Record_Control *control;
+
+      control = _Per_CPU_Get_by_index( cpu_index )->record;
+      control->tail = _Record_Head( control );
+    }
+
+    before = _Timecounter_Sbinuptime();
+    (void) rtems_task_wake_after( 4 );
+    after = _Timecounter_Sbinuptime();
+  checks:
+  - brief: |
+      Check that a clock tick of the test suite lasts longer than two to the power of
+      ${../if/time-bits:/name} counter ticks.
+    code: |
+      T_eq_u64( TicksWithinTimeBits(), 0 );
+    links: []
+  - brief: |
+      Check that each processor produced at least two uptime item pairs and that the
+      uptimes of consecutive pairs differ by one clock tick.
+    code: |
+      for ( cpu_index = 0; cpu_index < cpu_max; ++cpu_index ) {
+        CheckProcessor( ctx, cpu_index, before, after );
+      }
+    links:
+    - role: validation
+      uid: ../req/uptime-periodic
+    - role: validation
+      uid: ../req/uptime-interval
+  links: []
+test-brief: |
+  Tests the periodic uptime items of the event recording with a clock tick which
+  lasts longer than two to the power of ${../if/time-bits:/name} counter ticks.
+test-context:
+- brief: |
+    This member contains the record fetch control.
+  description: null
+  member: rtems_record_fetch_control fetch
+- brief: |
+    This member provides the storage of the record fetch control.
+  description: null
+  member: rtems_record_item fetch_storage[ 64 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/record.h
+- rtems/score/percpu.h
+- rtems/score/timecounter.h
+- sys/time.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  /*
+   * Get the largest count of clock ticks which lasts at most two to the power of
+   * RTEMS_RECORD_TIME_BITS counter ticks.
+   */
+  static uint64_t TicksWithinTimeBits( void )
+  {
+    uint64_t interval;
+
+    interval = UINT64_C( 1 ) << RTEMS_RECORD_TIME_BITS;
+    interval *= rtems_clock_get_ticks_per_second();
+    interval /= rtems_counter_frequency();
+
+    return interval;
+  }
+
+  static rtems_interval ClockTicks( sbintime_t duration )
+  {
+    sbintime_t tick;
+
+    tick = SBT_1S / rtems_clock_get_ticks_per_second();
+
+    return (rtems_interval) ( ( duration + tick / 2 ) / tick );
+  }
+
+  static void CheckProcessor(
+    Context   *ctx,
+    uint32_t   cpu_index,
+    sbintime_t before,
+    sbintime_t after
+  )
+  {
+    rtems_record_fetch_status status;
+    size_t                    pairs;
+    size_t                    i;
+    sbintime_t                previous;
+
+    rtems_record_fetch_initialize(
+      &ctx->fetch,
+      ctx->fetch_storage,
+      RTEMS_ARRAY_SIZE( ctx->fetch_storage )
+    );
+  #if defined( RTEMS_SMP )
+    ctx->fetch.internal.cpu_index = cpu_index;
+  #else
+    (void) cpu_index;
+  #endif
+    status = rtems_record_fetch( &ctx->fetch );
+    T_ne_int( status, RTEMS_RECORD_FETCH_INVALID_ITEM_COUNT );
+    pairs = 0;
+    previous = 0;
+
+    for ( i = 1; i + 1 < ctx->fetch.fetched_count; i += 2 ) {
+      const rtems_record_item *items;
+      sbintime_t               uptime;
+
+      items = &ctx->fetch.fetched_items[ i ];
+      T_eq_u32(
+        RTEMS_RECORD_GET_EVENT( items[ 0 ].event ),
+        RTEMS_RECORD_UPTIME_LOW
+      );
+      T_eq_u32(
+        RTEMS_RECORD_GET_EVENT( items[ 1 ].event ),
+        RTEMS_RECORD_UPTIME_HIGH
+      );
+      uptime = (sbintime_t) ( ( (uint64_t) items[ 1 ].data << 32 ) |
+                              (uint32_t) items[ 0 ].data );
+      T_ge_ull( (unsigned long long) uptime, (unsigned long long) before );
+      T_le_ull( (unsigned long long) uptime, (unsigned long long) after );
+
+      if ( pairs > 0 ) {
+        T_eq_u32( ClockTicks( uptime - previous ), 1 );
+      }
+
+      previous = uptime;
+      ++pairs;
+    }
+
+    T_ge_sz( pairs, 2 );
+  }
+test-target: testsuites/validation/tc-record-uptime-long-tick.c
+test-teardown: null
+type: test-case

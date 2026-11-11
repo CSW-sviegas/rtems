@@ -1,0 +1,433 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Install an interrupt entry for a testable interrupt vector. The handler
+    produces an item. Enable the vector and raise it. Remove the interrupt entry.
+  action-code: |
+    rtems_status_code     sc;
+    rtems_interrupt_entry entry;
+
+    rtems_interrupt_entry_initialize( &entry, InterruptHandler, ctx, "Test" );
+    sc = rtems_interrupt_entry_install(
+      ctx->vector,
+      RTEMS_INTERRUPT_SHARED,
+      &entry
+    );
+    T_rsc_success( sc );
+    ClearRecords();
+    (void) rtems_interrupt_vector_enable( ctx->vector );
+    sc = RaiseSoftwareInterrupt( ctx->vector );
+    T_rsc_success( sc );
+    (void) rtems_interrupt_vector_disable( ctx->vector );
+    CollectRecords( ctx );
+    KeepTestItems( ctx );
+    sc = rtems_interrupt_entry_remove( ctx->vector, &entry );
+    T_rsc_success( sc );
+  checks:
+  - brief: |
+      Check that the system produced an interrupt entry item with the vector number
+      before the item of the handler and an interrupt exit item with the vector
+      number after it.
+    code: |
+      size_t i;
+
+      T_eq_uint(
+        _Atomic_Load_uint( &ctx->handler_counter, ATOMIC_ORDER_RELAXED ),
+        1
+      );
+      T_eq_ulong( ctx->overflow, 0 );
+      i = FindItem( ctx, 0, RTEMS_RECORD_USER( 1 ), ctx->vector );
+      T_ne_sz( i, SIZE_MAX );
+      T_ge_sz( i, 1 );
+
+      if ( i != SIZE_MAX && i >= 1 ) {
+        T_true( IsItem( ctx, i - 1, RTEMS_RECORD_INTERRUPT_ENTRY, ctx->vector ) );
+        T_true( IsItem( ctx, i + 1, RTEMS_RECORD_INTERRUPT_EXIT, ctx->vector ) );
+      }
+    links:
+    - role: validation
+      uid: ../req/interrupt-entry
+    - role: validation
+      uid: ../req/interrupt-exit
+  links: []
+- action-brief: |
+    Enable the testable interrupt vector, which has no interrupt entry, and raise
+    it. The default interrupt handler of the test replaces the spurious interrupt
+    fatal error.
+  action-code: |
+    rtems_status_code sc;
+
+    ClearRecords();
+    default_handler_context = ctx;
+    (void) rtems_interrupt_vector_enable( ctx->vector );
+    sc = RaiseSoftwareInterrupt( ctx->vector );
+    T_rsc_success( sc );
+    (void) rtems_interrupt_vector_disable( ctx->vector );
+    default_handler_context = NULL;
+    CollectRecords( ctx );
+    KeepTestItems( ctx );
+  checks:
+  - brief: |
+      Check that the system produced an interrupt entry item and an interrupt exit
+      item with the vector number around the call of the default interrupt handler.
+    code: |
+      size_t i;
+
+      T_eq_u32( ctx->default_handler_counter, 1 );
+      T_eq_ulong( ctx->overflow, 0 );
+      i = FindItem( ctx, 0, RTEMS_RECORD_INTERRUPT_ENTRY, ctx->vector );
+      T_ne_sz( i, SIZE_MAX );
+      T_true( IsItem( ctx, i + 1, RTEMS_RECORD_INTERRUPT_EXIT, ctx->vector ) );
+    links:
+    - role: validation
+      uid: ../req/interrupt-entry
+    - role: validation
+      uid: ../req/interrupt-exit
+  links: []
+- action-brief: |
+    Install an interrupt entry for the testable interrupt vector and enable the
+    vector. Call ${../if/interrupt-disable:/name}, raise the vector, and call
+    ${../if/interrupt-enable:/name}, so that the interrupt is pending when the
+    directive restores the interrupt level. Wait until the handler ran. Remove the
+    interrupt entry. Keep the items of the processor which called the directives.
+  action-code: |
+    rtems_status_code     sc;
+    rtems_interrupt_entry entry;
+    uint32_t              level;
+    uint32_t              cpu_index;
+    unsigned int          handler_counter;
+
+    rtems_interrupt_entry_initialize( &entry, InterruptHandler, ctx, "Test" );
+    sc = rtems_interrupt_entry_install(
+      ctx->vector,
+      RTEMS_INTERRUPT_SHARED,
+      &entry
+    );
+    T_rsc_success( sc );
+    handler_counter = _Atomic_Load_uint(
+      &ctx->handler_counter,
+      ATOMIC_ORDER_RELAXED
+    );
+    ClearRecords();
+    (void) rtems_interrupt_vector_enable( ctx->vector );
+    level = rtems_record_interrupt_disable();
+    cpu_index = rtems_scheduler_get_processor();
+    sc = RaiseSoftwareInterrupt( ctx->vector );
+    rtems_record_interrupt_enable( level );
+    T_rsc_success( sc );
+
+    while (
+      _Atomic_Load_uint( &ctx->handler_counter, ATOMIC_ORDER_RELAXED ) ==
+      handler_counter
+    ) {
+      /* Wait */
+    }
+
+    (void) rtems_interrupt_vector_disable( ctx->vector );
+    CollectProcessorRecords( ctx, cpu_index );
+    sc = rtems_interrupt_entry_remove( ctx->vector, &entry );
+    T_rsc_success( sc );
+  checks:
+  - brief: |
+      Check that the ${../if/event:/enumerators[88]/name} item of
+      ${../if/interrupt-enable:/name} precedes each
+      ${../if/event:/enumerators[71]/name} item of the vector on the processor.
+    code: |
+      size_t enable_index;
+      size_t entry_index;
+
+      enable_index = FindEvent( ctx, RTEMS_RECORD_ISR_ENABLE );
+      entry_index = FindItem( ctx, 0, RTEMS_RECORD_INTERRUPT_ENTRY, ctx->vector );
+      T_ne_sz( enable_index, SIZE_MAX );
+      T_ne_sz( entry_index, SIZE_MAX );
+      T_lt_sz( enable_index, entry_index );
+    links:
+    - role: validation
+      uid: ../req/interrupt-enable-item
+  links: []
+test-brief: |
+  Tests the interrupt items of the event recording.
+test-context:
+- brief: |
+    This member contains the record fetch control.
+  description: null
+  member: rtems_record_fetch_control fetch
+- brief: |
+    This member provides the storage of the record fetch control.
+  description: null
+  member: rtems_record_item fetch_storage[ 64 ]
+- brief: |
+    This member contains the items fetched from all configured processors.
+  description: null
+  member: rtems_record_item items[ 256 ]
+- brief: |
+    This member contains the count of fetched items.
+  description: null
+  member: size_t item_count
+- brief: |
+    This member contains the count of lost items.
+  description: null
+  member: rtems_record_data overflow
+- brief: |
+    This member contains the testable interrupt vector.
+  description: null
+  member: rtems_vector_number vector
+- brief: |
+    This member counts the calls of the interrupt handler.
+  description: null
+  member: Atomic_Uint handler_counter
+- brief: |
+    This member counts the calls of the default interrupt handler for the testable
+    interrupt vector.
+  description: null
+  member: uint32_t default_handler_counter
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/record.h
+- rtems/score/atomic.h
+- rtems/score/percpu.h
+test-local-includes:
+- tx-support.h
+test-setup:
+  brief: null
+  code: |
+    rtems_interrupt_attributes required;
+
+    memset( &required, 0, sizeof( required ) );
+    required.can_raise = true;
+    ctx->vector = GetTestableInterruptVector( &required );
+    T_assert_ne_u32( ctx->vector, UINT32_MAX );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void ClearRecords( void )
+  {
+    uint32_t cpu_index;
+
+    for (
+      cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+      ++cpu_index
+    ) {
+      Record_Control *control;
+
+      control = _Per_CPU_Get_by_index( cpu_index )->record;
+      control->tail = _Record_Head( control );
+    }
+  }
+
+  static void CollectRecords( Context *ctx )
+  {
+    rtems_record_fetch_status status;
+
+    ctx->item_count = 0;
+    ctx->overflow = 0;
+    rtems_record_fetch_initialize(
+      &ctx->fetch,
+      ctx->fetch_storage,
+      RTEMS_ARRAY_SIZE( ctx->fetch_storage )
+    );
+
+    do {
+      size_t i;
+
+      status = rtems_record_fetch( &ctx->fetch );
+
+      for ( i = 0; i < ctx->fetch.fetched_count; ++i ) {
+        const rtems_record_item *item;
+        uint32_t                 event;
+
+        item = &ctx->fetch.fetched_items[ i ];
+        event = RTEMS_RECORD_GET_EVENT( item->event );
+
+        if ( event == RTEMS_RECORD_PROCESSOR ) {
+          continue;
+        }
+
+        if ( event == RTEMS_RECORD_PER_CPU_OVERFLOW ) {
+          ctx->overflow += item->data;
+          continue;
+        }
+
+        if ( ctx->item_count < RTEMS_ARRAY_SIZE( ctx->items ) ) {
+          ctx->items[ ctx->item_count ] = *item;
+          ++ctx->item_count;
+        }
+      }
+    } while ( status == RTEMS_RECORD_FETCH_CONTINUE );
+  }
+
+  static void CollectProcessorRecords( Context *ctx, uint32_t cpu_index )
+  {
+    rtems_record_fetch_status status;
+    bool                      keep;
+
+    ctx->item_count = 0;
+    ctx->overflow = 0;
+    keep = false;
+    rtems_record_fetch_initialize(
+      &ctx->fetch,
+      ctx->fetch_storage,
+      RTEMS_ARRAY_SIZE( ctx->fetch_storage )
+    );
+
+    do {
+      size_t i;
+
+      status = rtems_record_fetch( &ctx->fetch );
+
+      for ( i = 0; i < ctx->fetch.fetched_count; ++i ) {
+        const rtems_record_item *item;
+        uint32_t                 event;
+
+        item = &ctx->fetch.fetched_items[ i ];
+        event = RTEMS_RECORD_GET_EVENT( item->event );
+
+        if ( event == RTEMS_RECORD_PROCESSOR ) {
+          keep = ( item->data == cpu_index );
+          continue;
+        }
+
+        if ( event == RTEMS_RECORD_PER_CPU_OVERFLOW ) {
+          ctx->overflow += item->data;
+          continue;
+        }
+
+        if ( keep && ctx->item_count < RTEMS_ARRAY_SIZE( ctx->items ) ) {
+          ctx->items[ ctx->item_count ] = *item;
+          ++ctx->item_count;
+        }
+      }
+    } while ( status == RTEMS_RECORD_FETCH_CONTINUE );
+  }
+
+  static size_t FindEvent( const Context *ctx, rtems_record_event event )
+  {
+    size_t i;
+
+    for ( i = 0; i < ctx->item_count; ++i ) {
+      if ( RTEMS_RECORD_GET_EVENT( ctx->items[ i ].event ) == event ) {
+        return i;
+      }
+    }
+
+    return SIZE_MAX;
+  }
+
+  static size_t FindItem(
+    const Context     *ctx,
+    size_t             begin,
+    rtems_record_event event,
+    rtems_record_data  data
+  )
+  {
+    size_t i;
+
+    for ( i = begin; i < ctx->item_count; ++i ) {
+      const rtems_record_item *item;
+
+      item = &ctx->items[ i ];
+
+      if ( RTEMS_RECORD_GET_EVENT( item->event ) == event && item->data == data ) {
+        return i;
+      }
+    }
+
+    return SIZE_MAX;
+  }
+
+  static bool IsItem(
+    const Context     *ctx,
+    size_t             index,
+    rtems_record_event event,
+    rtems_record_data  data
+  )
+  {
+    const rtems_record_item *item;
+
+    if ( index >= ctx->item_count ) {
+      return false;
+    }
+
+    item = &ctx->items[ index ];
+
+    return RTEMS_RECORD_GET_EVENT( item->event ) == event && item->data == data;
+  }
+
+  static Context *default_handler_context;
+
+  void __real_bsp_interrupt_handler_default( rtems_vector_number vector );
+
+  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector );
+
+  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector )
+  {
+    Context *ctx;
+
+    ctx = default_handler_context;
+
+    if ( ctx == NULL || vector != ctx->vector ) {
+      __real_bsp_interrupt_handler_default( vector );
+      return;
+    }
+
+    (void) ClearSoftwareInterrupt( vector );
+    ++ctx->default_handler_counter;
+  }
+
+  /*
+   * Keep only the items of the test.  A clock tick interrupt may nest into the
+   * interrupt of the test and produce items in between.
+   */
+  static void KeepTestItems( Context *ctx )
+  {
+    size_t i;
+    size_t n;
+
+    n = 0;
+
+    for ( i = 0; i < ctx->item_count; ++i ) {
+      const rtems_record_item *item;
+      uint32_t                 event;
+
+      item = &ctx->items[ i ];
+      event = RTEMS_RECORD_GET_EVENT( item->event );
+
+      if (
+        ( event == RTEMS_RECORD_INTERRUPT_ENTRY ||
+          event == RTEMS_RECORD_INTERRUPT_EXIT ||
+          event == RTEMS_RECORD_USER( 1 ) ) &&
+        item->data == ctx->vector
+      ) {
+        ctx->items[ n ] = *item;
+        ++n;
+      }
+    }
+
+    ctx->item_count = n;
+  }
+
+  static void InterruptHandler( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    (void) ClearSoftwareInterrupt( ctx->vector );
+    rtems_record_produce( RTEMS_RECORD_USER( 1 ), ctx->vector );
+    (void) _Atomic_Fetch_add_uint(
+      &ctx->handler_counter,
+      1,
+      ATOMIC_ORDER_RELAXED
+    );
+  }
+test-target: testsuites/validation/tc-record-interrupts.c
+test-teardown: null
+type: test-case

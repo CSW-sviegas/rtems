@@ -1,0 +1,456 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Create a task.
+  action-code: |
+    ClearRecords();
+    ctx->worker_id = CreateTask( "RECX", PRIO_HIGH );
+    CollectRecords( ctx );
+  checks:
+  - brief: |
+      Check that the system produced a create item with the task identifier followed
+      by a name item with the task name.
+    code: |
+      size_t i;
+
+      T_eq_ulong( ctx->overflow, 0 );
+      i = FindItem( ctx, 0, RTEMS_RECORD_THREAD_CREATE, ctx->worker_id );
+      T_ne_sz( i, SIZE_MAX );
+      T_true( IsItem( ctx, i + 1, RTEMS_RECORD_THREAD_NAME, NameData( "RECX" ) ) );
+    links:
+    - role: validation
+      uid: ../req/ext-thread-create
+  links: []
+- action-brief: |
+    Start the task. The task has a higher priority than the runner. The entry of
+    the task returns. The fatal error handler of the test lets the task exit.
+  action-code: |
+    const Thread_Control *runner;
+    uintptr_t             stack_begin;
+    uintptr_t             frame;
+
+    runner = _Thread_Get_executing();
+    ctx->runner_id = rtems_task_self();
+    ctx->runner_stack_size = runner->Start.Initial_stack.size;
+    stack_begin = (uintptr_t) runner->Start.Initial_stack.area;
+    frame = (uintptr_t) __builtin_frame_address( 0 );
+    #if CPU_STACK_GROWS_UP == TRUE
+    ctx->runner_stack_usage = frame - stack_begin;
+    #else
+    ctx->runner_stack_usage = stack_begin + ctx->runner_stack_size - frame;
+    #endif
+    ClearRecords();
+    StartTask( ctx->worker_id, Worker, ctx );
+    CollectRecords( ctx );
+  checks:
+  - brief: |
+      Check that the entry of the task ran and returned.
+    code: |
+      T_true( ctx->worker_ran );
+      T_eq_int( ctx->fatal_source, INTERNAL_ERROR_CORE );
+      T_eq_ulong( ctx->fatal_code, INTERNAL_ERROR_THREAD_EXITTED );
+      T_eq_ulong( ctx->overflow, 0 );
+    links: []
+  - brief: |
+      Check that the system produced a start item with the task identifier.
+    code: |
+      T_ne_sz(
+        FindItem( ctx, 0, RTEMS_RECORD_THREAD_START, ctx->worker_id ),
+        SIZE_MAX
+      );
+    links:
+    - role: validation
+      uid: ../req/ext-thread-start
+  - brief: |
+      Check that the system produced for the switch from the runner to the task a
+      switch out item with the runner identifier, a stack item, and a switch in item
+      with the task identifier. The stack usage of the runner at the switch is
+      greater than at the frame of this action. It exceeds the usage at this frame by
+      less than the stack which the call chain of the start needs, and it is less
+      than the stack size.
+    code: |
+      size_t i;
+
+      i = FindItem( ctx, 0, RTEMS_RECORD_THREAD_SWITCH_IN, ctx->worker_id );
+      T_ne_sz( i, SIZE_MAX );
+      T_ge_sz( i, 2 );
+
+      if ( i != SIZE_MAX && i >= 2 ) {
+        T_true(
+          IsItem( ctx, i - 2, RTEMS_RECORD_THREAD_SWITCH_OUT, ctx->runner_id )
+        );
+        T_eq_u32(
+          RTEMS_RECORD_GET_EVENT( ctx->items[ i - 1 ].event ),
+          RTEMS_RECORD_THREAD_STACK_CURRENT
+        );
+        T_gt_ulong( ctx->items[ i - 1 ].data, ctx->runner_stack_usage );
+        T_lt_ulong(
+          ctx->items[ i - 1 ].data,
+          ctx->runner_stack_usage + CALL_CHAIN_STACK_MAX
+        );
+        T_lt_ulong( ctx->items[ i - 1 ].data, ctx->runner_stack_size );
+      }
+    links:
+    - role: validation
+      uid: ../req/ext-thread-switch
+  - brief: |
+      Check that the system produced a begin item, an exitted item, and a terminate
+      item with the task identifier in this order.
+    code: |
+      size_t begin;
+      size_t exitted;
+      size_t terminate;
+
+      begin = FindItem( ctx, 0, RTEMS_RECORD_THREAD_BEGIN, ctx->worker_id );
+      T_ne_sz( begin, SIZE_MAX );
+      exitted = FindItem(
+        ctx,
+        begin,
+        RTEMS_RECORD_THREAD_EXITTED,
+        ctx->worker_id
+      );
+      T_ne_sz( exitted, SIZE_MAX );
+      terminate = FindItem(
+        ctx,
+        exitted,
+        RTEMS_RECORD_THREAD_TERMINATE,
+        ctx->worker_id
+      );
+      T_ne_sz( terminate, SIZE_MAX );
+    links:
+    - role: validation
+      uid: ../req/ext-thread-begin
+    - role: validation
+      uid: ../req/ext-thread-exitted
+    - role: validation
+      uid: ../req/ext-thread-terminate
+  links: []
+- action-brief: |
+    Create and start a task which blocks. Restart the task.
+  action-code: |
+    ctx->blocker_id = CreateTask( "RECY", PRIO_HIGH );
+    StartTask( ctx->blocker_id, Blocker, ctx );
+    ClearRecords();
+    (void) rtems_task_restart( ctx->blocker_id, (rtems_task_argument) ctx );
+    CollectRecords( ctx );
+  checks:
+  - brief: |
+      Check that the system produced a restart item with the task identifier.
+    code: |
+      T_eq_u32( ctx->blocker_counter, 2 );
+      T_eq_ulong( ctx->overflow, 0 );
+      T_ne_sz(
+        FindItem( ctx, 0, RTEMS_RECORD_THREAD_RESTART, ctx->blocker_id ),
+        SIZE_MAX
+      );
+    links:
+    - role: validation
+      uid: ../req/ext-thread-restart
+  links: []
+- action-brief: |
+    Delete the blocked task. Create a task, which frees the deleted task. Delete
+    the new task.
+  action-code: |
+    rtems_id id;
+
+    ClearRecords();
+    DeleteTask( ctx->blocker_id );
+    id = CreateTask( "RECZ", PRIO_HIGH );
+    CollectRecords( ctx );
+    DeleteTask( id );
+  checks:
+  - brief: |
+      Check that the system produced a terminate item and a delete item with the
+      identifier of the blocked task.
+    code: |
+      T_eq_ulong( ctx->overflow, 0 );
+      T_ne_sz(
+        FindItem( ctx, 0, RTEMS_RECORD_THREAD_TERMINATE, ctx->blocker_id ),
+        SIZE_MAX
+      );
+      T_ne_sz(
+        FindItem( ctx, 0, RTEMS_RECORD_THREAD_DELETE, ctx->blocker_id ),
+        SIZE_MAX
+      );
+    links:
+    - role: validation
+      uid: ../req/ext-thread-terminate
+    - role: validation
+      uid: ../req/ext-thread-delete
+  links: []
+- action-brief: |
+    Find the initial extension of the event recording.
+  action-code: |
+    size_t i;
+
+    ctx->record_extension = NULL;
+
+    for ( i = 0; i < _User_extensions_Initial_count; ++i ) {
+      const User_extensions_Table *table;
+
+      table = &_User_extensions_Initial_extensions[ i ];
+
+      if ( table->thread_create == _Record_Thread_create ) {
+        ctx->record_extension = table;
+      }
+    }
+  checks:
+  - brief: |
+      Check that the initial extension of the event recording has no fatal error
+      handler.
+    code: |
+      T_not_null( ctx->record_extension );
+
+      if ( ctx->record_extension != NULL ) {
+        T_null( ctx->record_extension->fatal );
+      }
+    links:
+    - role: validation
+      uid: /acfg/req/record-fatal-dump-base64-undefined
+  links: []
+test-brief: |
+  Tests the thread items of the event recording.
+test-context:
+- brief: |
+    This member references the initial extension of the event recording.
+  description: null
+  member: |
+    const User_extensions_Table *record_extension
+- brief: |
+    This member contains the record fetch control.
+  description: null
+  member: rtems_record_fetch_control fetch
+- brief: |
+    This member provides the storage of the record fetch control.
+  description: null
+  member: rtems_record_item fetch_storage[ 64 ]
+- brief: |
+    This member contains the items fetched from all configured processors.
+  description: null
+  member: rtems_record_item items[ 256 ]
+- brief: |
+    This member contains the count of fetched items.
+  description: null
+  member: size_t item_count
+- brief: |
+    This member contains the count of lost items.
+  description: null
+  member: rtems_record_data overflow
+- brief: |
+    This member contains the runner identifier.
+  description: null
+  member: rtems_id runner_id
+- brief: |
+    This member contains the stack size of the runner.
+  description: null
+  member: size_t runner_stack_size
+- brief: |
+    This member contains the stack usage of the runner at the frame of the action
+    which starts the worker.
+  description: null
+  member: uintptr_t runner_stack_usage
+- brief: |
+    This member contains the worker identifier.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member is true, if the worker ran.
+  description: null
+  member: bool worker_ran
+- brief: |
+    This member contains the blocker identifier.
+  description: null
+  member: rtems_id blocker_id
+- brief: |
+    This member counts the starts of the blocker.
+  description: null
+  member: uint32_t blocker_counter
+- brief: |
+    This member contains the source of the fatal error.
+  description: null
+  member: rtems_fatal_source fatal_source
+- brief: |
+    This member contains the code of the fatal error.
+  description: null
+  member: rtems_fatal_code fatal_code
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/record.h
+- rtems/score/percpu.h
+- rtems/score/isrlevel.h
+- rtems/score/threadimpl.h
+- rtems/score/userextdata.h
+test-local-includes:
+- tx-support.h
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    SetFatalHandler( FatalTaskExit, ctx );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  /*
+   * This is the maximum stack size which the call chain from the start of the
+   * worker to the thread switch extensions needs.
+   */
+  #define CALL_CHAIN_STACK_MAX 2048
+
+  static void ClearRecords( void )
+  {
+    uint32_t cpu_index;
+
+    for (
+      cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+      ++cpu_index
+    ) {
+      Record_Control *control;
+
+      control = _Per_CPU_Get_by_index( cpu_index )->record;
+      control->tail = _Record_Head( control );
+    }
+  }
+
+  static void CollectRecords( Context *ctx )
+  {
+    rtems_record_fetch_status status;
+
+    ctx->item_count = 0;
+    ctx->overflow = 0;
+    rtems_record_fetch_initialize(
+      &ctx->fetch,
+      ctx->fetch_storage,
+      RTEMS_ARRAY_SIZE( ctx->fetch_storage )
+    );
+
+    do {
+      size_t i;
+
+      status = rtems_record_fetch( &ctx->fetch );
+
+      for ( i = 0; i < ctx->fetch.fetched_count; ++i ) {
+        const rtems_record_item *item;
+        uint32_t                 event;
+
+        item = &ctx->fetch.fetched_items[ i ];
+        event = RTEMS_RECORD_GET_EVENT( item->event );
+
+        if ( event == RTEMS_RECORD_PROCESSOR ) {
+          continue;
+        }
+
+        if ( event == RTEMS_RECORD_PER_CPU_OVERFLOW ) {
+          ctx->overflow += item->data;
+          continue;
+        }
+
+        if ( ctx->item_count < RTEMS_ARRAY_SIZE( ctx->items ) ) {
+          ctx->items[ ctx->item_count ] = *item;
+          ++ctx->item_count;
+        }
+      }
+    } while ( status == RTEMS_RECORD_FETCH_CONTINUE );
+  }
+
+  static size_t FindItem(
+    const Context     *ctx,
+    size_t             begin,
+    rtems_record_event event,
+    rtems_record_data  data
+  )
+  {
+    size_t i;
+
+    for ( i = begin; i < ctx->item_count; ++i ) {
+      const rtems_record_item *item;
+
+      item = &ctx->items[ i ];
+
+      if ( RTEMS_RECORD_GET_EVENT( item->event ) == event && item->data == data ) {
+        return i;
+      }
+    }
+
+    return SIZE_MAX;
+  }
+
+  static bool IsItem(
+    const Context     *ctx,
+    size_t             index,
+    rtems_record_event event,
+    rtems_record_data  data
+  )
+  {
+    const rtems_record_item *item;
+
+    if ( index >= ctx->item_count ) {
+      return false;
+    }
+
+    item = &ctx->items[ index ];
+
+    return RTEMS_RECORD_GET_EVENT( item->event ) == event && item->data == data;
+  }
+
+  static rtems_record_data NameData( const char *name )
+  {
+    rtems_record_data data;
+    size_t            i;
+
+    data = 0;
+
+    for ( i = 0; i < sizeof( data ) && name[ i ] != '\0'; ++i ) {
+      data |= (rtems_record_data) (unsigned char) name[ i ] << ( 8 * i );
+    }
+
+    return data;
+  }
+
+  static void FatalTaskExit(
+    rtems_fatal_source source,
+    rtems_fatal_code   code,
+    void              *arg
+  )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ctx->fatal_source = source;
+    ctx->fatal_code = code;
+    _ISR_Set_level( 0 );
+    rtems_task_exit();
+  }
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+    ctx->worker_ran = true;
+  }
+
+  static void Blocker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+    ++ctx->blocker_counter;
+    (void) ReceiveAnyEvents();
+  }
+test-target: testsuites/validation/tc-record-extensions.c
+test-teardown:
+  brief: null
+  code: |
+    SetFatalHandler( NULL, NULL );
+    RestoreRunnerPriority();
+  description: null
+type: test-case

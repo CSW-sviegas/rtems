@@ -1,0 +1,35 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite provides a configuration with the fatal error dump
+  of the event recording enabled. The system initialization triggers a fatal
+  error.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define FATAL_SYSINIT_RUN RtemsRecordValFatalDump_Run
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  #define CONFIGURE_MAXIMUM_PROCESSORS 4
+
+  #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS TEST_RECORD_PER_PROCESSOR_ITEMS
+
+  #define CONFIGURE_RECORD_FATAL_DUMP_BASE64
+
+  #define FATAL_SYSINIT_INITIAL_EXTENSION \
+    { .fatal = RtemsRecordValFatalDump_StopCapture }
+
+  #include "ts-fatal-sysinit.h"
+test-description: null
+test-includes: []
+test-local-includes:
+- tr-record-fatal-dump.h
+- ts-record.h
+test-target: testsuites/validation/ts-fatal-record-dump.c
+type: test-suite

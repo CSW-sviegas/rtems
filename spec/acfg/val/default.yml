@@ -242,6 +242,31 @@ test-actions:
     - role: validation
       uid: ../if/max-user-extensions
   links: []
+- action-brief: |
+    Get the record buffer of each processor.
+  action-code: |
+    uint32_t cpu_index;
+    uint32_t record_buffers;
+
+    record_buffers = 0;
+
+    for (
+      cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+      ++cpu_index
+    ) {
+      if ( _Per_CPU_Get_by_index( cpu_index )->record != NULL ) {
+        ++record_buffers;
+      }
+    }
+  checks:
+  - brief: |
+      Check that no processor has a record buffer.
+    code: |
+      T_step_eq_u32( ${.:/step}, record_buffers, 0 );
+    links:
+    - role: validation
+      uid: ../req/record-per-processor-items-zero
+  links: []
 test-brief: |
   Tests the default values of application configuration options.
 test-context: []
@@ -251,6 +276,7 @@ test-header: null
 test-includes:
 - bsp.h
 - string.h
+- rtems/score/percpu.h
 - rtems/score/userextdata.h
 test-local-includes:
 - tx-support.h
