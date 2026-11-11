@@ -1,0 +1,81 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initialize the ${../glossary/condition-variable:/term} referenced by
+  ${.:/params[0]/name} with the attributes object referenced by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_cond_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/pthread_condattr_t:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The object referenced by the ${.:/params[1]/name} parameter is not an
+    initialized ${../glossary/condition-variable:/term} attributes object.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${../glossary/process-shared:/term} of the object referenced by the
+    ${.:/params[1]/name} parameter is neither ${../if/process-private:/name} nor
+    ${../if/process-shared:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/pthread-cond-destroy
+name: pthread_cond_init
+notes: |
+  See ${/ref/std/posix-2024/pthread-cond-destroy:/name}.
+
+  The function does not read the object referenced by the ${.:/params[0]/name}
+  parameter. It initializes the object also where it is an initialized
+  ${../glossary/condition-variable:/term} on which ${../glossary/thread:/plural}
+  are blocked.
+params:
+- description: |
+    is the pointer to the ${../glossary/condition-variable:/term} to initialize.
+  dir: out
+  name: cond
+- description: |
+    is the pointer to the ${../glossary/condition-variable:/term} attributes
+    object. If ${.:/params[1]/name} is ${/c/if/null:/name}, the default attributes
+    are used.
+  dir: in
+  name: attr
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The object referenced by the ${.:/params[1]/name} parameter was not an
+      initialized ${../glossary/condition-variable:/term} attributes object.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${../glossary/process-shared:/term} of the object referenced by the
+      ${.:/params[1]/name} parameter was neither ${../if/process-private:/name} nor
+      ${../if/process-shared:/name}.
+    value: ${/c/errno/if/einval:/name}
+type: interface
