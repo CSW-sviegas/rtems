@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/validation/tc-record-fetch.c
+- testsuites/validation/tc-record.c
 - testsuites/validation/ts-validation-record-0.c
 stlib: []
 target: testsuites/validation/ts-validation-record-0.exe

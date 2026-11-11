@@ -35,6 +35,8 @@
 #include "config.h"
 #endif
 
+#include "ts-record.h"
+
 #include <rtems/test.h>
 
 /**
@@ -52,7 +54,7 @@ const char rtems_test_name[] = "TestsuitesValidationRecord0";
 
 #define CONFIGURE_MAXIMUM_PROCESSORS 4
 
-#define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS 16
+#define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS TEST_RECORD_PER_PROCESSOR_ITEMS
 
 #include "ts-default.h"
 

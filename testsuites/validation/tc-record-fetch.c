@@ -41,6 +41,8 @@
 #include <rtems/score/percpu.h>
 #include <rtems/score/watchdogimpl.h>
 
+#include "ts-record.h"
+
 #include <rtems/test.h>
 
 /**
@@ -157,7 +159,7 @@ typedef struct {
 
 #define ITEM_COUNT_ENOUGH 2
 
-#define ITEM_COUNT_ENOUGH_MAX 64
+#define ITEM_COUNT_ENOUGH_MAX ( TEST_RECORD_PER_PROCESSOR_ITEMS + 2 )
 
 #define BUFFER_EMPTY 0
 
