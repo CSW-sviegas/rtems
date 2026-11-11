@@ -253,17 +253,19 @@ rtems_status_code bsp_interrupt_get_attributes(
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
 
   attributes->is_maskable = true;
-  attributes->can_raise = true;
   attributes->cleared_by_acknowledge = true;
-#ifdef RTEMS_SMP
-  attributes->can_raise_on = true;
-#endif
 
   if (vector == BSP_VECTOR_APIC_TIMER) {
+    /* A raise sends an IPI, which the mask of the local timer does not mask. */
     attributes->can_enable = true;
     attributes->maybe_enable = true;
     attributes->can_disable = true;
     attributes->maybe_disable = true;
+  } else {
+    attributes->can_raise = true;
+#ifdef RTEMS_SMP
+    attributes->can_raise_on = true;
+#endif
   }
 
   return RTEMS_SUCCESSFUL;
@@ -284,6 +286,10 @@ rtems_status_code bsp_interrupt_is_pending(
 rtems_status_code bsp_interrupt_raise(rtems_vector_number vector)
 {
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+
+  if (vector == BSP_VECTOR_APIC_TIMER) {
+    return RTEMS_UNSATISFIED;
+  }
 
   lapic_raise_self(vector);
   return RTEMS_SUCCESSFUL;
@@ -355,6 +361,10 @@ rtems_status_code bsp_interrupt_raise_on(
 )
 {
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+
+  if (vector == BSP_VECTOR_APIC_TIMER) {
+    return RTEMS_UNSATISFIED;
+  }
 
   lapic_send_ipi(cpu_index, (uint8_t) vector);
   return RTEMS_SUCCESSFUL;
