@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant defines the count of bits of a time event which hold the time
+  stamp.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '22'
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: RTEMS_RECORD_TIME_BITS
+notes: null
+type: interface

@@ -1,0 +1,37 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Commits the record items of the record context and restores the interrupt
+  level.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      ${commit-critical:/name}( context );
+      ${/rtems/basedefs/if/compiler-memory-barrier:/name}();
+      _CPU_ISR_Enable( context->level );
+    params:
+    - ${context:/name} *${.:/params[0]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_commit
+notes: null
+params:
+- description: |
+    is the record context which ${prepare:/name} initialized.
+  dir: in
+  name: context
+return: null
+type: interface

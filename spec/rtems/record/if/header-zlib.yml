@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This header file provides the interfaces of the zlib compression library.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+  not: RTEMS_QUAL
+index-entries: []
+interface-type: header-file
+links:
+- role: interface-placement
+  uid: /score/if/domain
+- role: interface-ingroup
+  uid: group
+path: zlib.h
+prefix: contrib/cpukit/zlib
+type: interface

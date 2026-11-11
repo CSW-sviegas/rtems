@@ -1,0 +1,85 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure provides the context of record dumps with zlib compression and
+  base64 encoding.
+copyrights:
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member references the handler which outputs a character.
+    definition: void ( *${.:name} )( int, void * )
+    description: null
+    kind: member
+    name: put_char
+  variants: []
+- default:
+    brief: |
+      This member contains the argument of the handler.
+    definition: void *${.:name}
+    description: null
+    kind: member
+    name: arg
+  variants: []
+- default:
+    brief: |
+      This member contains the count of buffered bytes.
+    definition: int ${.:name}
+    description: null
+    kind: member
+    name: out
+  variants: []
+- default:
+    brief: |
+      This member contains the buffer of the base64 encoding.
+    definition: unsigned char ${.:name}[ 57 ]
+    description: null
+    kind: member
+    name: buf
+  variants: []
+- default:
+    brief: |
+      This member contains the zlib stream.
+    definition: z_stream ${.:name}
+    description: null
+    kind: member
+    name: stream
+  variants: []
+- default:
+    brief: |
+      This member references the begin of the free memory area for zlib.
+    definition: char *${.:name}
+    description: null
+    kind: member
+    name: mem_begin
+  variants: []
+- default:
+    brief: |
+      This member contains the size of the free memory area for zlib in bytes.
+    definition: ${/c/if/size_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: mem_available
+  variants: []
+- default:
+    brief: |
+      This member provides the memory area for zlib.
+    definition: char ${.:name}[ 0x80000 ]
+    description: null
+    kind: member
+    name: mem
+  variants: []
+definition-kind: typedef-only
+description: null
+enabled-by:
+  not: RTEMS_QUAL
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: header-dump
+- role: interface-ingroup
+  uid: group
+name: rtems_record_dump_base64_zlib_context
+notes: null
+type: interface

@@ -1,0 +1,44 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initializes the record fetch control.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${fetch-control:/name} *${.:/params[0]/name}
+    - ${item:/name} *${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: void
+  variants: []
+description: |
+  The function shall be called before the record fetch control is passed to
+  ${fetch:/name}.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_record_fetch_initialize
+notes: |
+  See ${get-item-count-for-fetch:/name}.
+params:
+- description: |
+    is the record fetch control.
+  dir: out
+  name: control
+- description: |
+    is the item array which stores the fetched items.
+  dir: out
+  name: items
+- description: |
+    is the count of items of the array referenced by ${.:/params[1]/name}.
+  dir: in
+  name: count
+return: null
+type: interface

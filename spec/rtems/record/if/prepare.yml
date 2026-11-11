@@ -1,0 +1,49 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Disables interrupts and prepares to add and commit record items.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      uint32_t               level;
+      const Per_CPU_Control *cpu_self;
+      Record_Control        *control;
+      unsigned int           head;
+
+      _CPU_ISR_Disable( level );
+      ${/rtems/basedefs/if/compiler-memory-barrier:/name}();
+      context->now = ${time-event:/name}( _Record_Now(), 0 );
+      context->level = level;
+      cpu_self = _Per_CPU_Get();
+      control = cpu_self->record;
+      context->control = control;
+      head = _Record_Head( control );
+      context->head = head;
+    params:
+    - ${context:/name} *${.:/params[0]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_prepare
+notes: null
+params:
+- description: |
+    is the record context which shall be used for the following ${add:/name} and
+    ${commit:/name} calls. The context may have an arbitrary content at function
+    entry.
+  dir: out
+  name: context
+return: null
+type: interface

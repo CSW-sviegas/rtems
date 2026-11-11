@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Adds the record item to the record context.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      Record_Control *control;
+      ${item:/name}  *item;
+      unsigned int    head;
+
+      control = context->control;
+      head = context->head;
+      item = &control->Items[ _Record_Index( control, head ) ];
+      context->head = head + 1;
+
+      item->event = context->now | event;
+      item->data = data;
+    params:
+    - ${context:/name} *${.:/params[0]/name}
+    - ${event:/name} ${.:/params[1]/name}
+    - ${data:/name} ${.:/params[2]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_add
+notes: null
+params:
+- description: |
+    is the record context which ${prepare:/name} or ${prepare-critical:/name}
+    initialized.
+  dir: inout
+  name: context
+- description: |
+    is the event without a time stamp.
+  dir: in
+  name: event
+- description: |
+    is the event data.
+  dir: in
+  name: data
+return: null
+type: interface

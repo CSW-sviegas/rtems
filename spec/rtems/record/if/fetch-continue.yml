@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This status indicates that the current round of record fetches for all
+  configured processors has to continue.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: null
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: enumerator
+links: []
+name: RTEMS_RECORD_FETCH_CONTINUE
+notes: null
+type: interface

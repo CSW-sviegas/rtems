@@ -1,0 +1,70 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces an ${event:/enumerators[101]/name} event and eight argument events.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${data:/name} ${.:/params[0]/name}
+    - ${data:/name} ${.:/params[1]/name}
+    - ${data:/name} ${.:/params[2]/name}
+    - ${data:/name} ${.:/params[3]/name}
+    - ${data:/name} ${.:/params[4]/name}
+    - ${data:/name} ${.:/params[5]/name}
+    - ${data:/name} ${.:/params[6]/name}
+    - ${data:/name} ${.:/params[7]/name}
+    return: void
+  variants: []
+description: |
+  The event data of the ${event:/enumerators[101]/name} event is the address of
+  the call to the function.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_line_arg_8
+notes: null
+params:
+- description: |
+    is the event data of the ${event:/enumerators[22]/name} event.
+  dir: in
+  name: data_0
+- description: |
+    is the event data of the ${event:/enumerators[23]/name} event.
+  dir: in
+  name: data_1
+- description: |
+    is the event data of the ${event:/enumerators[24]/name} event.
+  dir: in
+  name: data_2
+- description: |
+    is the event data of the ${event:/enumerators[25]/name} event.
+  dir: in
+  name: data_3
+- description: |
+    is the event data of the ${event:/enumerators[26]/name} event.
+  dir: in
+  name: data_4
+- description: |
+    is the event data of the ${event:/enumerators[27]/name} event.
+  dir: in
+  name: data_5
+- description: |
+    is the event data of the ${event:/enumerators[28]/name} event.
+  dir: in
+  name: data_6
+- description: |
+    is the event data of the ${event:/enumerators[29]/name} event.
+  dir: in
+  name: data_7
+return: null
+type: interface

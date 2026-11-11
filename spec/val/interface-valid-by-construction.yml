@@ -164,6 +164,12 @@ links:
 - role: validation
   uid: /rtems/ratemon/if/printer
 - role: validation
+  uid: /rtems/record/if/fetch-continue
+- role: validation
+  uid: /rtems/record/if/fetch-done
+- role: validation
+  uid: /rtems/record/if/fetch-invalid-item-count
+- role: validation
   uid: /rtems/signal/if/asr
 - role: validation
   uid: /rtems/signal/if/asr-entry

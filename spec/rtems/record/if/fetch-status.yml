@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This enumeration defines the status codes which ${fetch:/name} returns.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition-kind: typedef-only
+description: null
+enabled-by: true
+index-entries: []
+interface-type: enum
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: interface-enumerator
+  uid: fetch-done
+- role: interface-enumerator
+  uid: fetch-continue
+- role: interface-enumerator
+  uid: fetch-invalid-item-count
+name: rtems_record_fetch_status
+notes: null
+type: interface

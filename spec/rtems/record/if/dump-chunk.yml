@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Record dump handlers which output a chunk of data shall have this type.
+copyrights:
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: void ( *${.:/name} )( void *arg, const void *data, ${/c/if/size_t:/name}
+    length )
+  variants: []
+description: |
+  The `arg` parameter is the argument passed to ${dump:/name}. The `data`
+  parameter references the begin of the chunk. The `length` parameter is the
+  length of the chunk in bytes.
+enabled-by: true
+index-entries: []
+interface-type: typedef
+links:
+- role: interface-placement
+  uid: header-dump
+- role: interface-ingroup
+  uid: group
+name: rtems_record_dump_chunk
+notes: null
+params: []
+return: null
+type: interface

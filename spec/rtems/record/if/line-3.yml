@@ -1,0 +1,50 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces an ${event:/enumerators[101]/name} event and two extra events.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${event:/name} ${.:/params[0]/name}
+    - ${data:/name} ${.:/params[1]/name}
+    - ${event:/name} ${.:/params[2]/name}
+    - ${data:/name} ${.:/params[3]/name}
+    return: void
+  variants: []
+description: |
+  The event data of the ${event:/enumerators[101]/name} event is the address of
+  the call to the function.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_line_3
+notes: null
+params:
+- description: |
+    is the event without a time stamp of the second item.
+  dir: in
+  name: event_0
+- description: |
+    is the event data of the second item.
+  dir: in
+  name: data_0
+- description: |
+    is the event without a time stamp of the third item.
+  dir: in
+  name: event_1
+- description: |
+    is the event data of the third item.
+  dir: in
+  name: data_1
+return: null
+type: interface

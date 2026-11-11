@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This integer type holds the data of a record item.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: unsigned long ${.:/name}
+  variants: []
+description: |
+  The type can hold a 32-bit integer and a pointer.
+enabled-by: true
+index-entries: []
+interface-type: typedef
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: rtems_record_data
+notes: null
+params: []
+return: null
+type: interface

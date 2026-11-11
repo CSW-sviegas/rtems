@@ -1,0 +1,99 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces the exit event and ten return events.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      _Record_Exit_10(
+        ${/rtems/basedefs/if/return-address:/name}(),
+        event,
+        data_0,
+        data_1,
+        data_2,
+        data_3,
+        data_4,
+        data_5,
+        data_6,
+        data_7,
+        data_8,
+        data_9
+      )
+    params:
+    - ${.:/params[0]/name}
+    - ${.:/params[1]/name}
+    - ${.:/params[2]/name}
+    - ${.:/params[3]/name}
+    - ${.:/params[4]/name}
+    - ${.:/params[5]/name}
+    - ${.:/params[6]/name}
+    - ${.:/params[7]/name}
+    - ${.:/params[8]/name}
+    - ${.:/params[9]/name}
+    - ${.:/params[10]/name}
+    return: null
+  variants: []
+description: |
+  The event data of the exit event is the return address of the function which
+  calls the macro.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_exit_10
+notes: null
+params:
+- description: |
+    is the exit event.
+  dir: in
+  name: event
+- description: |
+    is the event data of the ${event:/enumerators[142]/name} event.
+  dir: in
+  name: data_0
+- description: |
+    is the event data of the ${event:/enumerators[143]/name} event.
+  dir: in
+  name: data_1
+- description: |
+    is the event data of the ${event:/enumerators[144]/name} event.
+  dir: in
+  name: data_2
+- description: |
+    is the event data of the ${event:/enumerators[145]/name} event.
+  dir: in
+  name: data_3
+- description: |
+    is the event data of the ${event:/enumerators[146]/name} event.
+  dir: in
+  name: data_4
+- description: |
+    is the event data of the ${event:/enumerators[147]/name} event.
+  dir: in
+  name: data_5
+- description: |
+    is the event data of the ${event:/enumerators[148]/name} event.
+  dir: in
+  name: data_6
+- description: |
+    is the event data of the ${event:/enumerators[149]/name} event.
+  dir: in
+  name: data_7
+- description: |
+    is the event data of the ${event:/enumerators[150]/name} event.
+  dir: in
+  name: data_8
+- description: |
+    is the event data of the ${event:/enumerators[151]/name} event.
+  dir: in
+  name: data_9
+return: null
+type: interface

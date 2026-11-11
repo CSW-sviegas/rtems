@@ -1,0 +1,84 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure controls the record fetches of ${fetch:/name}.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member references the first item which the last call of ${fetch:/name}
+      fetched.
+    definition: ${item:/name} *${.:name}
+    description: null
+    kind: member
+    name: fetched_items
+  variants: []
+- default:
+    brief: |
+      This member contains the count of items which the last call of ${fetch:/name}
+      fetched.
+    definition: ${/c/if/size_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: fetched_count
+  variants: []
+- default:
+    brief: |
+      This member contains the state of the record fetches.
+    definition:
+    - default: null
+      variants:
+      - definition:
+          brief: |
+            This member contains the index of the processor from which the next record
+            items are fetched.
+          definition: ${/c/if/uint32_t:/name} ${.:name}
+          description: null
+          kind: member
+          name: cpu_index
+        enabled-by: defined(${/build-options/if/smp:/name})
+    - default:
+        brief: |
+          This member contains the count of record items which need to be fetched from
+          the current processor before the next processor is selected.
+        definition: ${/c/if/size_t:/name} ${.:name}
+        description: null
+        kind: member
+        name: cpu_todo
+      variants: []
+    - default:
+        brief: |
+          This member references the item array which stores the fetched items.
+        definition: ${item:/name} *${.:name}
+        description: null
+        kind: member
+        name: storage_items
+      variants: []
+    - default:
+        brief: |
+          This member contains the count of items of the array referenced by
+          `storage_items`.
+        definition: ${/c/if/size_t:/name} ${.:name}
+        description: null
+        kind: member
+        name: storage_item_count
+      variants: []
+    description: |
+      Only ${fetch-initialize:/name} and ${fetch:/name} shall access the members.
+    kind: struct
+    name: internal
+  variants: []
+definition-kind: typedef-only
+description: |
+  ${fetch-initialize:/name} shall initialize the structure.
+enabled-by: true
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_record_fetch_control
+notes: null
+type: interface

@@ -1,0 +1,52 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure provides a context to add and commit record items.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member references the record control of the processor.
+    definition: Record_Control *${.:name}
+    description: null
+    kind: member
+    name: control
+  variants: []
+- default:
+    brief: |
+      This member contains the head index.
+    definition: unsigned int ${.:name}
+    description: null
+    kind: member
+    name: head
+  variants: []
+- default:
+    brief: |
+      This member contains the time event of the context.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: now
+  variants: []
+- default:
+    brief: |
+      This member contains the interrupt level.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: level
+  variants: []
+definition-kind: typedef-only
+description: |
+  Only the record context directives shall access the members of the structure.
+enabled-by: true
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_record_context
+notes: null
+type: interface

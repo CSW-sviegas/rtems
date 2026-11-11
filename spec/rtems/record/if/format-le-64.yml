@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant indicates that the record items are in the 64-bit little-endian
+  format.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '0x22222222'
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: RTEMS_RECORD_FORMAT_LE_64
+notes: null
+type: interface

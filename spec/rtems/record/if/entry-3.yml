@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces the entry event and three argument events.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      _Record_Entry_3( ${/rtems/basedefs/if/return-address:/name}(), event, data_0, data_1, data_2 )
+    params:
+    - ${.:/params[0]/name}
+    - ${.:/params[1]/name}
+    - ${.:/params[2]/name}
+    - ${.:/params[3]/name}
+    return: null
+  variants: []
+description: |
+  The event data of the entry event is the return address of the function which
+  calls the macro.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_entry_3
+notes: null
+params:
+- description: |
+    is the entry event.
+  dir: in
+  name: event
+- description: |
+    is the event data of the ${event:/enumerators[22]/name} event.
+  dir: in
+  name: data_0
+- description: |
+    is the event data of the ${event:/enumerators[23]/name} event.
+  dir: in
+  name: data_1
+- description: |
+    is the event data of the ${event:/enumerators[24]/name} event.
+  dir: in
+  name: data_2
+return: null
+type: interface

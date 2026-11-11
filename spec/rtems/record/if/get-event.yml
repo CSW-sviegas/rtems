@@ -1,0 +1,35 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Gets the event of the time event.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      ( ( time_event ) & ( ( 1U << ${event-bits:/name} ) - 1U ) )
+    params:
+    - ${.:/params[0]/name}
+    return: ${event:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: RTEMS_RECORD_GET_EVENT
+notes: null
+params:
+- description: |
+    is the time event.
+  dir: in
+  name: time_event
+return:
+  return: |
+    Returns the event of the time event specified by ${.:/params[0]/name}.
+  return-values: []
+type: interface

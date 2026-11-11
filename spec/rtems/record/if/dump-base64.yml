@@ -1,0 +1,39 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Dumps the event records in base64 encoding.
+copyrights:
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void ( *${.:/params[0]/name} )( int, void * )
+    - void *${.:/params[1]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header-dump
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_dump_base64
+notes: |
+  See ${dump:/name}.
+params:
+- description: |
+    is the handler which outputs a character.
+  dir: in
+  name: put_char
+- description: |
+    is the argument of the handler.
+  dir: in
+  name: arg
+return: null
+type: interface

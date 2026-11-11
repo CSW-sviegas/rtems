@@ -1,0 +1,38 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces an ${event:/enumerators[35]/name} event, an
+  ${event:/enumerators[101]/name} event, and one argument event.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      _Record_Caller_arg( ${/rtems/basedefs/if/return-address:/name}(), data )
+    params:
+    - ${.:/params[0]/name}
+    return: null
+  variants: []
+description: |
+  The event data of the ${event:/enumerators[35]/name} event is the return
+  address of the function which calls the macro. The event data of the
+  ${event:/enumerators[101]/name} event is the address of the macro call.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_caller_arg
+notes: null
+params:
+- description: |
+    is the event data of the ${event:/enumerators[22]/name} event.
+  dir: in
+  name: data
+return: null
+type: interface

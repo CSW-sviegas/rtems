@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This header file provides the interfaces of the event recording.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+description: null
+enabled-by: true
+index-entries: []
+interface-type: header-file
+links:
+- enabled-by: true
+  role: interface-include
+  uid: header-data
+- enabled-by: true
+  role: interface-include
+  uid: header-impl
+- role: interface-placement
+  uid: /if/domain
+- role: interface-ingroup
+  uid: group
+path: rtems/record.h
+prefix: cpukit/include
+type: interface

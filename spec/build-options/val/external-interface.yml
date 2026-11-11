@@ -20,6 +20,8 @@ links:
 - role: validation
   uid: /build-options/if/profiling
 - role: validation
+  uid: /build-options/if/qual
+- role: validation
   uid: /build-options/if/smp
 method: by-review-of-design
 text: |

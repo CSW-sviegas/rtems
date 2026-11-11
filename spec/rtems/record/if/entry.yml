@@ -1,0 +1,36 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces the entry event.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      ${produce:/name}( event, (${data:/name}) ${/rtems/basedefs/if/return-address:/name}() )
+    params:
+    - ${.:/params[0]/name}
+    return: null
+  variants: []
+description: |
+  The event data of the entry event is the return address of the function which
+  calls the macro.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_entry
+notes: null
+params:
+- description: |
+    is the entry event.
+  dir: in
+  name: event
+return: null
+type: interface

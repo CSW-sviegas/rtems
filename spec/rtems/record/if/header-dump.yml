@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This header file provides the interfaces of the event record dumps.
+copyrights:
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+description: null
+enabled-by: true
+index-entries: []
+interface-type: header-file
+links:
+- enabled-by: true
+  role: interface-include
+  uid: header
+- enabled-by:
+    not: RTEMS_QUAL
+  role: interface-include
+  uid: header-zlib
+- role: interface-placement
+  uid: /if/domain
+- role: interface-ingroup
+  uid: group
+path: rtems/recorddump.h
+prefix: cpukit/include
+type: interface

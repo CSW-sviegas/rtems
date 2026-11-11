@@ -1,0 +1,29 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure represents a record item in the 64-bit format.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: |-
+    struct __attribute__(( __packed__ )) {
+      ${/c/if/uint32_t:/name} event;
+      ${/c/if/uint64_t:/name} data;
+    } ${.:/name}
+  variants: []
+description: |
+  The event member contains the time event. The data member contains the event
+  data.
+enabled-by: true
+index-entries: []
+interface-type: typedef
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: rtems_record_item_64
+notes: |
+  The structure is packed.
+params: []
+return: null
+type: interface

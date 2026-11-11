@@ -1,0 +1,81 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Produces the entry event and seven argument events.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      _Record_Entry_7(
+        ${/rtems/basedefs/if/return-address:/name}(),
+        event,
+        data_0,
+        data_1,
+        data_2,
+        data_3,
+        data_4,
+        data_5,
+        data_6
+      )
+    params:
+    - ${.:/params[0]/name}
+    - ${.:/params[1]/name}
+    - ${.:/params[2]/name}
+    - ${.:/params[3]/name}
+    - ${.:/params[4]/name}
+    - ${.:/params[5]/name}
+    - ${.:/params[6]/name}
+    - ${.:/params[7]/name}
+    return: null
+  variants: []
+description: |
+  The event data of the entry event is the return address of the function which
+  calls the macro.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_entry_7
+notes: null
+params:
+- description: |
+    is the entry event.
+  dir: in
+  name: event
+- description: |
+    is the event data of the ${event:/enumerators[22]/name} event.
+  dir: in
+  name: data_0
+- description: |
+    is the event data of the ${event:/enumerators[23]/name} event.
+  dir: in
+  name: data_1
+- description: |
+    is the event data of the ${event:/enumerators[24]/name} event.
+  dir: in
+  name: data_2
+- description: |
+    is the event data of the ${event:/enumerators[25]/name} event.
+  dir: in
+  name: data_3
+- description: |
+    is the event data of the ${event:/enumerators[26]/name} event.
+  dir: in
+  name: data_4
+- description: |
+    is the event data of the ${event:/enumerators[27]/name} event.
+  dir: in
+  name: data_5
+- description: |
+    is the event data of the ${event:/enumerators[28]/name} event.
+  dir: in
+  name: data_6
+return: null
+type: interface

@@ -1,0 +1,36 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Restores the interrupt level and produces an ${event:/enumerators[88]/name}
+  event.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/uint32_t:/name} ${.:/params[0]/name}
+    return: void
+  variants: []
+description: |
+  The event data is the return address of the function.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_interrupt_enable
+notes: null
+params:
+- description: |
+    is the previous interrupt level. It shall be the value which the corresponding
+    call of ${interrupt-disable:/name} returned.
+  dir: in
+  name: level
+return: null
+type: interface

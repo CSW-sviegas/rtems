@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Prepares to add and commit record items in a critical section with interrupts
+  disabled.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      Record_Control *control;
+      unsigned int    head;
+
+      context->now = ${time-event:/name}( _Record_Now(), 0 );
+      control = cpu_self->record;
+      context->control = control;
+      head = _Record_Head( control );
+      context->head = head;
+    params:
+    - ${context:/name} *${.:/params[0]/name}
+    - const Per_CPU_Control *${.:/params[1]/name}
+    return: void
+  variants: []
+description: |
+  The function does not disable interrupts. Interrupts shall be disabled from the
+  call of the function to the call of ${commit-critical:/name}.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_prepare_critical
+notes: null
+params:
+- description: |
+    is the record context which shall be used for the following ${add:/name} and
+    ${commit-critical:/name} calls. The context may have an arbitrary content at
+    function entry.
+  dir: out
+  name: context
+- description: |
+    is the control of the current processor.
+  dir: in
+  name: cpu_self
+return: null
+type: interface

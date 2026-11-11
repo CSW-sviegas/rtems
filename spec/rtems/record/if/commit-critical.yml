@@ -1,0 +1,39 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Commits the record items of the record context in a critical section with
+  interrupts disabled.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      _Atomic_Store_uint(
+        &context->control->head,
+        context->head,
+        ATOMIC_ORDER_RELEASE
+      );
+    params:
+    - ${context:/name} *${.:/params[0]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/buffer
+name: rtems_record_commit_critical
+notes: null
+params:
+- description: |
+    is the record context which ${prepare-critical:/name} initialized.
+  dir: in
+  name: context
+return: null
+type: interface

@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Builds the time event of the time stamp and the event.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      ( ( ( time ) << ${event-bits:/name} ) | ( event ) )
+    params:
+    - ${.:/params[0]/name}
+    - ${.:/params[1]/name}
+    return: ${/c/if/uint32_t:/name}
+  variants: []
+description: |
+  A time event holds the time stamp in the upper ${time-bits:/name} bits and the
+  event in the lower ${event-bits:/name} bits.
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: RTEMS_RECORD_TIME_EVENT
+notes: null
+params:
+- description: |
+    is the time stamp.
+  dir: in
+  name: time
+- description: |
+    is the event.
+  dir: in
+  name: event
+return:
+  return: |
+    Returns the time event of the time stamp specified by ${.:/params[0]/name} and
+    the event specified by ${.:/params[1]/name}.
+  return-values: []
+type: interface

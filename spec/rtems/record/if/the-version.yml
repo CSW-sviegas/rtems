@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant defines the version of the record event definitions.
+copyrights:
+- Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '10'
+  variants: []
+description: |
+  The ${event:/enumerators[1]/name} event reports the version.
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header-data
+- role: interface-ingroup
+  uid: group
+name: RTEMS_RECORD_THE_VERSION
+notes: null
+type: interface
