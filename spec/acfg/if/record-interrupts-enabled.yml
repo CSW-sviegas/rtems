@@ -18,8 +18,6 @@ links:
   uid: domain
 - role: interface-ingroup
   uid: group-eventrecord
-- role: constraint
-  uid: ../constraint/option-not-pre-qualified
 name: CONFIGURE_RECORD_INTERRUPTS_ENABLED
 notes: |
   The interrupt event recording generates interrupt entry and exit events when

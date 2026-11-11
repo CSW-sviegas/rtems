@@ -1,0 +1,25 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/entry-6
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/entry-6:/name} macro shall produce a
+  ${../glossary/recorditem:/term} with the event specified by the
+  ${../if/entry-6:/params[0]/name} parameter and the return address of the
+  function which invokes the macro as event data, followed by six
+  ${../glossary/recorditem:/plural} with the events
+  ${../if/event:/enumerators[22]/name} up to and including
+  ${../if/event:/enumerators[27]/name} and the event data specified by the
+  ${../if/entry-6:/params[1]/name} up to and including the
+  ${../if/entry-6:/params[6]/name} parameters in this order.
+type: requirement

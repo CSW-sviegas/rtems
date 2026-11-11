@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: /acfg/req/record-fatal-dump-base64
+rationale: null
+requirement-type: functional
+text: |
+  Where the ${/acfg/if/record-fatal-dump-base64:/name} application configuration
+  option is defined and the ${/acfg/if/record-per-processor-items:/name}
+  application configuration option is greater than zero, if a fatal error occurs
+  for the first time, then the system shall output the line
+  `*** BEGIN OF RECORDS BASE64 ***`, the output of ${../if/dump-base64:/name},
+  and the line `*** END OF RECORDS BASE64 ***` through the kernel character
+  output.
+type: requirement

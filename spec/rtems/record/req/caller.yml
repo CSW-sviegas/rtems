@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/caller
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/caller:/name} macro shall produce an
+  ${../if/event:/enumerators[35]/name} ${../glossary/recorditem:/term} with the
+  return address of the function which invokes the macro as event data, followed
+  by an ${../if/event:/enumerators[101]/name} ${../glossary/recorditem:/term}
+  with an event data which identifies the invocation of the macro.
+type: requirement

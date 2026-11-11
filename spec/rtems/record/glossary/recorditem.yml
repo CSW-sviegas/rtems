@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: record item
+text: |
+  A record item consists of a ${../glossary/timeevent:/term} and an event data.
+  The type ${../if/item:/name} represents a record item.
+type: glossary

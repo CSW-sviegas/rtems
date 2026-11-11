@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/interrupt-disable
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/interrupt-disable:/name} directive shall disable the maskable
+  interrupts on the current processor.
+type: requirement

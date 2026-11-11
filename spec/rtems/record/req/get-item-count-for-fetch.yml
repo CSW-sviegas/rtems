@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/get-item-count-for-fetch
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/get-item-count-for-fetch:/name} directive shall return the smallest
+  item count of a record fetch control with which one call of
+  ${../if/fetch:/name} fetches all ${../glossary/recorditem:/plural} which a
+  ${../glossary/recordbuffer:/term} provides.
+type: requirement

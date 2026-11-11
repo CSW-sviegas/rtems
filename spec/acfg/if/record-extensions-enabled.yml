@@ -18,8 +18,6 @@ links:
   uid: domain
 - role: interface-ingroup
   uid: group-eventrecord
-- role: constraint
-  uid: ../constraint/option-not-pre-qualified
 name: CONFIGURE_RECORD_EXTENSIONS_ENABLED
 notes: |
   The record extensions capture thread create, start, restart, delete, switch,

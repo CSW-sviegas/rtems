@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/item-32
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/item-32:/name} type shall be a structure with the member
+  ${../if/item-32:/definition[0]/default/name} of the type
+  ${/c/if/uint32_t:/name} followed by the member
+  ${../if/item-32:/definition[1]/default/name} of the type
+  ${/c/if/uint32_t:/name}.
+type: requirement

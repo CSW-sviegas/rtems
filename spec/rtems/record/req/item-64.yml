@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/item-64
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/item-64:/name} type shall be a packed structure with the member
+  event of the type ${/c/if/uint32_t:/name} followed by the member data of the
+  type ${/c/if/uint64_t:/name}.
+type: requirement

@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/dump:/name} directive shall call the handler specified by the
+  ${../if/dump:/params[0]/name} parameter with the argument specified by the
+  ${../if/dump:/params[1]/name} parameter.
+type: requirement

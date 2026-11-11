@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: time stamp
+text: |
+  The time stamp of a record item is the value of the
+  ${/glossary/rtemscounter:/term} modulo two to the power of
+  ${../if/time-bits:/name} at the production of the item.
+type: glossary

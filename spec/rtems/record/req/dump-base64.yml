@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump-base64
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/dump-base64:/name} directive shall output the data of
+  ${../if/dump:/name} in base64 encoding through the handler specified by the
+  ${../if/dump-base64:/params[0]/name} parameter with the argument specified by
+  the ${../if/dump-base64:/params[1]/name} parameter.
+type: requirement

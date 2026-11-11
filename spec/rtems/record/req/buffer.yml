@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+- role: requirement-refinement
+  uid: /acfg/req/record-per-processor-items
+rationale: null
+requirement-type: functional
+text: |
+  Where the ${/acfg/if/record-per-processor-items:/name} application
+  configuration option is greater than zero, each configured processor shall have
+  a ${../glossary/recordbuffer:/term} with a capacity of
+  ${/acfg/if/record-per-processor-items:/name} ${../glossary/recorditem:/plural}.
+type: requirement

@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/prepare-critical
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/prepare-critical:/name} directive shall initialize the record
+  context referenced by the ${../if/prepare-critical:/params[0]/name} parameter
+  with the ${../glossary/recordbuffer:/term} of the processor referenced by the
+  ${../if/prepare-critical:/params[1]/name} parameter and the value of the
+  ${/glossary/rtemscounter:/term} as ${../glossary/timestamp:/term}.
+type: requirement

@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: /acfg/req/record-extensions-enabled
+- role: requirement-refinement
+  uid: buffer-append
+rationale: null
+requirement-type: functional
+text: |
+  Where the ${/acfg/if/record-extensions-enabled:/name} application configuration
+  option is defined and the ${/acfg/if/record-per-processor-items:/name}
+  application configuration option is greater than zero, when the entry of a
+  thread returns, the system shall produce an
+  ${../if/event:/enumerators[281]/name} ${../glossary/recorditem:/term} with the
+  identifier of the thread as event data.
+type: requirement

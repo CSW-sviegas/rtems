@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/dump:/name} directive shall output the
+  ${../glossary/recorditem:/plural} which ${../if/fetch:/name} fetches from all
+  processors with an index less than the value returned by
+  ${/rtems/scheduler/if/get-processor-maximum:/name} through the handler
+  specified by the ${../if/dump:/params[0]/name} parameter after the thread
+  names.
+type: requirement

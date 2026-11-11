@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/add
+- role: requirement-refinement
+  uid: buffer-append
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/add:/name} directive shall append a ${../glossary/recorditem:/term}
+  with the ${../glossary/timestamp:/term} of the record context referenced by the
+  ${../if/add:/params[0]/name} parameter, the event specified by the
+  ${../if/add:/params[1]/name} parameter, and the event data specified by the
+  ${../if/add:/params[2]/name} parameter to the ${../glossary/recordbuffer:/term}
+  of the record context.
+type: requirement

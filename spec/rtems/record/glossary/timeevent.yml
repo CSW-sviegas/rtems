@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: time event
+text: |
+  A time event holds a ${../glossary/timestamp:/term} in its upper
+  ${../if/time-bits:/name} bits and an event of the type ${../if/event:/name} in
+  its lower ${../if/event-bits:/name} bits.
+type: glossary

@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: buffer
+rationale: |
+  The uptime is a value of the type `sbintime_t`. It relates the time stamps to
+  the uptime.
+requirement-type: functional
+text: |
+  Where the ${/acfg/if/record-per-processor-items:/name} application
+  configuration option is greater than zero, when the system initializes the
+  device drivers, the system shall produce an
+  ${../if/event:/enumerators[323]/name} ${../glossary/recorditem:/term} with the
+  lower 32 bits of the uptime as event data followed by an
+  ${../if/event:/enumerators[322]/name} ${../glossary/recorditem:/term} with the
+  upper 32 bits of the uptime as event data.
+type: requirement

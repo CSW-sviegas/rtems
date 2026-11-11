@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/exit-1
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/exit-1:/name} macro shall produce a ${../glossary/recorditem:/term}
+  with the event specified by the ${../if/exit-1:/params[0]/name} parameter and
+  the return address of the function which invokes the macro as event data,
+  followed by an ${../if/event:/enumerators[142]/name}
+  ${../glossary/recorditem:/term} with the event data specified by the
+  ${../if/exit-1:/params[1]/name} parameter.
+type: requirement

@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/event-text
+rationale: null
+requirement-type: functional
+text: |
+  For each enumerator of ${../if/event:/name}, when the ${../if/event-text:/name}
+  directive is called with the enumerator as the
+  ${../if/event-text:/params[0]/name} parameter, the directive shall return the
+  name of the enumerator without the `RTEMS_RECORD_` prefix.
+type: requirement

@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+rationale: |
+  The stream header contains the format, the magic number, the version, the
+  processor maximum, the item count per processor, the counter frequency, the
+  architecture, the multilib, the BSP, the version control key, and the tools of
+  the system.
+requirement-type: functional
+text: |
+  The ${../if/dump:/name} directive shall first output the stream header through
+  the handler specified by the ${../if/dump:/params[0]/name} parameter.
+type: requirement

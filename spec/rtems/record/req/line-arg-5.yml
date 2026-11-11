@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/line-arg-5
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/line-arg-5:/name} directive shall produce an
+  ${../if/event:/enumerators[101]/name} ${../glossary/recorditem:/term} with the
+  return address of the directive call as event data followed by five
+  ${../glossary/recorditem:/plural} with the events
+  ${../if/event:/enumerators[22]/name} up to and including
+  ${../if/event:/enumerators[26]/name} and the event data specified by the
+  ${../if/line-arg-5:/params[0]/name} up to and including the
+  ${../if/line-arg-5:/params[4]/name} parameters in this order.
+type: requirement

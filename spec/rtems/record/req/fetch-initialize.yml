@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/fetch-initialize
+rationale: null
+requirement-type: functional
+text: |
+  When the ${../if/fetch-initialize:/name} directive was called with a record
+  fetch control, the next call of ${../if/fetch:/name} with this control shall
+  fetch the ${../glossary/recorditem:/plural} of the processor with index zero
+  into the array referenced by the ${../if/fetch-initialize:/params[1]/name}
+  parameter with a length specified by the
+  ${../if/fetch-initialize:/params[2]/name} parameter.
+type: requirement

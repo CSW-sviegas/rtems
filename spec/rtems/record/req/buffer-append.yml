@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: buffer
+rationale: null
+requirement-type: functional
+text: |
+  When a directive of the event recording produces a
+  ${../glossary/recorditem:/term} on a processor, the directive shall append the
+  ${../glossary/recorditem:/term} to the ${../glossary/recordbuffer:/term} of the
+  processor.
+type: requirement

@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/event
+rationale: |
+  The enumerators of ${../if/event:/name} have no explicit values, so their
+  values follow from their position in the enumeration of the interface item.
+  This requirement fixes the position of one enumerator.
+requirement-type: functional
+text: |
+  The ${../if/event:/enumerators[1023]/name} enumerator of ${../if/event:/name}
+  shall be equal to 1023.
+type: requirement

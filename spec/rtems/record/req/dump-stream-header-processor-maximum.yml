@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+rationale: null
+requirement-type: functional
+text: |
+  The stream header of ${../if/dump:/name} shall contain an
+  ${../if/event:/enumerators[10]/name} ${../glossary/recorditem:/term} with the
+  value returned by ${/rtems/scheduler/if/get-processor-maximum:/name} minus one
+  as event data and a ${../glossary/timestamp:/term} of zero.
+type: requirement

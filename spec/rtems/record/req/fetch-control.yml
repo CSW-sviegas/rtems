@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/fetch-control
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/fetch-control:/name} type shall provide the storage of a record
+  fetch control for ${../if/fetch-initialize:/name} and ${../if/fetch:/name}.
+type: requirement

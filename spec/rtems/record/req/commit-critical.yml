@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/commit-critical
+- role: requirement-refinement
+  uid: buffer-append
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/commit-critical:/name} directive shall make the
+  ${../glossary/recorditem:/plural} which ${../if/add:/name} appended with the
+  record context referenced by the ${../if/commit-critical:/params[0]/name}
+  parameter visible to ${../if/fetch:/name}.
+type: requirement

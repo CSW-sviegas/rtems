@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/produce
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/produce:/name} directive shall produce a
+  ${../glossary/recorditem:/term} with the event specified by the
+  ${../if/produce:/params[0]/name} parameter and the event data specified by the
+  ${../if/produce:/params[1]/name} parameter.
+type: requirement

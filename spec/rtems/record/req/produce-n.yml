@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/produce-n
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  While the ${../if/produce-n:/params[1]/name} parameter is greater than zero,
+  the ${../if/produce-n:/name} directive shall produce the
+  ${../glossary/recorditem:/plural} of the array referenced by the
+  ${../if/produce-n:/params[0]/name} parameter with a length specified by the
+  ${../if/produce-n:/params[1]/name} parameter in the order of the array.
+type: requirement

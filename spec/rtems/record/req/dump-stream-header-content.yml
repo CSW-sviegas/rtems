@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+rationale: null
+requirement-type: functional
+text: |
+  The stream header of ${../if/dump:/name} shall contain the format of the
+  system, the ${../if/magic:/name} constant, and the
+  ${../glossary/recorditem:/plural} of the events
+  ${../if/event:/enumerators[1]/name}, ${../if/event:/enumerators[10]/name},
+  ${../if/event:/enumerators[6]/name}, ${../if/event:/enumerators[4]/name},
+  ${../if/event:/enumerators[2]/name}, ${../if/event:/enumerators[5]/name},
+  ${../if/event:/enumerators[3]/name}, ${../if/event:/enumerators[16]/name}, and
+  ${../if/event:/enumerators[14]/name} in this order.
+type: requirement

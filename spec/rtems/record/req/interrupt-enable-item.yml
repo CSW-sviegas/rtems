@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/interrupt-enable
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/interrupt-enable:/name} directive shall produce an
+  ${../if/event:/enumerators[88]/name} ${../glossary/recorditem:/term} with the
+  return address of the directive call as event data before it restores the
+  ${/glossary/interruptlevel:/term}.
+type: requirement

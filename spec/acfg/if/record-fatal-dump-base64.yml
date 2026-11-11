@@ -21,8 +21,6 @@ links:
   uid: domain
 - role: interface-ingroup
   uid: group-eventrecord
-- role: constraint
-  uid: ../constraint/option-not-pre-qualified
 - role: reference
   uid: /ref/rtems/c-user/terminate
 name: CONFIGURE_RECORD_FATAL_DUMP_BASE64

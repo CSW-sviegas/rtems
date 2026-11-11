@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/record-interrupts-enabled
+- role: requirement-refinement
+  uid: group
+rationale: null
+requirement-type: functional
+text: |
+  Where the application configuration option is not defined, the system shall
+  allocate no resource for the interrupt event recording.
+type: requirement

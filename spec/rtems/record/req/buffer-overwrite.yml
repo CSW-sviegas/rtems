@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: buffer
+rationale: null
+requirement-type: functional
+text: |
+  While a ${../glossary/recordbuffer:/term} holds as many
+  ${../glossary/recorditem:/plural} as its capacity, when a
+  ${../glossary/recorditem:/term} is appended to the
+  ${../glossary/recordbuffer:/term}, the ${../glossary/recorditem:/term} shall
+  replace the oldest ${../glossary/recorditem:/term} of the
+  ${../glossary/recordbuffer:/term}.
+type: requirement

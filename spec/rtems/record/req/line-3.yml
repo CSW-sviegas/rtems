@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/line-3
+- role: requirement-refinement
+  uid: buffer-append
+- role: requirement-refinement
+  uid: buffer-time-stamp
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/line-3:/name} directive shall produce an
+  ${../if/event:/enumerators[101]/name} ${../glossary/recorditem:/term} with the
+  return address of the directive call as event data followed by a
+  ${../glossary/recorditem:/term} with the event specified by the
+  ${../if/line-3:/params[0]/name} parameter and the event data specified by the
+  ${../if/line-3:/params[1]/name} parameter and a ${../glossary/recorditem:/term}
+  with the event specified by the ${../if/line-3:/params[2]/name} parameter and
+  the event data specified by the ${../if/line-3:/params[3]/name} parameter.
+type: requirement

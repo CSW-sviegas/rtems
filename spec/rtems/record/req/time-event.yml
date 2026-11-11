@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/time-event
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/time-event:/name} macro shall evaluate to the
+  ${../glossary/timeevent:/term} of the ${../glossary/timestamp:/term} specified
+  by the ${../if/time-event:/params[0]/name} parameter and the event specified by
+  the ${../if/time-event:/params[1]/name} parameter.
+type: requirement

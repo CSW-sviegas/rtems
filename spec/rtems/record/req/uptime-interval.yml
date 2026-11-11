@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: buffer
+rationale: |
+  A host program can then extend the time stamps to the uptime without ambiguity.
+requirement-type: functional
+text: |
+  Where the ${/acfg/if/record-per-processor-items:/name} application
+  configuration option is greater than zero, the interval of the productions of
+  ${uptime-periodic:/spec} shall be the largest count of
+  ${/glossary/clock-tick:/plural} which lasts at most two to the power of
+  ${../if/time-bits:/name} ${/glossary/countertick:/plural}, and at least one
+  ${/glossary/clock-tick:/term}.
+type: requirement
