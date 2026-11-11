@@ -106,16 +106,30 @@ void _Record_Thread_switch(
 )
 {
   rtems_record_item items[ 3 ];
+  uintptr_t         stack_begin;
+  uintptr_t         stack_pointer;
 
+#if defined( RTEMS_SMP )
+  /*
+   * The thread switch extensions run on the stack of the heir after the
+   * context switch.  The context of the executing thread contains its stack
+   * pointer.
+   */
+  stack_pointer = (uintptr_t) _CPU_Context_Get_SP( &executing->Registers );
+#else
+  /* The thread switch extensions run on the stack of the executing thread. */
+  stack_pointer = (uintptr_t) __builtin_frame_address( 0 );
+#endif
+
+  stack_begin = (uintptr_t) executing->Start.Initial_stack.area;
   items[ 0 ].event = RTEMS_RECORD_THREAD_SWITCH_OUT;
   items[ 0 ].data = executing->Object.id;
   items[ 1 ].event = RTEMS_RECORD_THREAD_STACK_CURRENT;
-  items[ 1 ].data =
-#if defined( __GNUC__ )
-    (uintptr_t) __builtin_frame_address( 0 ) -
-    (uintptr_t) executing->Start.Initial_stack.area;
+#if CPU_STACK_GROWS_UP == TRUE
+  items[ 1 ].data = stack_pointer - stack_begin;
 #else
-    0;
+  items[ 1 ].data = stack_begin + executing->Start.Initial_stack.size -
+                    stack_pointer;
 #endif
   items[ 2 ].event = RTEMS_RECORD_THREAD_SWITCH_IN;
   items[ 2 ].data = heir->Object.id;
