@@ -87,6 +87,10 @@ install:
   - cpukit/include/rtems/malloc.h
   - cpukit/include/rtems/print.h
   - cpukit/include/rtems/printer.h
+  - cpukit/include/rtems/record.h
+  - cpukit/include/rtems/recorddata.h
+  - cpukit/include/rtems/recorddump.h
+  - cpukit/include/rtems/recordimpl.h
   - cpukit/include/rtems/seterr.h
   - cpukit/include/rtems/scheduler.h
   - cpukit/include/rtems/sysinit.h
@@ -338,6 +342,7 @@ source:
 - contrib/cpukit/musl/src/time/__year_to_secs.c
 - contrib/cpukit/musl/src/time/gmtime_r.c
 - contrib/cpukit/musl/src/time/timegm.c
+- cpukit/base64/base64-encode.c
 - cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/iorelax.c
 - cpukit/libcsupport/src/__assert.c
@@ -351,6 +356,16 @@ source:
 - cpukit/libcsupport/src/vprintk.c
 - cpukit/libmisc/cpuuse/cpuusagedata.c
 - cpukit/libmisc/cpuuse/cpuusagereset.c
+- cpukit/libtrace/record/record-dump-base64.c
+- cpukit/libtrace/record/record-dump-fatal.c
+- cpukit/libtrace/record/record-dump.c
+- cpukit/libtrace/record/record-fetch.c
+- cpukit/libtrace/record/record-stream-header.c
+- cpukit/libtrace/record/record-sysinit.c
+- cpukit/libtrace/record/record-text.c
+- cpukit/libtrace/record/record-userext.c
+- cpukit/libtrace/record/record-util.c
+- cpukit/libtrace/record/record.c
 - cpukit/posix/src/cancel.c
 - cpukit/posix/src/clockgetres.c
 - cpukit/posix/src/clockgettime.c
