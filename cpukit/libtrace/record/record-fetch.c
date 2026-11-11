@@ -139,10 +139,20 @@ rtems_record_fetch_status rtems_record_fetch(
     available = head - tail;
   }
 
-  if ( available > capacity ) {
-    overflow = available - capacity;
-    available = capacity;
+  /*
+   * The producer may overwrite items between two calls which continue the
+   * fetch of one processor.  Count the overwritten items of the remaining
+   * items as overflow.
+   */
+  if ( head - tail > capacity ) {
+    overflow = head - tail - capacity;
     tail = head - capacity;
+
+    if ( available > overflow ) {
+      available -= overflow;
+    } else {
+      available = 0;
+    }
   } else {
     overflow = 0;
   }

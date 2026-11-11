@@ -184,6 +184,52 @@ static void overflow( void )
   rtems_record_produce( RTEMS_RECORD_USER_6, 0 );
 }
 
+static void overflow_between_fetches( void )
+{
+  rtems_record_fetch_control control;
+  rtems_record_item          items[ ITEM_COUNT_FOR_FETCH ];
+  rtems_record_fetch_status  fs;
+  rtems_interrupt_level      level;
+  size_t                     capacity;
+  size_t                     i;
+
+  capacity = rtems_record_get_item_count_for_fetch() - 2;
+
+  rtems_interrupt_local_disable( level );
+  rtems_record_fetch_initialize( &control, &items[ 0 ], 10 );
+
+  do {
+    fs = rtems_record_fetch( &control );
+  } while ( fs == RTEMS_RECORD_FETCH_CONTINUE );
+
+  for ( i = 0; i < 100; ++i ) {
+    rtems_record_produce( RTEMS_RECORD_USER_0, i );
+  }
+
+  fs = rtems_record_fetch( &control );
+  rtems_test_assert( fs == RTEMS_RECORD_FETCH_CONTINUE );
+  rtems_test_assert( control.fetched_count == 9 );
+
+  for ( i = 0; i < capacity + 8; ++i ) {
+    rtems_record_produce( RTEMS_RECORD_USER_1, i );
+  }
+
+  fs = rtems_record_fetch( &control );
+  rtems_interrupt_local_enable( level );
+
+  rtems_test_assert( fs == RTEMS_RECORD_FETCH_DONE );
+  rtems_test_assert( control.fetched_count == 2 );
+  rtems_test_assert(
+    RTEMS_RECORD_GET_EVENT( control.fetched_items[ 0 ].event ) ==
+    RTEMS_RECORD_PROCESSOR
+  );
+  rtems_test_assert(
+    RTEMS_RECORD_GET_EVENT( control.fetched_items[ 1 ].event ) ==
+    RTEMS_RECORD_PER_CPU_OVERFLOW
+  );
+  rtems_test_assert( control.fetched_items[ 1 ].data == 100 );
+}
+
 static void Init( rtems_task_argument arg )
 {
   (void) arg;
@@ -213,6 +259,8 @@ static void Init( rtems_task_argument arg )
   rtems_interrupt_local_enable( level );
 
   rtems_record_client_destroy( &ctx->client );
+
+  overflow_between_fetches();
 
   wait();
   generate_events();
