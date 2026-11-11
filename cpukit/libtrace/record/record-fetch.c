@@ -89,7 +89,7 @@ rtems_record_fetch_status rtems_record_fetch(
   unsigned int              available;
   unsigned int              overflow;
   unsigned int              new_tail;
-  unsigned int              new_items;
+  unsigned int              head_distance;
   rtems_record_item        *fetched_items;
   size_t                    fetched_count;
 
@@ -187,18 +187,26 @@ rtems_record_fetch_status rtems_record_fetch(
 
   fetched_items = items + RECORD_FETCH_HEADER_ITEMS;
   fetched_count = available;
-  new_items = _Record_Head( record_control ) - head;
 
-  if ( available + new_items > capacity ) {
+  /*
+   * The producer may overwrite items while they are copied.  A copied item is
+   * overwritten, if the head moved more than the capacity beyond it.  The next
+   * call counts the overwritten items after the copied items.  The fence
+   * orders the loads of the copied items before the load of the head.
+   */
+  _Atomic_Fence( ATOMIC_ORDER_ACQUIRE );
+  head_distance = _Record_Head( record_control ) - ( new_tail - available );
+
+  if ( head_distance > capacity ) {
     unsigned int overwritten;
 
-    overwritten = available + new_items - capacity;
-    overflow += overwritten;
+    overwritten = head_distance - capacity;
 
     if ( overwritten > available ) {
       overwritten = available;
     }
 
+    overflow += overwritten;
     fetched_items += overwritten;
     fetched_count -= overwritten;
   }
