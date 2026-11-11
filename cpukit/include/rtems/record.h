@@ -1577,7 +1577,7 @@ void rtems_record_line_arg_10(
  * @param data_1 The RTEMS_RECORD_RETURN_1 event data.
  */
 #define rtems_record_exit_2( event, data_0, data_1 ) \
-  _Record_Entry_2( RTEMS_RETURN_ADDRESS(), event, data_0, data_1 )
+  _Record_Exit_2( RTEMS_RETURN_ADDRESS(), event, data_0, data_1 )
 
 /**
  * @brief Generates the specified exit event and three argument events.
