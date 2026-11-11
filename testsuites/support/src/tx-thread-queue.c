@@ -502,6 +502,7 @@ void TQInitialize( TQContext *ctx )
 
   ctx->runner_id = rtems_task_self();
   ctx->runner_tcb = GetThread( RTEMS_SELF );
+  ctx->timeout_ticks = UINT32_MAX;
 
   /*
    * Use a lower priority than all started worker tasks to make sure they wait
@@ -813,7 +814,7 @@ Status_Control TQEnqueueClassicSem( TQContext *ctx, TQWait wait )
       break;
     case TQ_WAIT_TIMED:
       option = RTEMS_WAIT;
-      timeout = UINT32_MAX;
+      timeout = ctx->timeout_ticks;
       break;
     default:
       option = RTEMS_NO_WAIT;

@@ -518,6 +518,14 @@ typedef struct TQContext {
   TQWait wait;
 
   /**
+   * @brief This member defines the timeout in clock ticks of an enqueue with
+   *   TQ_WAIT_TIMED.
+   *
+   * TQInitialize() sets it to UINT32_MAX.
+   */
+  uint32_t timeout_ticks;
+
+  /**
    * @brief This member defines the enqueue variant.
    */
   TQEnqueueVariant enqueue_variant;
@@ -1212,8 +1220,8 @@ void TQEnqueueDoneDefault( TQContext *ctx );
 /**
  * @brief Obtains the Classic API semaphore of the test context.
  *
- * TQ_WAIT_FOREVER waits forever, and TQ_WAIT_TIMED waits with the longest
- * timeout.  TQ_NO_WAIT does not wait.
+ * TQ_WAIT_FOREVER waits forever, and TQ_WAIT_TIMED waits with the timeout of
+ * the test context.  TQ_NO_WAIT does not wait.
  *
  * @param ctx is the thread queue test context.
  * @param wait is the wait behaviour of the obtain.
