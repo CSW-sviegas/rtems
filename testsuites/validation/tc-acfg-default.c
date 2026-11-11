@@ -37,6 +37,7 @@
 
 #include <bsp.h>
 #include <string.h>
+#include <rtems/score/percpu.h>
 #include <rtems/score/userextdata.h>
 
 #include "tx-support.h"
@@ -106,6 +107,10 @@
  * - Try to create a user extension set.
  *
  *   - Check that the returned status code is RTEMS_TOO_MANY.
+ *
+ * - Get the record buffer of each processor.
+ *
+ *   - Check that no processor has a record buffer.
  *
  * @{
  */
@@ -348,11 +353,36 @@ static void AcfgValDefault_Action_9( void )
 }
 
 /**
+ * @brief Get the record buffer of each processor.
+ */
+static void AcfgValDefault_Action_10( void )
+{
+  uint32_t cpu_index;
+  uint32_t record_buffers;
+
+  record_buffers = 0;
+
+  for (
+    cpu_index = 0; cpu_index < rtems_scheduler_get_processor_maximum();
+    ++cpu_index
+  ) {
+    if ( _Per_CPU_Get_by_index( cpu_index )->record != NULL ) {
+      ++record_buffers;
+    }
+  }
+
+  /*
+   * Check that no processor has a record buffer.
+   */
+  T_step_eq_u32( 15, record_buffers, 0 );
+}
+
+/**
  * @fn void T_case_body_AcfgValDefault( void )
  */
 T_TEST_CASE( AcfgValDefault )
 {
-  T_plan( 15 );
+  T_plan( 16 );
 
   AcfgValDefault_Action_0();
   AcfgValDefault_Action_1();
@@ -364,6 +394,7 @@ T_TEST_CASE( AcfgValDefault )
   AcfgValDefault_Action_7();
   AcfgValDefault_Action_8();
   AcfgValDefault_Action_9();
+  AcfgValDefault_Action_10();
 }
 
 /** @} */

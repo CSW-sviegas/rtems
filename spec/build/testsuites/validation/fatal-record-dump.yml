@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/validation/tr-record-fatal-dump.c
+- testsuites/validation/ts-fatal-record-dump.c
+stlib: []
+target: testsuites/validation/ts-fatal-record-dump.exe
+type: build
+use-after: []
+use-before: []

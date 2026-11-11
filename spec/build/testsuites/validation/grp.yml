@@ -40,6 +40,8 @@ links:
 - role: build-dependency
   uid: fatal-mandatory-processor-not-present
 - role: build-dependency
+  uid: fatal-record-dump
+- role: build-dependency
   uid: fatal-scheduler-requires-exactly-one-processor
 - role: build-dependency
   uid: fatal-smp
@@ -85,6 +87,12 @@ links:
   uid: validation-one-cpu-1
 - role: build-dependency
   uid: validation-record-0
+- role: build-dependency
+  uid: validation-record-1
+- role: build-dependency
+  uid: validation-record-2
+- role: build-dependency
+  uid: validation-record-3
 - role: build-dependency
   uid: validation-smp-one-cpu-0
 - role: build-dependency
