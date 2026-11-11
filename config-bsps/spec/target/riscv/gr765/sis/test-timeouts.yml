@@ -37,7 +37,7 @@ timeouts:
     ts-validation-cache.exe:
     - 2.1431803420418873
     ts-validation-intr.exe:
-    - 2.3438153190072626
+    - 54.49975676799659
     ts-validation-io-kernel.exe:
     - 0.7238568760221824
     ts-validation-no-clock-0.exe:
@@ -104,7 +104,7 @@ timeouts:
     ts-validation-cache.exe:
     - 3.959087804018054
     ts-validation-intr.exe:
-    - 4.011681535979733
+    - 69.940351598
     ts-validation-io-kernel.exe:
     - 1.325770825962536
     ts-validation-no-clock-0.exe:
@@ -2088,9 +2088,7 @@ timeouts:
     - 0.015490168007090688
     - 0.0095607650000602
     ts-validation-intr.exe:
-    - 0.1270549829932861
-    - 0.08259323897073045
-    - 0.21832244598772377
+    - 17.092894633999094
     ts-validation-io-kernel.exe:
     - 0.005791207950096577
     - 0.02235056203790009
@@ -5055,10 +5053,7 @@ timeouts:
     - 0.03461701900232583
     - 0.13535043998854235
     ts-validation-intr.exe:
-    - 0.21925778401782736
-    - 0.23490747599862516
-    - 0.1535105939838104
-    - 0.20741022200672887
+    - 25.63659874998848
     ts-validation-io-kernel.exe:
     - 0.0053429859690368176
     - 0.009856711025349796

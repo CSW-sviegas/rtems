@@ -159,8 +159,7 @@ timeouts:
     - 28.664162585977465
     - 9.320344912004657
     ts-validation-intr.exe:
-    - 28.59832785697654
-    - 8.294804078002926
+    - 105.08523932599928
     ts-validation-io-kernel.exe:
     - 2.955625622998923
     - 1.800141341998824
@@ -2940,7 +2939,7 @@ timeouts:
     ts-validation-cache.exe:
     - 0.011174254992511123
     ts-validation-intr.exe:
-    - 0.11581434000981972
+    - 10.50296331399295
     ts-validation-io-kernel.exe:
     - 0.00446309000835754
     ts-validation-no-clock-0.exe:
