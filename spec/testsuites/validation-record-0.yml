@@ -13,11 +13,12 @@ test-code: |
 
   #define CONFIGURE_MAXIMUM_PROCESSORS 4
 
-  #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS 16
+  #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS TEST_RECORD_PER_PROCESSOR_ITEMS
 
   #include "ts-default.h"
 test-description: null
 test-includes: []
-test-local-includes: []
+test-local-includes:
+- ts-record.h
 test-target: testsuites/validation/ts-validation-record-0.c
 type: test-suite
