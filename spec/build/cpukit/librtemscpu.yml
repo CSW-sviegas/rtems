@@ -101,6 +101,7 @@ install:
   - cpukit/include/rtems/posix/priorityimpl.h
   - cpukit/include/rtems/posix/pthread.h
   - cpukit/include/rtems/posix/pthreadattrimpl.h
+  - cpukit/include/rtems/posix/pthreadimpl.h
   - cpukit/include/rtems/posix/spinlockimpl.h
   - cpukit/include/rtems/posix/threadsup.h
 - destination: ${BSP_INCLUDEDIR}/rtems/rtems
@@ -370,6 +371,7 @@ source:
 - cpukit/posix/src/pthreadattrsetstacksize.c
 - cpukit/posix/src/pthreaddetach.c
 - cpukit/posix/src/pthreadexit.c
+- cpukit/posix/src/pthreadgetcpuclockid.c
 - cpukit/posix/src/pthreadgetnamenp.c
 - cpukit/posix/src/pthreadjoin.c
 - cpukit/posix/src/pthreadsetaffinitynp.c

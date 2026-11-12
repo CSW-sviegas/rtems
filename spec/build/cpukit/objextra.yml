@@ -178,7 +178,6 @@ install:
   - cpukit/include/rtems/posix/muteximpl.h
   - cpukit/include/rtems/posix/psignal.h
   - cpukit/include/rtems/posix/psignalimpl.h
-  - cpukit/include/rtems/posix/pthreadimpl.h
   - cpukit/include/rtems/posix/rwlockimpl.h
   - cpukit/include/rtems/posix/semaphore.h
   - cpukit/include/rtems/posix/semaphoreimpl.h
@@ -823,7 +822,6 @@ source:
 - cpukit/posix/src/pthreadequal.c
 - cpukit/posix/src/pthreadgetaffinitynp.c
 - cpukit/posix/src/pthreadgetattrnp.c
-- cpukit/posix/src/pthreadgetcpuclockid.c
 - cpukit/posix/src/pthreadgetschedparam.c
 - cpukit/posix/src/pthreadinitthreads.c
 - cpukit/posix/src/pthreadonce.c
