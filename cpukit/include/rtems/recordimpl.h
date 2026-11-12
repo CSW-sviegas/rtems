@@ -187,6 +187,26 @@ typedef struct RTEMS_PACKED {
 
 size_t _Record_Stream_header_initialize( Record_Stream_header *header );
 
+/**
+ * @brief Converts the string to record items.
+ *
+ * Each item holds the next characters of the string in the bytes of its event
+ * data, the first character in the least significant byte.  The last item
+ * holds the remaining characters and zero bytes.  The conversion stops at the
+ * end of the string or when the item array is full.
+ *
+ * @param event is the event of the items.
+ *
+ * @param str is the begin of the string.
+ *
+ * @param len is the length of the string in characters.
+ *
+ * @param[out] items is the item array.
+ *
+ * @param item_count is the count of items of the array.
+ *
+ * @return Returns the count of items which the conversion wrote.
+ */
 size_t _Record_String_to_items(
   rtems_record_event event,
   const char        *str,
