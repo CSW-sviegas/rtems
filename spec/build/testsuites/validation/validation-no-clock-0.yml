@@ -36,6 +36,7 @@ source:
 - testsuites/validation/tc-barrier-ident.c
 - testsuites/validation/tc-barrier-release.c
 - testsuites/validation/tc-barrier-wait.c
+- testsuites/validation/tc-base64-encode.c
 - testsuites/validation/tc-basedefs-pendant.c
 - testsuites/validation/tc-basedefs.c
 - testsuites/validation/tc-clock-get-tod.c
