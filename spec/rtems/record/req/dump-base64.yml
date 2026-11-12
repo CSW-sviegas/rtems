@@ -6,11 +6,15 @@ functional-type: function
 links:
 - role: interface-function
   uid: ../if/dump-base64
+- role: function-implementation
+  uid: /rtems/base64/req/encode
 rationale: null
 requirement-type: functional
 text: |
   The ${../if/dump-base64:/name} directive shall output the data of
-  ${../if/dump:/name} in base64 encoding through the handler specified by the
+  ${../if/dump:/name} through the handler specified by the
   ${../if/dump-base64:/params[0]/name} parameter with the argument specified by
-  the ${../if/dump-base64:/params[1]/name} parameter.
+  the ${../if/dump-base64:/params[1]/name} parameter in base64 encoding as
+  specified by ${/rtems/base64/req/encode:/spec} where the word length is greater
+  than four and the output consists of no word or of one word.
 type: requirement

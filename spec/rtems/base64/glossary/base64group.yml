@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: base64 group
+text: |
+  A base64 group is a sequence of four characters which the base64 encoder
+  outputs for up to three bytes of the source buffer.
+type: glossary

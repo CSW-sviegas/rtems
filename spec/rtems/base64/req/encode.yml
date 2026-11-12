@@ -1,0 +1,563 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: group
+post-conditions:
+- name: Encoding
+  states:
+  - name: Base64
+    test-code: |
+      size_t i;
+      size_t n;
+
+      n = 0;
+
+      for ( i = 0; i < ctx->out_count; ++i ) {
+        if ( strchr( WORD_BREAK, ctx->out[ i ] ) == NULL ) {
+          T_quiet_lt_sz( n, sizeof( ctx->stripped ) );
+          ctx->stripped[ n ] = ctx->out[ i ];
+          ++n;
+        }
+      }
+
+      T_eq_sz( n, ctx->expected_count );
+      T_eq_nstr( ctx->stripped, ctx->expected, ctx->expected_count );
+    text: |
+      The characters which the base64 encoder outputs, apart from the characters of
+      the word breaks, shall be the base64 encoding with padding of the source
+      buffer.
+  - name: Base64url
+    test-code: |
+      size_t i;
+      size_t n;
+
+      n = 0;
+
+      for ( i = 0; i < ctx->out_count; ++i ) {
+        if ( strchr( WORD_BREAK, ctx->out[ i ] ) == NULL ) {
+          T_quiet_lt_sz( n, sizeof( ctx->stripped ) );
+          ctx->stripped[ n ] = ctx->out[ i ];
+          ++n;
+        }
+      }
+
+      T_eq_sz( n, ctx->expected_count );
+      T_eq_nstr( ctx->stripped, ctx->expected, ctx->expected_count );
+    text: |
+      The characters which the base64 encoder outputs, apart from the characters of
+      the word breaks, shall be the base64url encoding with padding of the source
+      buffer.
+  test-epilogue: null
+  test-prologue: null
+- name: WordBreaks
+  states:
+  - name: None
+    test-code: |
+      T_eq_sz( ctx->out_count, ctx->expected_count );
+      T_eq_nstr( ctx->out, ctx->expected, ctx->expected_count );
+    text: |
+      The base64 encoder shall output no word break.
+  - name: BetweenWords
+    test-code: |
+      CheckWordBreaks( ctx );
+    text: |
+      The base64 encoder shall output the word break string after each
+      ${../glossary/base64word:/term} which more output follows.
+  test-epilogue: null
+  test-prologue: null
+- name: Count
+  states:
+  - name: Output
+    test-code: |
+      T_eq_int( ctx->count, (int) ctx->out_count );
+    text: |
+      The base64 encoder shall return the count of characters which it output,
+      including the characters of the word breaks.
+  test-epilogue: null
+  test-prologue: null
+- name: Argument
+  states:
+  - name: Passed
+    test-code: |
+      T_true( ctx->argument_passed );
+    text: |
+      The base64 encoder shall pass the argument to each call of the put character
+      function.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Alphabet
+  states:
+  - name: Base64
+    test-code: |
+      ctx->encode = _Base64_Encode;
+      ctx->alphabet = base64_alphabet;
+    text: |
+      While the encoder uses the base64 alphabet.
+  - name: Base64url
+    test-code: |
+      ctx->encode = _Base64url_Encode;
+      ctx->alphabet = base64url_alphabet;
+    text: |
+      While the encoder uses the base64url alphabet.
+  test-epilogue: null
+  test-prologue: null
+- name: Source
+  states:
+  - name: Empty
+    test-code: |
+      ctx->remainder = REMAINDER_EMPTY;
+    text: |
+      While the source buffer is empty.
+  - name: Triplets
+    test-code: |
+      ctx->remainder = 0;
+    text: |
+      While the length of the source buffer is a positive multiple of three.
+  - name: OneByteLeft
+    test-code: |
+      ctx->remainder = 1;
+    text: |
+      While the length of the source buffer divided by three leaves a remainder of
+      one.
+  - name: TwoBytesLeft
+    test-code: |
+      ctx->remainder = 2;
+    text: |
+      While the length of the source buffer divided by three leaves a remainder of
+      two.
+  test-epilogue: null
+  test-prologue: null
+- name: WordLength
+  states:
+  - name: UpToFour
+    test-code: |
+      ctx->word_length = 2;
+      ctx->word_groups = 1;
+    text: |
+      While the word length is less than or equal to four.
+  - name: AboveFour
+    test-code: |
+      ctx->word_length = 12;
+      ctx->word_groups = 2;
+    text: |
+      While the word length is greater than four.
+  test-epilogue: null
+  test-prologue: null
+- name: Words
+  states:
+  - name: None
+    test-code: |
+      ctx->groups = 0;
+    text: |
+      While the output consists of no ${../glossary/base64word:/term}.
+  - name: One
+    test-code: |
+      ctx->groups = 1;
+    text: |
+      While the output consists of one ${../glossary/base64word:/term}.
+  - name: Several
+    test-code: |
+      ctx->groups = 3;
+    text: |
+      While the output consists of more than one ${../glossary/base64word:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: WordBreak
+  states:
+  - name: Empty
+    test-code: |
+      ctx->word_break = "";
+    text: |
+      While the word break string is empty.
+  - name: NonEmpty
+    test-code: |
+      ctx->word_break = WORD_BREAK;
+    text: |
+      While the word break string is not empty.
+  - name: NullPointer
+    test-code: |
+      ctx->word_break = NULL;
+    text: |
+      While the word break string is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Alphabet covers the alphabets of the base64 encoder, 2 states.
+  Dimension Source covers the length of the source buffer, 4 states. Dimension
+  WordLength covers every value of the word length, 2 states. Dimension Words
+  covers the count of words of the output, 3 states. Dimension WordBreak covers
+  an empty and a non-empty word break string and the null pointer, 3 states. The
+  state of WordLength decides how many groups a word holds, so it comes before
+  Words in the arrangement.
+requirement-type: functional
+skip-reasons:
+  NullWordBreak: |
+    The base64 encoder reads the word break string to output a word break. The word
+    break string shall therefore not be ${/c/if/null:/name} where the output
+    consists of more than one ${../glossary/base64word:/term}.
+  Unreachable: |
+    An empty source buffer gives an output of no word. A source buffer which is not
+    empty gives an output of at least one word.
+test-action: |
+  size_t i;
+
+  if ( ctx->Map.entry.Skip ) {
+    return;
+  }
+
+  if ( ctx->remainder == REMAINDER_EMPTY ) {
+    ctx->source_size = 0;
+  } else if ( ctx->remainder == 0 ) {
+    ctx->source_size = 3 * ctx->groups;
+  } else {
+    ctx->source_size = 3 * ( ctx->groups - 1 ) + (size_t) ctx->remainder;
+  }
+
+  T_quiet_le_sz( ctx->source_size, sizeof( ctx->source ) );
+
+  for ( i = 0; i < ctx->source_size; ++i ) {
+    ctx->source[ i ] = (uint8_t) ( 37 * i + 11 );
+  }
+
+  /* These bytes give the indices 62 and 63 of the alphabet. */
+  for ( i = 0; i < ctx->source_size && i < sizeof( alphabet_end ); ++i ) {
+    ctx->source[ i ] = alphabet_end[ i ];
+  }
+
+  ctx->expected_count = Encode(
+    ctx->alphabet,
+    ctx->expected,
+    sizeof( ctx->expected ),
+    ctx->source,
+    ctx->source_size
+  );
+  ctx->out_count = 0;
+  ctx->argument_passed = true;
+  ctx->count = ( *ctx->encode )(
+    PutChar,
+    ctx,
+    ctx->source,
+    ctx->source_size,
+    ctx->word_break,
+    ctx->word_length
+  );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member references the encoder under test.
+  description: null
+  member: int ( *encode )( IO_Put_char, void *, const void *, size_t, const char *,
+    int )
+- brief: |
+    This member references the alphabet of the encoder under test.
+  description: null
+  member: const char *alphabet
+- brief: |
+    This member contains the remainder of the source length.
+  description: null
+  member: int remainder
+- brief: |
+    This member contains the count of groups of the output.
+  description: null
+  member: size_t groups
+- brief: |
+    This member contains the word length.
+  description: null
+  member: int word_length
+- brief: |
+    This member contains the count of groups of a word.
+  description: null
+  member: size_t word_groups
+- brief: |
+    This member references the word break string.
+  description: null
+  member: const char *word_break
+- brief: |
+    This member contains the source buffer.
+  description: null
+  member: uint8_t source[ 16 ]
+- brief: |
+    This member contains the length of the source buffer.
+  description: null
+  member: size_t source_size
+- brief: |
+    This member contains the output of the encoder.
+  description: null
+  member: char out[ 64 ]
+- brief: |
+    This member contains the count of output characters.
+  description: null
+  member: size_t out_count
+- brief: |
+    This member contains the output without the word breaks.
+  description: null
+  member: char stripped[ 64 ]
+- brief: |
+    This member contains the expected encoding.
+  description: null
+  member: char expected[ 64 ]
+- brief: |
+    This member contains the length of the expected encoding.
+  description: null
+  member: size_t expected_count
+- brief: |
+    This member contains the return value of the encoder.
+  description: null
+  member: int count
+- brief: |
+    This member is true, if each output call received the argument.
+  description: null
+  member: bool argument_passed
+test-context-support: |
+  #define REMAINDER_EMPTY -1
+
+  #define WORD_BREAK "|#"
+test-description: null
+test-header: null
+test-includes:
+- rtems/base64.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const char base64_alphabet[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+  static const char base64url_alphabet[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+  static const uint8_t alphabet_end[] = { 0xfb, 0xff, 0xbf };
+
+  static void PutChar( int c, void *arg )
+  {
+    Context *ctx;
+
+    ctx = T_fixture_context();
+
+    if ( arg != ctx ) {
+      ctx->argument_passed = false;
+    }
+
+    if ( ctx->out_count < sizeof( ctx->out ) ) {
+      ctx->out[ ctx->out_count ] = (char) c;
+      ++ctx->out_count;
+    }
+  }
+
+  /*
+   * Encode the source as RFC 4648 section 4 states it, through a bit
+   * accumulator.
+   */
+  static size_t Encode(
+    const char    *alphabet,
+    char          *out,
+    size_t         out_size,
+    const uint8_t *in,
+    size_t         in_size
+  )
+  {
+    uint32_t bits;
+    int      count;
+    size_t   i;
+    size_t   n;
+
+    bits = 0;
+    count = 0;
+    n = 0;
+
+    for ( i = 0; i < in_size; ++i ) {
+      bits = ( bits << 8 ) | in[ i ];
+      count += 8;
+
+      while ( count >= 6 ) {
+        count -= 6;
+        T_quiet_lt_sz( n, out_size );
+        out[ n ] = alphabet[ ( bits >> count ) & 0x3f ];
+        ++n;
+      }
+    }
+
+    if ( count > 0 ) {
+      T_quiet_lt_sz( n, out_size );
+      out[ n ] = alphabet[ ( bits << ( 6 - count ) ) & 0x3f ];
+      ++n;
+    }
+
+    while ( n % 4 != 0 ) {
+      T_quiet_lt_sz( n, out_size );
+      out[ n ] = '=';
+      ++n;
+    }
+
+    return n;
+  }
+
+  static void CheckWordBreaks( const Context *ctx )
+  {
+    size_t word_size;
+    size_t break_size;
+    size_t in;
+    size_t out;
+
+    word_size = 4 * ctx->word_groups;
+    break_size = ctx->word_break != NULL ? strlen( ctx->word_break ) : 0;
+    in = 0;
+    out = 0;
+
+    while ( in < ctx->expected_count ) {
+      size_t n;
+
+      n = ctx->expected_count - in;
+
+      if ( n > word_size ) {
+        n = word_size;
+      }
+
+      T_quiet_le_sz( out + n, ctx->out_count );
+      T_eq_nstr( &ctx->out[ out ], &ctx->expected[ in ], n );
+      in += n;
+      out += n;
+
+      if ( in < ctx->expected_count ) {
+        T_quiet_le_sz( out + break_size, ctx->out_count );
+        T_eq_nstr( &ctx->out[ out ], ctx->word_break, break_size );
+        out += break_size;
+      }
+    }
+
+    T_eq_sz( out, ctx->out_count );
+  }
+test-target: testsuites/validation/tc-base64-encode.c
+test-teardown: null
+text: |
+  When the base64 encoder encodes a source buffer.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64
+    WordBreaks: None
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64
+    Source:
+    - Empty
+    WordLength: all
+    Words:
+    - None
+    WordBreak: all
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64
+    WordBreaks: None
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64
+    Source:
+    - Triplets
+    - OneByteLeft
+    - TwoBytesLeft
+    WordLength: all
+    Words:
+    - One
+    WordBreak: all
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64
+    WordBreaks: BetweenWords
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64
+    Source:
+    - Triplets
+    - OneByteLeft
+    - TwoBytesLeft
+    WordLength: all
+    Words:
+    - Several
+    WordBreak:
+    - Empty
+    - NonEmpty
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64url
+    WordBreaks: None
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64url
+    Source:
+    - Empty
+    WordLength: all
+    Words:
+    - None
+    WordBreak: all
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64url
+    WordBreaks: None
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64url
+    Source:
+    - Triplets
+    - OneByteLeft
+    - TwoBytesLeft
+    WordLength: all
+    Words:
+    - One
+    WordBreak: all
+- enabled-by: true
+  post-conditions:
+    Encoding: Base64url
+    WordBreaks: BetweenWords
+    Count: Output
+    Argument: Passed
+  pre-conditions:
+    Alphabet:
+    - Base64url
+    Source:
+    - Triplets
+    - OneByteLeft
+    - TwoBytesLeft
+    WordLength: all
+    Words:
+    - Several
+    WordBreak:
+    - Empty
+    - NonEmpty
+- enabled-by: true
+  post-conditions: NullWordBreak
+  pre-conditions:
+    Alphabet: all
+    Source:
+    - Triplets
+    - OneByteLeft
+    - TwoBytesLeft
+    WordLength: all
+    Words:
+    - Several
+    WordBreak:
+    - NullPointer
+- enabled-by: true
+  post-conditions: Unreachable
+  pre-conditions: default
+type: requirement

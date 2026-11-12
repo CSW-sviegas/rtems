@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: base64 word
+text: |
+  A base64 word is a sequence of ${base64group:/plural} which the base64 encoder
+  outputs without a word break in between. It holds the largest count of
+  ${base64group:/plural} whose character count is less than the word length, and
+  at least one ${base64group:/term}.
+type: glossary
