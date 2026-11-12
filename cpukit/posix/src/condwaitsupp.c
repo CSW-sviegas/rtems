@@ -90,13 +90,13 @@ static void _POSIX_Condition_variables_Enqueue_with_timeout_by_clock_id(
   Thread_queue_Context *queue_context
 )
 {
+  _POSIX_Condition_variables_Mutex_unlock( queue, the_thread, queue_context );
   _Thread_queue_Add_timeout_by_clock_id_timespec(
     queue,
     the_thread,
     cpu_self,
     queue_context
   );
-  _POSIX_Condition_variables_Mutex_unlock( queue, the_thread, queue_context );
 }
 
 int _POSIX_Condition_variables_Wait_support(
