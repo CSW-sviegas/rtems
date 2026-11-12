@@ -358,6 +358,7 @@ source:
 - cpukit/posix/src/pthreadattrgetstackaddr.c
 - cpukit/posix/src/pthreadattrgetstacksize.c
 - cpukit/posix/src/pthreadattrinit.c
+- cpukit/posix/src/pthreadattrsetaffinitynp.c
 - cpukit/posix/src/pthreadattrsetdetachstate.c
 - cpukit/posix/src/pthreadattrsetguardsize.c
 - cpukit/posix/src/pthreadattrsetinheritsched.c
