@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+- role: function-implementation
+  uid: string-to-items
+rationale: null
+requirement-type: functional
+text: |
+  The ${../glossary/recorditem:/plural} of the events
+  ${../if/event:/enumerators[2]/name}, ${../if/event:/enumerators[5]/name},
+  ${../if/event:/enumerators[3]/name}, ${../if/event:/enumerators[16]/name}, and
+  ${../if/event:/enumerators[14]/name} of the stream header of
+  ${../if/dump:/name} shall contain the strings of the architecture, the
+  multilib, the ${/glossary/boardsupportpackage:/term}, the version control key,
+  and the tools in this order as specified by ${string-to-items:/spec} where the
+  item array of each string is the rest of an area of 64 items after the items of
+  the strings before it.
+type: requirement

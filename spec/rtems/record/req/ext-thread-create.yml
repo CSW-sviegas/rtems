@@ -8,6 +8,8 @@ links:
   uid: /acfg/req/record-extensions-enabled
 - role: requirement-refinement
   uid: buffer-append
+- role: function-implementation
+  uid: string-to-items
 rationale: null
 requirement-type: functional
 text: |
@@ -17,5 +19,8 @@ text: |
   created, the system shall produce an ${../if/event:/enumerators[276]/name}
   ${../glossary/recorditem:/term} with the identifier of the created thread as
   event data followed by ${../if/event:/enumerators[12]/name}
-  ${../glossary/recorditem:/plural} which contain the name of the created thread.
+  ${../glossary/recorditem:/plural} which contain the first 31 characters of the
+  name of the created thread, or the whole name if it is shorter, as specified by
+  ${string-to-items:/spec} where the item array has as many items as the string
+  needs or more items than the string needs.
 type: requirement

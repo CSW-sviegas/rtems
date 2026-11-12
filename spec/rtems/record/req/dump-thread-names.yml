@@ -6,13 +6,18 @@ functional-type: function
 links:
 - role: interface-function
   uid: ../if/dump
+- role: function-implementation
+  uid: string-to-items
 rationale: null
 requirement-type: functional
 text: |
-  After the stream header, the ${../if/dump:/name} directive shall output for
-  each thread an ${../if/event:/enumerators[11]/name}
-  ${../glossary/recorditem:/term} with the thread identifier as event data
-  followed by ${../if/event:/enumerators[12]/name}
-  ${../glossary/recorditem:/plural} which contain the name of the thread through
-  the handler specified by the ${../if/dump:/params[0]/name} parameter.
+  The ${../if/dump:/name} directive shall output through the handler specified by
+  the ${../if/dump:/params[0]/name} parameter for each thread an
+  ${../if/event:/enumerators[11]/name} ${../glossary/recorditem:/term} with the
+  thread identifier as event data followed by
+  ${../if/event:/enumerators[12]/name} ${../glossary/recorditem:/plural} which
+  contain the first 31 characters of the name of the thread, or the whole name if
+  it is shorter, as specified by ${string-to-items:/spec} where the item array
+  has as many items as the string needs or more items than the string needs,
+  after the stream header.
 type: requirement

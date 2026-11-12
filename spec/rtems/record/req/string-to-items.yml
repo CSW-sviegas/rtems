@@ -1,0 +1,226 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: group-impl
+post-conditions:
+- name: Items
+  states:
+  - name: Packed
+    test-code: |
+      CheckPacked( ctx );
+    text: |
+      Each item which the event recording wrote shall hold the event and the next
+      characters of the string in the bytes of its event data, the first character in
+      the least significant byte, and zero bytes after the last character.
+  test-epilogue: null
+  test-prologue: null
+- name: Count
+  states:
+  - name: Needed
+    test-code: |
+      T_eq_sz( ctx->count, ctx->needed );
+    text: |
+      The event recording shall return the count of items which the string needs.
+  - name: Capacity
+    test-code: |
+      T_eq_sz( ctx->count, ctx->item_count );
+    text: |
+      The event recording shall return the count of items of the item array.
+  test-epilogue: null
+  test-prologue: null
+- name: Rest
+  states:
+  - name: Unchanged
+    test-code: |
+      CheckRest( ctx );
+    text: |
+      The items of the item array after the written items shall be unchanged.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Length
+  states:
+  - name: Empty
+    test-code: |
+      ctx->length = 0;
+    text: |
+      While the string is empty.
+  - name: PartialItem
+    test-code: |
+      ctx->length = 2 * DATA_SIZE + 1;
+    text: |
+      While the length of the string is not a multiple of the size of the event data.
+  - name: FullItems
+    test-code: |
+      ctx->length = 2 * DATA_SIZE;
+    text: |
+      While the length of the string is a positive multiple of the size of the event
+      data.
+  test-epilogue: null
+  test-prologue: null
+- name: Capacity
+  states:
+  - name: Less
+    test-code: |
+      ctx->item_count = Needed( ctx->length ) - 1;
+    text: |
+      While the item array has less items than the string needs.
+  - name: Equal
+    test-code: |
+      ctx->item_count = Needed( ctx->length );
+    text: |
+      While the item array has as many items as the string needs.
+  - name: Greater
+    test-code: |
+      ctx->item_count = Needed( ctx->length ) + 2;
+    text: |
+      While the item array has more items than the string needs.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Length covers the length of the string, 3 states. Dimension Capacity
+  covers the count of items of the item array, 3 states. The state of Length
+  decides how many items the string needs, so it comes before Capacity in the
+  arrangement.
+requirement-type: functional
+skip-reasons:
+  Unreachable: |
+    An empty string needs no item, so no item array has less items than it needs.
+test-action: |
+  size_t i;
+
+  if ( ctx->Map.entry.Skip ) {
+    return;
+  }
+
+  for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->items ); ++i ) {
+    ctx->items[ i ].event = FILL_EVENT;
+    ctx->items[ i ].data = FILL_DATA;
+  }
+
+  ctx->needed = Needed( ctx->length );
+  T_quiet_le_sz( ctx->item_count, RTEMS_ARRAY_SIZE( ctx->items ) );
+  ctx->count = _Record_String_to_items(
+    RTEMS_RECORD_USER( 3 ),
+    string,
+    ctx->length,
+    ctx->items,
+    ctx->item_count
+  );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the length of the string.
+  description: null
+  member: size_t length
+- brief: |
+    This member contains the count of items which the string needs.
+  description: null
+  member: size_t needed
+- brief: |
+    This member contains the count of items of the item array.
+  description: null
+  member: size_t item_count
+- brief: |
+    This member provides the item array.
+  description: null
+  member: rtems_record_item items[ 8 ]
+- brief: |
+    This member contains the return value of the conversion.
+  description: null
+  member: size_t count
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/record.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define DATA_SIZE sizeof( rtems_record_data )
+
+  #define FILL_EVENT UINT32_C( 0xffffffff )
+
+  #define FILL_DATA ( (rtems_record_data) 0x5a5a5a5a )
+
+  static const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnop";
+
+  static size_t Needed( size_t length )
+  {
+    return ( length + DATA_SIZE - 1 ) / DATA_SIZE;
+  }
+
+  static void CheckPacked( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < ctx->count && i < ctx->item_count; ++i ) {
+      rtems_record_data expected;
+      size_t            j;
+
+      expected = 0;
+
+      for ( j = 0; j < DATA_SIZE; ++j ) {
+        size_t k;
+
+        k = i * DATA_SIZE + j;
+
+        if ( k < ctx->length ) {
+          expected |= (rtems_record_data) (unsigned char) string[ k ]
+                      << ( 8 * j );
+        }
+      }
+
+      T_eq_u32( ctx->items[ i ].event, RTEMS_RECORD_USER( 3 ) );
+      T_eq_ulong( ctx->items[ i ].data, expected );
+    }
+  }
+
+  static void CheckRest( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = ctx->count; i < RTEMS_ARRAY_SIZE( ctx->items ); ++i ) {
+      T_eq_u32( ctx->items[ i ].event, FILL_EVENT );
+      T_eq_ulong( ctx->items[ i ].data, FILL_DATA );
+    }
+  }
+test-target: testsuites/validation/tc-record-string-to-items.c
+test-teardown: null
+text: |
+  When the event recording converts a string into record items.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Items: Packed
+    Count: Capacity
+    Rest: Unchanged
+  pre-conditions:
+    Length:
+    - PartialItem
+    - FullItems
+    Capacity:
+    - Less
+- enabled-by: true
+  post-conditions:
+    Items: Packed
+    Count: Needed
+    Rest: Unchanged
+  pre-conditions:
+    Length: all
+    Capacity:
+    - Equal
+    - Greater
+- enabled-by: true
+  post-conditions: Unreachable
+  pre-conditions: default
+type: requirement
