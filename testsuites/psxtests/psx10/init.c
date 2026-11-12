@@ -504,6 +504,9 @@ void *POSIX_Init( void *argument )
   status = pthread_mutex_unlock( &Mutex_id );
   rtems_test_assert( !status );
 
+  status = pthread_mutex_lock( &Mutex_id );
+  rtems_test_assert( !status );
+
   status = clock_gettime( CLOCK_MONOTONIC, &timeout );
   rtems_test_assert( !status );
   timeout.tv_sec -= 1;
@@ -517,6 +520,9 @@ void *POSIX_Init( void *argument )
     "Init: pthread_cond_clockwait - ETIMEDOUT (abstime->tv_sec < current time)"
   );
   status = pthread_mutex_unlock( &Mutex_id );
+  rtems_test_assert( !status );
+
+  status = pthread_mutex_lock( &Mutex_id );
   rtems_test_assert( !status );
 
   do {
