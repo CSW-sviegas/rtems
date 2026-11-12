@@ -817,7 +817,6 @@ source:
 - cpukit/posix/src/pthreadattrgetinheritsched.c
 - cpukit/posix/src/pthreadattrgetschedparam.c
 - cpukit/posix/src/pthreadattrgetschedpolicy.c
-- cpukit/posix/src/pthreadattrsetaffinitynp.c
 - cpukit/posix/src/pthreadconcurrency.c
 - cpukit/posix/src/pthreadconfig.c
 - cpukit/posix/src/pthreadcreate.c
