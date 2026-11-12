@@ -48,10 +48,6 @@ static int _Base64_Do_encode(
   const unsigned char *in = src;
   int                  out = 0;
 
-  if ( wordlen < 4 ) {
-    wordlen = 4;
-  }
-
   while ( srclen > 2 ) {
     _Base64_Put( encoding[ ( in[ 0 ] >> 2 ) & 0x3f ], arg, put_char );
     _Base64_Put(
