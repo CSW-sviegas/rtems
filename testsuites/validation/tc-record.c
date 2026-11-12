@@ -689,10 +689,18 @@
  *
  *   - Check that the output starts with the stream header.
  *
- *   - Check the content of the stream header.
+ *   - Check the content of the stream header. Check that the
+ *     RTEMS_RECORD_VERSION, the RTEMS_RECORD_PROCESSOR_MAXIMUM, the
+ *     RTEMS_RECORD_PER_CPU_COUNT, and the RTEMS_RECORD_FREQUENCY items have a
+ *     time stamp of zero and the specified event data. Check that each string
+ *     takes exactly the items which its characters need and that zero bytes
+ *     follow its last character only.
  *
  *   - Check that the thread names follow the stream header. The name of the
- *     runner spans more than one item.
+ *     runner has more than 31 characters, so the output holds its first 31
+ *     characters in more than one item. Check that each name takes exactly the
+ *     items which its characters need and that zero bytes follow its last
+ *     character only.
  *
  *   - Check that the fetched items of all processors follow the thread names.
  *
@@ -972,7 +980,9 @@ typedef RtemsRecordValRecord_Context Context;
 
 #define DATA( i ) ( (rtems_record_data) ( 0x1000 + ( i ) ) )
 
-#define LONG_THREAD_NAME "RecordLongName"
+#define LONG_THREAD_NAME "RecordLongNameWhichTheDumpTruncates"
+
+#define TRUNCATED_THREAD_NAME "RecordLongNameWhichTheDumpTrunc"
 
 #define DATA_RA ( (rtems_record_data) 1 )
 
@@ -2064,22 +2074,34 @@ static size_t CheckString(
   char              buf[ 256 ];
   size_t            n;
   size_t            count;
+  bool              zero;
+  bool              order_ok;
   rtems_record_item item;
 
   n = 0;
   count = 0;
+  zero = false;
+  order_ok = true;
 
   while ( StreamPeek( stream, &item ) && item.event == event ) {
     size_t i;
 
-    for ( i = 0; i < sizeof( item.data ) && n < sizeof( buf ) - 1; ++i ) {
+    for ( i = 0; i < sizeof( item.data ); ++i ) {
       char c;
 
       c = (char) ( item.data >> ( 8 * i ) );
 
-      if ( c != '\0' ) {
-        buf[ n ] = c;
-        ++n;
+      if ( c == '\0' ) {
+        zero = true;
+      } else {
+        if ( zero ) {
+          order_ok = false;
+        }
+
+        if ( n < sizeof( buf ) - 1 ) {
+          buf[ n ] = c;
+          ++n;
+        }
       }
     }
 
@@ -2089,6 +2111,11 @@ static size_t CheckString(
 
   buf[ n ] = '\0';
   T_eq_str( buf, str );
+  T_true( order_ok );
+  T_eq_sz(
+    count,
+    ( strlen( str ) + sizeof( item.data ) - 1 ) / sizeof( item.data )
+  );
   return count;
 }
 
@@ -2127,11 +2154,16 @@ static bool ThreadNameVisitor( rtems_tcb *tcb, void *arg )
   stream = arg;
   CheckNext( stream, RTEMS_RECORD_THREAD_ID, tcb->Object.id );
   n = _Thread_Get_name( tcb, name, sizeof( name ) );
+
+  if ( n >= sizeof( name ) ) {
+    n = sizeof( name ) - 1;
+  }
+
   name[ n ] = '\0';
   count = CheckString( stream, RTEMS_RECORD_THREAD_NAME, name );
 
   if ( tcb == _Thread_Get_executing() ) {
-    T_eq_str( name, LONG_THREAD_NAME );
+    T_eq_str( name, TRUNCATED_THREAD_NAME );
     T_gt_sz( count, 1 );
   }
 
@@ -5584,13 +5616,21 @@ static void RtemsRecordValRecord_Action_57( RtemsRecordValRecord_Context *ctx )
   CheckFormatAndMagic( &ctx->stream );
 
   /*
-   * Check the content of the stream header.
+   * Check the content of the stream header. Check that the
+   * RTEMS_RECORD_VERSION, the RTEMS_RECORD_PROCESSOR_MAXIMUM, the
+   * RTEMS_RECORD_PER_CPU_COUNT, and the RTEMS_RECORD_FREQUENCY items have a
+   * time stamp of zero and the specified event data. Check that each string
+   * takes exactly the items which its characters need and that zero bytes
+   * follow its last character only.
    */
   CheckHeaderItems( &ctx->stream );
 
   /*
    * Check that the thread names follow the stream header. The name of the
-   * runner spans more than one item.
+   * runner has more than 31 characters, so the output holds its first 31
+   * characters in more than one item. Check that each name takes exactly the
+   * items which its characters need and that zero bytes follow its last
+   * character only.
    */
   CheckThreadNames( &ctx->stream );
 
