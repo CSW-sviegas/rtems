@@ -50,6 +50,8 @@
 
 #define TM27_INTERRUPT_VECTOR_DEFAULT BSP_VECTOR_SOFTWARE
 
+#define TM27_INTERRUPT_VECTOR_ALTERNATIVE BSP_VECTOR_SOFTWARE_2
+
 static rtems_interrupt_entry amd64_tm27_interrupt_entry;
 
 static inline void Install_tm27_vector( rtems_interrupt_handler handler )
@@ -83,6 +85,16 @@ static inline void Clear_tm27_intr( void )
 static inline void Lower_tm27_intr( void )
 {
   _ISR_Set_level( 0 );
+}
+
+static inline rtems_status_code _TM27_Raise_alternative( void )
+{
+  return rtems_interrupt_raise( TM27_INTERRUPT_VECTOR_ALTERNATIVE );
+}
+
+static inline rtems_status_code _TM27_Clear_alternative( void )
+{
+  return rtems_interrupt_clear( TM27_INTERRUPT_VECTOR_ALTERNATIVE );
 }
 
 #endif /* __tm27_h */
