@@ -67,8 +67,12 @@ extern const uint8_t _Base64url_Encoding[ 64 ];
 /**
  * @brief Outputs the source buffer in base64 encoding.
  *
- * After word length of output characters produced by the encoding a word break
- * is produced.
+ * The encoding outputs a group of four characters for each three bytes of the
+ * source buffer.  It outputs the last one or two bytes as a group of four
+ * characters with padding.  The output consists of words.  A word holds the
+ * largest count of groups whose character count is less than the word length,
+ * and it holds at least one group.  The encoding outputs the word break string
+ * after each word which more output follows.
  *
  * @param put_char is the put character function used to output the encoded
  *   source buffer.
@@ -79,18 +83,19 @@ extern const uint8_t _Base64url_Encoding[ 64 ];
  *
  * @param srclen is the length of the source buffer in bytes.
  *
- * @param wordbreak is the word break string.
+ * @param wordbreak is the word break string.  The encoding reads the string
+ *   only to output a word break.
  *
- * @param wordlen is the word length in bytes.  If the word length is less than
- *   four, then a word length of four will be used.
+ * @param wordlen is the word length in characters.
  *
- * @return Returns the count of output characters.
+ * @return Returns the count of output characters, which includes the
+ *   characters of the word breaks.
  */
 int _Base64_Encode(
   IO_Put_char put_char,
   void       *arg,
   const void *src,
-  size_t      len,
+  size_t      srclen,
   const char *wordbreak,
   int         wordlen
 );
@@ -98,8 +103,12 @@ int _Base64_Encode(
 /**
  * @brief Outputs the source buffer in base64url encoding.
  *
- * After word length of output characters produced by the encoding a word break
- * is produced.
+ * The encoding outputs a group of four characters for each three bytes of the
+ * source buffer.  It outputs the last one or two bytes as a group of four
+ * characters with padding.  The output consists of words.  A word holds the
+ * largest count of groups whose character count is less than the word length,
+ * and it holds at least one group.  The encoding outputs the word break string
+ * after each word which more output follows.
  *
  * @param put_char is the put character function used to output the encoded
  *   source buffer.
@@ -110,18 +119,19 @@ int _Base64_Encode(
  *
  * @param srclen is the length of the source buffer in bytes.
  *
- * @param wordbreak is the word break string.
+ * @param wordbreak is the word break string.  The encoding reads the string
+ *   only to output a word break.
  *
- * @param wordlen is the word length in bytes.  If the word length is less than
- *   four, then a word length of four will be used.
+ * @param wordlen is the word length in characters.
  *
- * @return Returns the count of output characters.
+ * @return Returns the count of output characters, which includes the
+ *   characters of the word breaks.
  */
 int _Base64url_Encode(
   IO_Put_char put_char,
   void       *arg,
   const void *src,
-  size_t      len,
+  size_t      srclen,
   const char *wordbreak,
   int         wordlen
 );
