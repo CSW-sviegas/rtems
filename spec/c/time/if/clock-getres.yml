@@ -3,6 +3,7 @@ brief: |
   Get the resolution of the clock specified by ${.:/params[0]/name} and store it
   in the object referenced by ${.:/params[1]/name}.
 copyrights:
+- Copyright (C) 2026 Critical Software S.A.
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
   default:
@@ -38,6 +39,11 @@ links:
 name: clock_getres
 notes: |
   See ${/ref/std/posix-2024/clock-getres:/name}.
+
+  The clock identifier which ${/c/pthread/if/getcpuclockid:/name} returns for a
+  thread is valid during the lifetime of the thread identifier, see
+  ${/ref/std/posix-2024/thread-ids:/name}. The use of the clock identifier after
+  this lifetime results in undefined behaviour.
 params:
 - description: |
     is the clock identifier.
