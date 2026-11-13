@@ -20,16 +20,20 @@
 
 #define LM3S69XX_UART_FIFO_DEPTH 16
 
+/*
+ * The polled output also serves the simple console, which does not
+ * initialize the table of the legacy console.
+ */
 static volatile lm3s69xx_uart *get_uart_regs(int minor)
 {
-  console_tbl *ct = Console_Port_Tbl [minor];
+  const console_tbl *ct = &Console_Configuration_Ports [minor];
 
   return (lm3s69xx_uart *) ct->ulCtrlPort1;
 }
 
 static unsigned int get_uart_number(int minor)
 {
-  console_tbl *ct = Console_Port_Tbl [minor];
+  const console_tbl *ct = &Console_Configuration_Ports [minor];
 
   return (unsigned int)ct->pDeviceParams;
 }
