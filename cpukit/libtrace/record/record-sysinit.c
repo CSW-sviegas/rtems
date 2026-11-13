@@ -102,19 +102,20 @@ static void _Record_Watchdog( Watchdog_Control *watchdog, unsigned int token )
 
 static void _Record_Initialize_watchdogs( void )
 {
-  Watchdog_Interval interval;
-  uint32_t          cpu_max;
-  uint32_t          cpu_index;
-  sbintime_t        now;
+  uint64_t   interval;
+  uint32_t   cpu_max;
+  uint32_t   cpu_index;
+  sbintime_t now;
 
-  interval = rtems_counter_frequency() / _Watchdog_Ticks_per_second;
-  interval = ( UINT32_C( 1 ) << 22 ) / interval;
+  interval = UINT64_C( 1 ) << RTEMS_RECORD_TIME_BITS;
+  interval *= _Watchdog_Ticks_per_second;
+  interval /= rtems_counter_frequency();
 
   if ( interval == 0 ) {
     interval = 1;
   }
 
-  _Record_Tick_interval = interval;
+  _Record_Tick_interval = (Watchdog_Interval) interval;
 
   cpu_max = rtems_configuration_get_maximum_processors();
 
