@@ -736,7 +736,9 @@ _ISR_Handler_Exception:
 	/* already got t0 = cause in the interrupt test above */
         STREG    t0,R_CAUSE*R_SZ(sp)
 
-        STREG	 sp, R_SP*R_SZ(sp)
+        /* Save the stack pointer of the trapped context */
+        ADDIU    t1,sp,EXCP_STACK_SIZE
+        STREG    t1,R_SP*R_SZ(sp)
 
         STREG    s0,R_S0*R_SZ(sp)     /* save s0 - s7 */
         STREG    s1,R_S1*R_SZ(sp)
