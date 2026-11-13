@@ -1,0 +1,214 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getcpuclockid
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-getcpuclockid
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getcpuclockid:/name} shall be
+      equal to zero.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getcpuclockid:/name} shall be
+      equal to ${/c/errno/if/einval:/name}.
+  - name: ESRCH
+    test-code: |
+      T_eq_int( ctx->status, ESRCH );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getcpuclockid:/name} shall be
+      equal to ${/c/errno/if/esrch:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the directive call.
+  test-epilogue: null
+  test-prologue: null
+- name: ClockIdObj
+  states:
+  - name: Executing
+    test-code: |
+      T_eq_int( ctx->clock_id_obj, (clockid_t) pthread_self() );
+    text: |
+      The object referenced by the ${../if/getcpuclockid:/params[1]/name} parameter
+      shall be set to the thread identifier of the ${/glossary/executingtask:/term}.
+  - name: Other
+    test-code: |
+      T_eq_int( ctx->clock_id_obj, (clockid_t) ctx->other_id );
+    text: |
+      The object referenced by the ${../if/getcpuclockid:/params[1]/name} parameter
+      shall be set to the thread identifier of the thread other than the
+      ${/glossary/executingtask:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->clock_id_obj, -1 );
+    text: |
+      The object referenced by the ${../if/getcpuclockid:/params[1]/name} parameter
+      shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Thread
+  states:
+  - name: Executing
+    test-code: |
+      ctx->thread = pthread_self();
+    text: |
+      While the ${../if/getcpuclockid:/params[0]/name} parameter is associated with
+      the ${/glossary/executingtask:/term}.
+  - name: Other
+    test-code: |
+      ctx->thread = ctx->other_id;
+    text: |
+      While the ${../if/getcpuclockid:/params[0]/name} parameter is associated with a
+      thread other than the ${/glossary/executingtask:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->thread = INVALID_ID;
+    text: |
+      While the ${../if/getcpuclockid:/params[0]/name} parameter is not associated
+      with a thread.
+  test-epilogue: null
+  test-prologue: null
+- name: ClockId
+  states:
+  - name: Obj
+    test-code: |
+      ctx->clock_id = &ctx->clock_id_obj;
+    text: |
+      While the ${../if/getcpuclockid:/params[1]/name} parameter references an object
+      of type ${/c/if/clockid_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->clock_id = NULL;
+    text: |
+      While the ${../if/getcpuclockid:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Thread covers the thread identifier, 3 states. The directive accepts
+  the identifier of every existing thread. State Executing covers the identifier
+  of the executing thread, state Other the identifier of another thread, and
+  state Invalid an identifier associated with no thread.
+
+  Dimension ClockId covers the pointer to the clock identifier object, 2 states.
+  The directive checks the pointer against ${/c/if/null:/name} alone, so the
+  domain splits into the null pointer and a pointer to an object. The directive
+  checks the pointer before the thread identifier.
+
+  The directive uses the thread identifier as the clock identifier, see the notes
+  of ${../if/getcpuclockid:/name}. The
+  ${/ref/std/posix-2024/pthread-getcpuclockid:/name} defines no error. The
+  ${/c/errno/if/esrch:/name} for a thread identifier associated with no thread
+  follows the recommendation in its rationale.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_getcpuclockid( ctx->thread, ctx->clock_id );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/getcpuclockid:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member specifies the ${../if/getcpuclockid:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    pthread_t thread
+- brief: |
+    This member specifies the ${../if/getcpuclockid:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    clockid_t *clock_id
+- brief: |
+    This member provides the object referenced by the
+    ${../if/getcpuclockid:/params[1]/name} parameter.
+  description: null
+  member: |
+    clockid_t clock_id_obj
+- brief: |
+    This member contains the identifier of a thread other than the executing
+    thread.
+  description: null
+  member: |
+    rtems_id other_id
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- rtems.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  errno = -1;
+  ctx->status = 0;
+  ctx->clock_id_obj = -1;
+test-setup:
+  brief: null
+  code: |
+    ctx->other_id = CreateTask( "OTHR", PRIO_NORMAL );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-getcpuclockid.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->other_id );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          ClockId: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          Thread: Invalid
+      then: ESRCH
+    - else: Zero
+    Errno: Unchanged
+    ClockIdObj:
+    - if:
+        pre-conditions:
+          ClockId: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Zero
+      then-specified-by: Thread
+    - else: Nop
+  pre-conditions:
+    Thread: all
+    ClockId: all
+type: requirement
