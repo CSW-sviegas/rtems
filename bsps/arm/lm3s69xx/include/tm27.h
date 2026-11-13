@@ -5,11 +5,11 @@
  *
  * @ingroup RTEMSBSPsARMLM3S69XX
  *
- * @brief This header file includes the generic tm27 support implementation.
+ * @brief This header file provides the tm27 support of the BSP.
  */
 
 /*
- * Copyright (C) 2017 embedded brains GmbH & Co. KG
+ * Copyright (C) 2017, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,4 +33,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rtems/tm27-default.h>
+/* No peripheral which the BSP supports drives the vectors 39 and 40 */
+#define ARMV7M_TM27_IRQ_LOW 39
+
+#define ARMV7M_TM27_IRQ_HIGH 40
+
+#include <dev/irq/armv7m-tm27.h>
