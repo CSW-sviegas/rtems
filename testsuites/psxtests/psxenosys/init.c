@@ -102,9 +102,6 @@ void *POSIX_Init( void *argument )
   sc = pthread_atfork( NULL, NULL, NULL );
   rtems_test_assert( !sc );
 
-  sc = pthread_getcpuclockid( 0, NULL );
-  check_enosys( sc );
-
   sc = sched_setparam( 0, NULL );
   check_enosys( sc );
 

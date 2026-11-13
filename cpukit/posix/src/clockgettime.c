@@ -44,6 +44,7 @@
 #include <errno.h>
 
 #include <rtems/cpuuseimpl.h>
+#include <rtems/posix/pthreadimpl.h>
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/timestampimpl.h>
 #include <rtems/score/todimpl.h>
@@ -55,6 +56,9 @@
 
 int clock_gettime( clockid_t clock_id, struct timespec *tp )
 {
+  Thread_Control  *the_thread;
+  ISR_lock_Context lock_context;
+
   if ( !tp ) {
     rtems_set_errno_and_return_minus_one( EINVAL );
   }
@@ -96,6 +100,17 @@ int clock_gettime( clockid_t clock_id, struct timespec *tp )
     return 0;
   }
 #endif
+
+  the_thread = _POSIX_Threads_Get_by_clock_id( clock_id, &lock_context );
+
+  if ( the_thread != NULL ) {
+    Timestamp_Control used;
+
+    used = _Thread_Get_CPU_time_used_after_last_reset( the_thread );
+    _ISR_lock_ISR_enable( &lock_context );
+    _Timestamp_To_timespec( &used, tp );
+    return 0;
+  }
 
   rtems_set_errno_and_return_minus_one( EINVAL );
 }

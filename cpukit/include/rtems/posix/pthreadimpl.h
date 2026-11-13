@@ -127,6 +127,38 @@ static inline Thread_Control *_POSIX_Threads_Allocate( void )
   );
 }
 
+/**
+ * @brief Gets the thread associated with the CPU-time clock identifier.
+ *
+ * The CPU-time clock identifier of a thread is the object identifier of the
+ * thread, see pthread_getcpuclockid().
+ *
+ * @param clock_id is the clock identifier.
+ *
+ * @param[out] lock_context is the lock context.  If the thread exists, then
+ *   interrupts are disabled on return and the caller shall enable them
+ *   through this lock context.
+ *
+ * @retval NULL There is no thread associated with the clock identifier.
+ *
+ * @return Returns the thread associated with the clock identifier.
+ */
+static inline Thread_Control *_POSIX_Threads_Get_by_clock_id(
+  clockid_t         clock_id,
+  ISR_lock_Context *lock_context
+)
+{
+  /*
+   * A clock identifier without an object API is a clock of <time.h>.
+   * OBJECTS_ID_OF_SELF and CLOCK_REALTIME_COARSE are both zero.
+   */
+  if ( _Objects_Get_API( (Objects_Id) clock_id ) == OBJECTS_NO_API ) {
+    return NULL;
+  }
+
+  return _Thread_Get( (Objects_Id) clock_id, lock_context );
+}
+
 /** @} */
 
 #ifdef __cplusplus
