@@ -78,6 +78,7 @@ SYM(rtems_irq_prologue_ ## vector):      ; \
 DISTINCT_INTERRUPT_ENTRY(32)
 DISTINCT_INTERRUPT_ENTRY(33)
 DISTINCT_INTERRUPT_ENTRY(34)
+DISTINCT_INTERRUPT_ENTRY(35)
 
 SYM(_ISR_Handler):
 .save_cpu_interrupt_frame:
