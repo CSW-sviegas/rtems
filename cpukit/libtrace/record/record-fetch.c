@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup RTEMSRecord
+ * @ingroup RTEMSImplRecord
  *
  * @brief This source file contains the implementation of the record fetching.
  */
