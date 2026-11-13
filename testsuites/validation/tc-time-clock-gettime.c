@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2024 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +37,7 @@
 #endif
 
 #include <errno.h>
+#include <pthread.h>
 #include <rtems.h>
 #include <time.h>
 #include <rtems/cpuuse.h>
@@ -65,6 +67,7 @@ typedef enum {
   CTimeReqClockGettime_Pre_ClockId_Realtime,
   CTimeReqClockGettime_Pre_ClockId_ProcessCPUTimeId,
   CTimeReqClockGettime_Pre_ClockId_ThreadCPUTimeId,
+  CTimeReqClockGettime_Pre_ClockId_OtherThread,
   CTimeReqClockGettime_Pre_ClockId_Other,
   CTimeReqClockGettime_Pre_ClockId_NA
 } CTimeReqClockGettime_Pre_ClockId;
@@ -92,6 +95,7 @@ typedef enum {
   CTimeReqClockGettime_Post_Tp_Realtime,
   CTimeReqClockGettime_Post_Tp_ProcessCPUTimeId,
   CTimeReqClockGettime_Post_Tp_ThreadCPUTimeId,
+  CTimeReqClockGettime_Post_Tp_OtherThread,
   CTimeReqClockGettime_Post_Tp_Unchanged,
   CTimeReqClockGettime_Post_Tp_NA
 } CTimeReqClockGettime_Post_Tp;
@@ -137,6 +141,12 @@ typedef struct {
    *   CLOCK_THREAD_CPUTIME_ID clock.
    */
   struct timespec thread_time;
+
+  /**
+   * @brief This member contains the expected time of the CPU-time clock of the
+   *   worker thread.
+   */
+  struct timespec other_thread_time;
 
   /**
    * @brief This member provides the object referenced by the `tp` parameter.
@@ -194,6 +204,7 @@ static const char *const CTimeReqClockGettime_PreDesc_ClockId[] = {
   "Realtime",
   "ProcessCPUTimeId",
   "ThreadCPUTimeId",
+  "OtherThread",
   "Other",
   "NA"
 };
@@ -253,12 +264,23 @@ static void CTimeReqClockGettime_Pre_ClockId_Prepare(
       break;
     }
 
+    case CTimeReqClockGettime_Pre_ClockId_OtherThread: {
+      /*
+       * While the `clock_id` parameter is equal to the clock identifier which
+       * pthread_getcpuclockid() returns for a thread other than the executing
+       * task.
+       */
+      T_eq_int( pthread_getcpuclockid( ctx->worker_id, &ctx->clock_id ), 0 );
+      break;
+    }
+
     case CTimeReqClockGettime_Pre_ClockId_Other: {
       /*
        * While the `clock_id` parameter is not equal to CLOCK_MONOTONIC,
-       * CLOCK_REALTIME, CLOCK_PROCESS_CPUTIME_ID, or CLOCK_THREAD_CPUTIME_ID.
+       * CLOCK_REALTIME, CLOCK_PROCESS_CPUTIME_ID, CLOCK_THREAD_CPUTIME_ID, or
+       * the clock identifier of the CPU-time clock of a thread.
        */
-      ctx->clock_id = CLOCK_TAI;
+      ctx->clock_id = CLOCK_REALTIME_COARSE;
       break;
     }
 
@@ -397,6 +419,18 @@ static void CTimeReqClockGettime_Post_Tp_Check(
       break;
     }
 
+    case CTimeReqClockGettime_Post_Tp_OtherThread: {
+      /*
+       * The object referenced by the `tp` parameter shall be set to the
+       * execution time of the thread associated with the clock identifier
+       * since the last CPU usage reset point at some time point during the
+       * directive call.
+       */
+      T_eq_i64( ctx->tp_obj.tv_sec, ctx->other_thread_time.tv_sec );
+      T_eq_long( ctx->tp_obj.tv_nsec, ctx->other_thread_time.tv_nsec );
+      break;
+    }
+
     case CTimeReqClockGettime_Post_Tp_Unchanged: {
       /*
        * The object referenced by the `tp` parameter shall not be changed by
@@ -448,6 +482,8 @@ static void CTimeReqClockGettime_Prepare( CTimeReqClockGettime_Context *ctx )
   Timestamp_Control used;
   Timestamp_Control ran;
   Thread_Control   *executing;
+  Thread_Control   *worker;
+  ISR_lock_Context  lock_context;
 
   rtems_cpu_usage_reset();
   Yield();
@@ -479,6 +515,16 @@ static void CTimeReqClockGettime_Prepare( CTimeReqClockGettime_Context *ctx )
   _Timestamp_Add_to( &used, &ran );
   _Timestamp_To_timespec( &used, &ctx->thread_time );
 
+  worker = _Thread_Get( ctx->worker_id, &lock_context );
+  T_assert_not_null( worker );
+  _ISR_lock_ISR_enable( &lock_context );
+  _Timestamp_Subtract(
+    &worker->cpu_time_used_at_last_reset,
+    &worker->cpu_time_used,
+    &used
+  );
+  _Timestamp_To_timespec( &used, &ctx->other_thread_time );
+
   errno = -1;
   ctx->status = -1;
   ctx->tp_obj.tv_sec = -1;
@@ -508,6 +554,9 @@ CTimeReqClockGettime_Entries[] = {
   { 0, 0, 0, CTimeReqClockGettime_Post_Status_Zero,
     CTimeReqClockGettime_Post_Errno_Unchanged,
     CTimeReqClockGettime_Post_Tp_ThreadCPUTimeId },
+  { 0, 0, 0, CTimeReqClockGettime_Post_Status_Zero,
+    CTimeReqClockGettime_Post_Errno_Unchanged,
+    CTimeReqClockGettime_Post_Tp_OtherThread },
   { 0, 0, 0, CTimeReqClockGettime_Post_Status_MinusOne,
     CTimeReqClockGettime_Post_Errno_EINVAL,
     CTimeReqClockGettime_Post_Tp_Unchanged }
@@ -515,7 +564,7 @@ CTimeReqClockGettime_Entries[] = {
 
 static const uint8_t
 CTimeReqClockGettime_Map[] = {
-  1, 0, 2, 0, 3, 0, 4, 0, 5, 0
+  1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0
 };
 
 /* clang-format on */
