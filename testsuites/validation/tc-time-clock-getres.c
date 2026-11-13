@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +37,8 @@
 #endif
 
 #include <errno.h>
+#include <pthread.h>
+#include <rtems.h>
 #include <time.h>
 
 #include "tx-support.h"
@@ -55,6 +58,7 @@ typedef enum {
   CTimeReqClockGetres_Pre_ClockId_Realtime,
   CTimeReqClockGetres_Pre_ClockId_ProcessCPUTimeId,
   CTimeReqClockGetres_Pre_ClockId_ThreadCPUTimeId,
+  CTimeReqClockGetres_Pre_ClockId_OtherThread,
   CTimeReqClockGetres_Pre_ClockId_Other,
   CTimeReqClockGetres_Pre_ClockId_NA
 } CTimeReqClockGetres_Pre_ClockId;
@@ -126,6 +130,12 @@ typedef struct {
   struct timespec res_obj;
 
   /**
+   * @brief This member contains the identifier of a thread other than the
+   *   executing thread.
+   */
+  rtems_id other_id;
+
+  /**
    * @brief If this member is not zero, then the cleanup sets the timecounter
    *   frequency to its value.
    */
@@ -179,6 +189,7 @@ static const char *const CTimeReqClockGetres_PreDesc_ClockId[] = {
   "Realtime",
   "ProcessCPUTimeId",
   "ThreadCPUTimeId",
+  "OtherThread",
   "Other",
   "NA"
 };
@@ -234,12 +245,23 @@ static void CTimeReqClockGetres_Pre_ClockId_Prepare(
       break;
     }
 
+    case CTimeReqClockGetres_Pre_ClockId_OtherThread: {
+      /*
+       * While the `clock_id` parameter is equal to the clock identifier which
+       * pthread_getcpuclockid() returns for a thread other than the executing
+       * task.
+       */
+      T_eq_int( pthread_getcpuclockid( ctx->other_id, &ctx->clock_id ), 0 );
+      break;
+    }
+
     case CTimeReqClockGetres_Pre_ClockId_Other: {
       /*
        * While the `clock_id` parameter is not equal to CLOCK_MONOTONIC,
-       * CLOCK_REALTIME, CLOCK_PROCESS_CPUTIME_ID, or CLOCK_THREAD_CPUTIME_ID.
+       * CLOCK_REALTIME, CLOCK_PROCESS_CPUTIME_ID, CLOCK_THREAD_CPUTIME_ID, or
+       * the clock identifier of the CPU-time clock of a thread.
        */
-      ctx->clock_id = CLOCK_TAI;
+      ctx->clock_id = CLOCK_REALTIME_COARSE;
       break;
     }
 
@@ -416,6 +438,34 @@ static void CTimeReqClockGetres_Post_ResObj_Check(
   }
 }
 
+static void CTimeReqClockGetres_Setup( CTimeReqClockGetres_Context *ctx )
+{
+  ctx->other_id = CreateTask( "OTHR", PRIO_NORMAL );
+}
+
+static void CTimeReqClockGetres_Setup_Wrap( void *arg )
+{
+  CTimeReqClockGetres_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  CTimeReqClockGetres_Setup( ctx );
+}
+
+static void CTimeReqClockGetres_Teardown( CTimeReqClockGetres_Context *ctx )
+{
+  DeleteTask( ctx->other_id );
+}
+
+static void CTimeReqClockGetres_Teardown_Wrap( void *arg )
+{
+  CTimeReqClockGetres_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  CTimeReqClockGetres_Teardown( ctx );
+}
+
 static void CTimeReqClockGetres_Prepare( CTimeReqClockGetres_Context *ctx )
 {
   errno = -1;
@@ -462,8 +512,8 @@ CTimeReqClockGetres_Entries[] = {
 
 static const uint8_t
 CTimeReqClockGetres_Map[] = {
-  1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 4, 0,
-  0, 5, 0, 0
+  1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1, 1,
+  2, 3, 0, 0, 4, 0, 0, 5, 0, 0
 };
 
 /* clang-format on */
@@ -482,9 +532,9 @@ static size_t CTimeReqClockGetres_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture CTimeReqClockGetres_Fixture = {
-  .setup = NULL,
+  .setup = CTimeReqClockGetres_Setup_Wrap,
   .stop = NULL,
-  .teardown = NULL,
+  .teardown = CTimeReqClockGetres_Teardown_Wrap,
   .scope = CTimeReqClockGetres_Scope,
   .initial_context = &CTimeReqClockGetres_Instance
 };
