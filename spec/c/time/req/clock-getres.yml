@@ -1,5 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
+- Copyright (C) 2026 Critical Software S.A.
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
@@ -94,14 +95,22 @@ pre-conditions:
     text: |
       While the ${../if/clock-getres:/params[0]/name} parameter is equal to
       ${../if/clock-thread-cputime-id:/name}.
+  - name: OtherThread
+    test-code: |
+      T_eq_int( pthread_getcpuclockid( ctx->other_id, &ctx->clock_id ), 0 );
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to the clock
+      identifier which ${/c/pthread/if/getcpuclockid:/name} returns for a thread
+      other than the ${/glossary/executingtask:/term}.
   - name: Other
     test-code: |
-      ctx->clock_id = CLOCK_TAI;
+      ctx->clock_id = CLOCK_REALTIME_COARSE;
     text: |
       While the ${../if/clock-getres:/params[0]/name} parameter is not equal to
       ${../if/clock-monotonic:/name}, ${../if/clock-realtime:/name},
-      ${../if/clock-process-cputime-id:/name}, or
-      ${../if/clock-thread-cputime-id:/name}.
+      ${../if/clock-process-cputime-id:/name},
+      ${../if/clock-thread-cputime-id:/name}, or the clock identifier of the CPU-time
+      clock of a thread.
   test-epilogue: null
   test-prologue: null
 - name: Res
@@ -145,8 +154,12 @@ pre-conditions:
   test-epilogue: null
   test-prologue: null
 rationale: |
-  Dimension ClockId covers the identifier of the clock, 5 states. The directive
-  supports four clocks. State Other covers every other identifier.
+  Dimension ClockId covers the identifier of the clock, 6 states. The directive
+  supports four clocks and the CPU-time clock of each thread. State OtherThread
+  covers the CPU-time clock of a thread other than the executing thread. State
+  Other covers every other identifier. State Other uses the clock identifier
+  zero. In RTEMS, zero also identifies the executing thread, so this value checks
+  that the directive does not accept it as the CPU-time clock of a thread.
 
   Dimension Res covers the pointer to the time object, 2 states. The directive
   checks the pointer against ${/c/if/null:/name} alone, so the domain splits into
@@ -192,6 +205,12 @@ test-context:
   member: |
     struct timespec res_obj
 - brief: |
+    This member contains the identifier of a thread other than the executing
+    thread.
+  description: null
+  member: |
+    rtems_id other_id
+- brief: |
     If this member is not zero, then the cleanup sets the timecounter frequency to
     its value.
   description: null
@@ -208,6 +227,8 @@ test-description: null
 test-header: null
 test-includes:
 - errno.h
+- pthread.h
+- rtems.h
 - time.h
 test-local-includes:
 - tx-support.h
@@ -218,11 +239,19 @@ test-prepare: |
   ctx->res_obj.tv_nsec = -1;
   ctx->frequency = 0;
   ctx->timecounter_frequency = 0;
-test-setup: null
+test-setup:
+  brief: null
+  code: |
+    ctx->other_id = CreateTask( "OTHR", PRIO_NORMAL );
+  description: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-time-clock-getres.c
-test-teardown: null
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->other_id );
+  description: null
 text: |
   ${.:text-template}
 transition-map:
@@ -265,5 +294,6 @@ transition-map:
           - Realtime
           - ProcessCPUTimeId
           - ThreadCPUTimeId
+          - OtherThread
           Res: Valid
 type: requirement
