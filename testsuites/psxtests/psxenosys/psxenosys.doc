@@ -41,7 +41,6 @@ directives:
   execvp
   fork
   pthread_atfork
-  pthread_getcpuclockid
   sched_setparam
   sched_getparam
   sched_setscheduler

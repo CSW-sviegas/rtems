@@ -44,12 +44,24 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include <rtems/seterr.h>
+#include <rtems/score/threadimpl.h>
 
-int pthread_getcpuclockid( pthread_t pid, clockid_t *clock_id )
+int pthread_getcpuclockid( pthread_t thread, clockid_t *clock_id )
 {
-  (void) pid;
-  (void) clock_id;
+  Thread_Control  *the_thread;
+  ISR_lock_Context lock_context;
 
-  rtems_set_errno_and_return_minus_one( ENOSYS );
+  if ( clock_id == NULL ) {
+    return EINVAL;
+  }
+
+  the_thread = _Thread_Get( thread, &lock_context );
+
+  if ( the_thread == NULL ) {
+    return ESRCH;
+  }
+
+  *clock_id = (clockid_t) the_thread->Object.id;
+  _ISR_lock_ISR_enable( &lock_context );
+  return 0;
 }

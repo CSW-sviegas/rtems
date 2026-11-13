@@ -42,6 +42,7 @@
 #include <time.h>
 #include <errno.h>
 
+#include <rtems/posix/pthreadimpl.h>
 #include <rtems/score/timecounter.h>
 #include <rtems/seterr.h>
 
@@ -51,7 +52,9 @@
 
 int clock_getres( clockid_t clock_id, struct timespec *res )
 {
-  uint64_t ns;
+  uint64_t         ns;
+  Thread_Control  *the_thread;
+  ISR_lock_Context lock_context;
 
   switch ( clock_id ) {
     /* All clocks read the timecounter */
@@ -61,7 +64,14 @@ int clock_getres( clockid_t clock_id, struct timespec *res )
     case CLOCK_THREAD_CPUTIME_ID:
       break;
     default:
-      rtems_set_errno_and_return_minus_one( EINVAL );
+      the_thread = _POSIX_Threads_Get_by_clock_id( clock_id, &lock_context );
+
+      if ( the_thread == NULL ) {
+        rtems_set_errno_and_return_minus_one( EINVAL );
+      }
+
+      _ISR_lock_ISR_enable( &lock_context );
+      break;
   }
 
   if ( res != NULL ) {
