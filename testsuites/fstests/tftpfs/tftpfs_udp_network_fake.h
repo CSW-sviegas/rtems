@@ -49,6 +49,14 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup RTEMSTestSuitesFilesystem Filesystem Test Suites
+ *
+ * @ingroup RTEMSTestSuites
+ *
+ * @brief This group contains the test suites related to filesystem tests.
+ */
+
+/**
  * @defgroup RTEMSTestSuiteTestsTFTPFS Test suite for libtftpsfs tests
  *
  * @ingroup RTEMSTestSuitesFilesystem

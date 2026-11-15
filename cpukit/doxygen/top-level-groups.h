@@ -56,14 +56,6 @@
  */
 
 /**
- * @defgroup RTEMSDeviceConsole Console Drivers
- *
- * @ingroup RTEMSDeviceDrivers
- *
- * @brief This group contains the console drivers.
- */
-
-/**
  * @defgroup RTEMSImpl Implementation
  *
  * @brief This group contains the RTEMS implementation components.
@@ -90,14 +82,6 @@
  * @defgroup RTEMSTestSuites Test Suites
  *
  * @brief This group contains the test suites.
- */
-
-/**
- * @defgroup RTEMSTestSuitesFilesystem Filesystem Test Suites
- *
- * @ingroup RTEMSTestSuites
- *
- * @brief This group contains the test suites related to filesystem tests.
  */
 
 /**

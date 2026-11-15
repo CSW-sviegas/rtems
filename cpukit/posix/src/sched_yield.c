@@ -44,6 +44,14 @@
 #include <rtems/score/threaddispatch.h>
 #include <rtems/score/threadimpl.h>
 
+/**
+ * @defgroup RTEMSImplPOSIXScheduler POSIX Scheduler
+ *
+ * @ingroup RTEMSImplPOSIX
+ *
+ * @brief This group contains the POSIX scheduler implementation.
+ */
+
 int sched_yield( void )
 {
   Per_CPU_Control *cpu_self;

@@ -56,6 +56,14 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup RTEMSLegacyBenchmarkDrivers Legacy Benchmark Drivers
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief Legacy Benchmark Drivers
+ */
+
+/**
  * @defgroup BenchmarkTimer Benchmark Timer Driver Interface
  *
  * @ingroup RTEMSLegacyBenchmarkDrivers

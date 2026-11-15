@@ -43,6 +43,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/**
+ * @defgroup RTEMSBSPsSPARCShared Shared
+ *
+ * @ingroup RTEMSBSPsSPARC
+ *
+ * @brief Shared Support for SPARC Board Support Packages.
+ */
+
 struct timecounter;
 
 void _SPARC_Counter_at_tick_clock( void );

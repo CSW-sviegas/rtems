@@ -51,6 +51,14 @@
 /* functions */
 
 /**
+ * @defgroup libmisc_mouse Serial Mouse
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief Serial Mouse
+ */
+
+/**
  *  @defgroup libmisc_serialmouse Serial Mouse Driver
  *  @ingroup libmisc_mouse
  */

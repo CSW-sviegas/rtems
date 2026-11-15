@@ -47,6 +47,14 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup RTEMSDeviceConsole Console Drivers
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief This group contains the console drivers.
+ */
+
+/**
  * This macro defines the standard name for the console device
  * that is available to applications.
  */

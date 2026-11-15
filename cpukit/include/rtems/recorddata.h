@@ -49,6 +49,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * @defgroup RTEMSAPITracing Tracing
+ *
+ * @ingroup RTEMSAPI
+ *
+ * @brief Tracing
+ */
+
+/**
  * @defgroup RTEMSImplRecord Event Recording
  *
  * @ingroup RTEMSImpl

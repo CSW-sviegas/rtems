@@ -35,6 +35,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
+ * @defgroup RTEMSBSPsSharedConsole Console Driver Support
+ *
+ * @ingroup RTEMSBSPsShared
+ *
+ * @brief This group contains the console driver support modules.
+ */
+
+/**
  * @defgroup ConsoleTermios Termios Console Driver
  *
  * @ingroup RTEMSBSPsSharedConsole

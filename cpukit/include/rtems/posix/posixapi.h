@@ -124,13 +124,5 @@ static inline bool _POSIX_Is_valid_clock_id( clockid_t clock_id )
  * @brief This group contains the POSIX clock implementation.
  */
 
-/**
- * @defgroup RTEMSImplPOSIXScheduler POSIX Scheduler
- *
- * @ingroup RTEMSImplPOSIX
- *
- * @brief This group contains the POSIX scheduler implementation.
- */
-
 #endif
 /* end of include file */

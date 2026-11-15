@@ -50,6 +50,22 @@ extern "C" {
 typedef struct rtems_printer rtems_printer;
 
 /**
+ * @defgroup RTEMSAPIIO IO
+ *
+ * @ingroup RTEMSAPI
+ *
+ * @brief IO
+ */
+
+/**
+ * @defgroup RTEMSAPIPrintSupport Print Support
+ *
+ * @ingroup RTEMSAPIIO
+ *
+ * @brief Print Support
+ */
+
+/**
  * @defgroup RTEMSPrintSupport RTEMS Print Support
  *
  * @ingroup RTEMSAPIPrintSupport
