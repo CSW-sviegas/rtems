@@ -1,5 +1,9 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 actions:
+- action: directory-state-discard-and-clear
+  enabled-by:
+    has-output: deployment
+  output-name: deployment
 - action: remove-glob
   enabled-by: true
   path: ${.:/params/working-directory}
@@ -39,10 +43,6 @@ actions:
   env: []
   expected-return-code: 0
   working-directory: ${.:/params/working-directory}
-- action: directory-state-discard-and-clear
-  enabled-by:
-    has-output: deployment
-  output-name: deployment
 - action: directory-state-move-tree
   enabled-by:
     has-output: deployment

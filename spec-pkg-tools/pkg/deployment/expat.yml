@@ -1,5 +1,8 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 actions:
+- action: directory-state-discard-and-clear
+  enabled-by: true
+  output-name: .
 - action: remove-tree
   enabled-by: true
   missing-ok: true
@@ -41,9 +44,6 @@ actions:
   env: []
   expected-return-code: 0
   working-directory: ${.:/params/build-directory}
-- action: directory-state-discard-and-clear
-  enabled-by: true
-  output-name: .
 - action: directory-state-move-tree
   enabled-by: true
   excludes: []
