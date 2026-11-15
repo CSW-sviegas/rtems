@@ -70,10 +70,6 @@
   #define CONFIGURE_MICROSECONDS_PER_TICK 10000
 #endif
 
-#if 1000000 % CONFIGURE_MICROSECONDS_PER_TICK != 0
-  #warning "The clock ticks per second is not an integer"
-#endif
-
 #if defined( CONFIGURE_TICKS_PER_TIMESLICE ) && \
   CONFIGURE_TICKS_PER_TIMESLICE <= 0
   #error "CONFIGURE_TICKS_PER_TIMESLICE shall be greater than zero"
@@ -81,6 +77,8 @@
 
 #if CONFIGURE_MICROSECONDS_PER_TICK <= 0
   #error "CONFIGURE_MICROSECONDS_PER_TICK must be positive"
+#elif 1000000 % CONFIGURE_MICROSECONDS_PER_TICK != 0
+  #error "CONFIGURE_MICROSECONDS_PER_TICK shall divide 1000000"
 #endif
 
 #ifdef __cplusplus
