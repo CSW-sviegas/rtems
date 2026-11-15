@@ -299,6 +299,8 @@ typedef struct {
  *
  * @ingroup RTEMSScoreCPUSPARC
  *
+ * @brief This group contains the SPARC context structures.
+ *
  * Generally there are 2 types of context to save.
  *    + Interrupt registers to save
  *    + Task level registers to save

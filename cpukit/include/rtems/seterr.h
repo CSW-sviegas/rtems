@@ -45,6 +45,8 @@
  *
  * @ingroup RTEMSAPI
  *
+ * @brief This group contains the macros which set errno and return a value.
+ *
  * @{
  */
 

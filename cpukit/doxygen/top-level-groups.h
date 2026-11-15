@@ -73,6 +73,8 @@
  * @defgroup RTEMSImplDoxygen Doxygen Support
  *
  * @ingroup RTEMSImpl
+ *
+ * @brief This group contains the header files which define Doxygen groups.
  */
 
 /**

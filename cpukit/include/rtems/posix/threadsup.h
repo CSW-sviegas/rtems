@@ -51,6 +51,7 @@
  *
  *  @ingroup RTEMSImplPOSIX
  *
+ *  @brief This group contains the POSIX API support of a thread.
  */
 /**@{**/
 #ifdef __cplusplus
