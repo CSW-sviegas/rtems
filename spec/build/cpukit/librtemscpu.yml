@@ -97,6 +97,8 @@ install:
   - cpukit/include/rtems/dev/io.h
 - destination: ${BSP_INCLUDEDIR}/rtems/posix
   source:
+  - cpukit/include/rtems/posix/key.h
+  - cpukit/include/rtems/posix/keyimpl.h
   - cpukit/include/rtems/posix/posixapi.h
   - cpukit/include/rtems/posix/priorityimpl.h
   - cpukit/include/rtems/posix/pthread.h
@@ -351,6 +353,12 @@ source:
 - cpukit/posix/src/clockgetres.c
 - cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/key.c
+- cpukit/posix/src/keycreate.c
+- cpukit/posix/src/keydelete.c
+- cpukit/posix/src/keygetspecific.c
+- cpukit/posix/src/keysetspecific.c
+- cpukit/posix/src/keyzerokvp.c
 - cpukit/posix/src/pthreadattrdefault.c
 - cpukit/posix/src/pthreadattrdestroy.c
 - cpukit/posix/src/pthreadattrgetdetachstate.c
@@ -524,6 +532,7 @@ source:
 - cpukit/score/src/coretodhookrun.c
 - cpukit/score/src/coretodhookunregister.c
 - cpukit/score/src/coretodset.c
+- cpukit/score/src/freechain.c
 - cpukit/score/src/futex.c
 - cpukit/score/src/interr.c
 - cpukit/score/src/isr.c
