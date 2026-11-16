@@ -32,8 +32,9 @@ env:
   BRANCH: ${{ github.event.pull_request.base.ref || github.ref_name }}
   # A push writes the build, test log and workspace entries of its branch.
   SAVE_BRANCH_CACHE: ${{ github.event_name == 'push' }}
-  # Only a push to eb/main writes the uv and tools packages.
-  SAVE_CACHE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/eb/main' }}
+  # Only a push or a manual run on eb/main writes the uv and tools packages.
+  # A manual run cancels the push run of the same branch.
+  SAVE_CACHE: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/eb/main' }}
   TOOLS_PACKAGE: ghcr.io/${{ github.repository_owner }}/rtems-tools
   # Each architecture keeps this number of tools package versions.
   TOOLS_PACKAGE_VERSIONS: 2
