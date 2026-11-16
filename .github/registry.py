@@ -32,6 +32,7 @@
 
 import argparse
 import base64
+import http.client
 import json
 import os
 import shutil
@@ -71,7 +72,9 @@ def _open(request: urllib.request.Request, follow: bool = False):
                 raise
             if attempt == _ATTEMPTS - 1:
                 raise
-        except urllib.error.URLError:
+        except (OSError, http.client.HTTPException):
+            # urllib wraps an error of the request in URLError.  An error of
+            # the response, such as a closed connection, passes unwrapped.
             if attempt == _ATTEMPTS - 1:
                 raise
         time.sleep(10 * (attempt + 1))
@@ -131,7 +134,7 @@ def _fetch(repository: str, manifest: dict, title: str, token: str,
                                                                "wb") as dst:
                 shutil.copyfileobj(response, dst)
             return
-        except (ConnectionError, TimeoutError):
+        except (ConnectionError, TimeoutError, http.client.HTTPException):
             if attempt == _ATTEMPTS - 1:
                 raise
         time.sleep(10 * (attempt + 1))
@@ -158,7 +161,7 @@ def main(argv: list[str]) -> int:
             return _MISSING
         if args.command == "fetch":
             _fetch(repository, manifest, args.title, token, args.path)
-    except (urllib.error.URLError, ValueError, KeyError) as error:
+    except (OSError, http.client.HTTPException, ValueError, KeyError) as error:
         print(f"registry.py: {args.reference}: {error}", file=sys.stderr)
         return 1
     return 0
