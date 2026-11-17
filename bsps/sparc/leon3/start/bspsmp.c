@@ -2,8 +2,10 @@
 
 /**
  * @file
+ *
  * @ingroup RTEMSBSPsSPARCLEON3
- * @brief LEON3 SMP BSP Support
+ *
+ * @brief This source file contains the SMP support of the LEON3 BSP.
  */
 
 /*
