@@ -17,9 +17,9 @@ text: |
 
   It consists normally of a set of registers and a stack. The scheduler assigns
   processors to a subset of the ready tasks. The terms task and ${thread:/term}
-  are synonym in RTEMS. The term task is used throughout the Classic API,
-  however, internally in the operating system implementation and the POSIX API
-  the term thread is used.
+  are synonym in RTEMS. The term task is used throughout the Classic
+  ${api:/term}, however, internally in the operating system implementation and
+  the ${posix:/term} API the term thread is used.
 
   A *task* is a ${softwarecomponent:/term}.
 type: glossary

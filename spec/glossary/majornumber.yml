@@ -8,5 +8,5 @@ links:
   uid: group
 term: major number
 text: |
-  The index of a device driver in the Device Driver Table.
+  The index of a device driver in the ${devicedrivertable:/term}.
 type: glossary

@@ -9,5 +9,5 @@ links:
 term: signal
 text: |
   An RTEMS provided mechanism to communicate asynchronously with a task. Upon
-  reception of a signal, the ASR of the receiving task will be invoked.
+  reception of a signal, the ${asr:/term} of the receiving task will be invoked.
 type: glossary

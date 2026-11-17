@@ -9,5 +9,6 @@ links:
 term: GPL
 text: |
   This term is an acronym for
-  [GNU General Public License](https://www.gnu.org/licenses).
+  [GNU General Public License](https://www.gnu.org/licenses), the general public
+  license of the ${gnu:/term} project.
 type: glossary

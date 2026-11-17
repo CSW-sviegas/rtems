@@ -8,5 +8,6 @@ links:
   uid: group
 term: GCC
 text: |
-  This term is an acronym for [GNU Compiler Collection](https://gcc.gnu.org/).
+  This term is an acronym for [GNU Compiler Collection](https://gcc.gnu.org/),
+  the compiler collection of the ${gnu:/term} project.
 type: glossary

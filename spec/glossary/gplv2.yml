@@ -9,5 +9,6 @@ links:
 term: GPLv2
 text: |
   This term is an acronym for
-  [GNU General Public License Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
+  [GNU General Public License Version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html),
+  version 2 of the ${gpl:/term}.
 type: glossary
