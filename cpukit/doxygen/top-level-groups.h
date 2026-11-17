@@ -257,6 +257,15 @@
  */
 
 /**
+ * @file cpukit/libc/misc/ffs.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffs()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/search/qsort.c
  *
  * @ingroup libcsupport
@@ -270,6 +279,24 @@
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/ffsl.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffsl()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/ffsll.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffsll()
+ *   function.
  */
 
 /**
