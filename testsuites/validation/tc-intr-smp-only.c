@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,8 @@
 
 #include <rtems.h>
 
+#include "tr-isr-lock-fifo.h"
+#include "tx-isr-lock.h"
 #include "tx-support.h"
 
 #include <rtems/test.h>
@@ -61,39 +63,42 @@
  *
  *   - Check that the lock is available after initialization.
  *
- *   - Check that maskable interrupts are disabled before the call to
- *     rtems_interrupt_lock_interrupt_disable() and disabled afterwards.
+ * - Validate the order in which processors acquire an interrupt lock.
  *
- *   - Check that the maskable interrupt status is not changed by the
- *     rtems_interrupt_lock_acquire_isr() call. Check that the lock is no
- *     longer available.
+ *   - Validate the order for rtems_interrupt_lock_release().
  *
- *   - Check that the maskable interrupt status is restored by the call to
- *     rtems_interrupt_lock_release() according to the `_lock_context`
- *     parameter. Check that the lock is available afterwards.
- *
- *   - Check that the maskable interrupt status is not changed by the
- *     rtems_interrupt_lock_destroy() call.
- *
- *   - Initialize the lock using rtems_interrupt_lock_initialize(). Check that
- *     the lock is available after initialization.
- *
- *   - Check that maskable interrupts are disabled before the call to
- *     rtems_interrupt_lock_acquire() and disabled afterwards. Check that the
- *     lock is no longer available.
- *
- *   - Check that the maskable interrupt status is restored by the call to
- *     rtems_interrupt_lock_release() according to the `_lock_context`
- *     parameter. Check that the lock is available afterwards.
- *
- *   - Check that the maskable interrupt status is not changed by the
- *     rtems_interrupt_lock_destroy() call.
+ *   - Validate the order for rtems_interrupt_lock_release_isr().
  *
  * @{
  */
 
+/**
+ * @brief Test context for spec:/rtems/intr/val/intr-smp-only test case.
+ */
+typedef struct {
+  /**
+   * @brief This member contains the context of the ISR lock test runs.
+   */
+  ISRLockContext lock_ctx;
+
+  /**
+   * @brief This member contains the lock under test.
+   */
+  rtems_interrupt_lock lock;
+} RtemsIntrValIntrSmpOnly_Context;
+
+static RtemsIntrValIntrSmpOnly_Context RtemsIntrValIntrSmpOnly_Instance;
+
 RTEMS_INTERRUPT_LOCK_DECLARE( static, the_lock )
 RTEMS_INTERRUPT_LOCK_DEFINE( static, the_lock, "name " )
+
+static T_fixture RtemsIntrValIntrSmpOnly_Fixture = {
+  .setup = NULL,
+  .stop = NULL,
+  .teardown = NULL,
+  .scope = NULL,
+  .initial_context = &RtemsIntrValIntrSmpOnly_Instance
+};
 
 /**
  * @brief Validate the interrupt lock directives.
@@ -107,7 +112,6 @@ static void RtemsIntrValIntrSmpOnly_Action_0( void )
   } lock = { .member = RTEMS_INTERRUPT_LOCK_INITIALIZER( "name" ) };
 
   RTEMS_INTERRUPT_LOCK_REFERENCE( ref, &the_lock )
-  rtems_interrupt_lock_context lock_context;
 
   /*
    * Assert that RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT is a constant expression
@@ -125,91 +129,43 @@ static void RtemsIntrValIntrSmpOnly_Action_0( void )
    * Check that the lock is available after initialization.
    */
   T_true( ISRLockIsAvailable( &lock.member ) );
+}
+
+/**
+ * @brief Validate the order in which processors acquire an interrupt lock.
+ */
+static void RtemsIntrValIntrSmpOnly_Action_1(
+  RtemsIntrValIntrSmpOnly_Context *ctx
+)
+{
+  ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
 
   /*
-   * Check that maskable interrupts are disabled before the call to
-   * rtems_interrupt_lock_interrupt_disable() and disabled afterwards.
+   * Validate the order for rtems_interrupt_lock_release().
    */
-  T_true( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-  rtems_interrupt_lock_interrupt_disable( &lock_context );
-  T_false( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
+  ScoreIsrReqLockFifo_Run( &ctx->lock_ctx );
 
   /*
-   * Check that the maskable interrupt status is not changed by the
-   * rtems_interrupt_lock_acquire_isr() call. Check that the lock is no longer
-   * available.
+   * Validate the order for rtems_interrupt_lock_release_isr().
    */
-  T_false( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-  rtems_interrupt_lock_acquire_isr( &lock.member, &lock_context );
-  T_false( AreInterruptsEnabled() );
-  T_false( ISRLockIsAvailable( &lock.member ) );
-
-  /*
-   * Check that the maskable interrupt status is restored by the call to
-   * rtems_interrupt_lock_release() according to the `_lock_context` parameter.
-   * Check that the lock is available afterwards.
-   */
-  T_false( AreInterruptsEnabled() );
-  T_false( ISRLockIsAvailable( &lock.member ) );
-  rtems_interrupt_lock_release( &lock.member, &lock_context );
-  T_true( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-
-  /*
-   * Check that the maskable interrupt status is not changed by the
-   * rtems_interrupt_lock_destroy() call.
-   */
-  T_true( AreInterruptsEnabled() );
-  rtems_interrupt_lock_destroy( &lock.member );
-  T_true( AreInterruptsEnabled() );
-
-  /*
-   * Initialize the lock using rtems_interrupt_lock_initialize(). Check that
-   * the lock is available after initialization.
-   */
-  rtems_interrupt_lock_initialize( &lock.member, "name" );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-
-  /*
-   * Check that maskable interrupts are disabled before the call to
-   * rtems_interrupt_lock_acquire() and disabled afterwards. Check that the
-   * lock is no longer available.
-   */
-  T_true( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-  rtems_interrupt_lock_acquire( &lock.member, &lock_context );
-  T_false( AreInterruptsEnabled() );
-  T_false( ISRLockIsAvailable( &lock.member ) );
-
-  /*
-   * Check that the maskable interrupt status is restored by the call to
-   * rtems_interrupt_lock_release() according to the `_lock_context` parameter.
-   * Check that the lock is available afterwards.
-   */
-  T_false( AreInterruptsEnabled() );
-  T_false( ISRLockIsAvailable( &lock.member ) );
-  rtems_interrupt_lock_release( &lock.member, &lock_context );
-  T_true( AreInterruptsEnabled() );
-  T_true( ISRLockIsAvailable( &lock.member ) );
-
-  /*
-   * Check that the maskable interrupt status is not changed by the
-   * rtems_interrupt_lock_destroy() call.
-   */
-  T_true( AreInterruptsEnabled() );
-  rtems_interrupt_lock_destroy( &lock.member );
-  T_true( AreInterruptsEnabled() );
+  ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_NONE );
+  ScoreIsrReqLockFifo_Run( &ctx->lock_ctx );
 }
 
 /**
  * @fn void T_case_body_RtemsIntrValIntrSmpOnly( void )
  */
-T_TEST_CASE( RtemsIntrValIntrSmpOnly )
+T_TEST_CASE_FIXTURE(
+  RtemsIntrValIntrSmpOnly,
+  &RtemsIntrValIntrSmpOnly_Fixture
+)
 {
+  RtemsIntrValIntrSmpOnly_Context *ctx;
+
+  ctx = T_fixture_context();
+
   RtemsIntrValIntrSmpOnly_Action_0();
+  RtemsIntrValIntrSmpOnly_Action_1( ctx );
 }
 
 /** @} */

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -70,27 +70,14 @@
  *     rtems_interrupt_local_enable() according to the `_isr_cookie` parameter.
  *     In this case maskable interrupts are enabled afterwards.
  *
- * - Validate the interrupt lock directives.
+ * - Validate rtems_interrupt_lock_interrupt_disable().
  *
- *   - Check that maskable interrupts are disabled before the call to
+ *   - Check that maskable interrupts are enabled before the call to
  *     rtems_interrupt_lock_interrupt_disable() and disabled afterwards.
  *
- *   - Check that the maskable interrupt status is not changed by the
- *     rtems_interrupt_lock_acquire_isr() call.
- *
- *   - Check that the maskable interrupt status is restored by the call to
- *     rtems_interrupt_lock_release() according to the `_lock_context`
- *     parameter.
- *
- *   - Check that maskable interrupts are disabled before the call to
- *     rtems_interrupt_lock_acquire() and disabled afterwards.
- *
- *   - Check that the maskable interrupt status is restored by the call to
- *     rtems_interrupt_lock_release() according to the `_lock_context`
- *     parameter.
- *
- *   - Check that the maskable interrupt status is not changed by the
- *     rtems_interrupt_lock_destroy() call.
+ *   - Restore the status of maskable interrupts with
+ *     rtems_interrupt_lock_interrupt_enable(). Check that maskable interrupts
+ *     are enabled afterwards.
  *
  * - Validate the interrupt entry initialization.
  *
@@ -162,15 +149,14 @@ static void RtemsIntrValIntr_Action_0( void )
 }
 
 /**
- * @brief Validate the interrupt lock directives.
+ * @brief Validate rtems_interrupt_lock_interrupt_disable().
  */
 static void RtemsIntrValIntr_Action_1( void )
 {
-  RTEMS_INTERRUPT_LOCK_DEFINE(, lock, "name" );
   rtems_interrupt_lock_context lock_context;
 
   /*
-   * Check that maskable interrupts are disabled before the call to
+   * Check that maskable interrupts are enabled before the call to
    * rtems_interrupt_lock_interrupt_disable() and disabled afterwards.
    */
   T_true( AreInterruptsEnabled() );
@@ -178,43 +164,11 @@ static void RtemsIntrValIntr_Action_1( void )
   T_false( AreInterruptsEnabled() );
 
   /*
-   * Check that the maskable interrupt status is not changed by the
-   * rtems_interrupt_lock_acquire_isr() call.
+   * Restore the status of maskable interrupts with
+   * rtems_interrupt_lock_interrupt_enable(). Check that maskable interrupts
+   * are enabled afterwards.
    */
-  T_false( AreInterruptsEnabled() );
-  rtems_interrupt_lock_acquire_isr( &lock, &lock_context );
-  T_false( AreInterruptsEnabled() );
-
-  /*
-   * Check that the maskable interrupt status is restored by the call to
-   * rtems_interrupt_lock_release() according to the `_lock_context` parameter.
-   */
-  T_false( AreInterruptsEnabled() );
-  rtems_interrupt_lock_release( &lock, &lock_context );
-  T_true( AreInterruptsEnabled() );
-
-  /*
-   * Check that maskable interrupts are disabled before the call to
-   * rtems_interrupt_lock_acquire() and disabled afterwards.
-   */
-  T_true( AreInterruptsEnabled() );
-  rtems_interrupt_lock_acquire( &lock, &lock_context );
-  T_false( AreInterruptsEnabled() );
-
-  /*
-   * Check that the maskable interrupt status is restored by the call to
-   * rtems_interrupt_lock_release() according to the `_lock_context` parameter.
-   */
-  T_false( AreInterruptsEnabled() );
-  rtems_interrupt_lock_release( &lock, &lock_context );
-  T_true( AreInterruptsEnabled() );
-
-  /*
-   * Check that the maskable interrupt status is not changed by the
-   * rtems_interrupt_lock_destroy() call.
-   */
-  T_true( AreInterruptsEnabled() );
-  rtems_interrupt_lock_destroy( &lock );
+  rtems_interrupt_lock_interrupt_enable( &lock_context );
   T_true( AreInterruptsEnabled() );
 }
 
