@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Releases the ISR lock from within an ISR.
 copyrights:
-- Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -41,11 +41,14 @@ links:
   uid: /constraint/directive-ctx-any
 - role: constraint
   uid: /constraint/directive-no-preempt
+- role: constraint
+  uid: ../constraint/lock-owned
+- role: constraint
+  uid: ../constraint/lock-interrupts-disabled
+- role: constraint
+  uid: ../constraint/lock-initialized
 name: rtems_interrupt_lock_release_isr
 notes: |
-  The lock context shall be the one used to acquire the lock, otherwise the
-  result is unpredictable.
-
   Where the system was built with SMP support enabled, this directive releases an
   SMP lock.
 params:
@@ -55,7 +58,7 @@ params:
   name: _lock
 - description: |
     is the ISR lock context. This lock context shall have been used to acquire the
-    lock by calling ${lock-acquire-isr:/name}.
+    lock by calling ${lock-acquire-isr:/name} or ${lock-acquire:/name}.
   dir: inout
   name: _lock_context
 return: null

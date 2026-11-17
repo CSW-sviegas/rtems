@@ -1,16 +1,19 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
-enabled-by: RTEMS_SMP
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
 functional-type: function
 links:
 - role: interface-function
   uid: ../if/lock-acquire
-- role: interface-function
-  uid: ../if/lock-acquire-isr
+- role: function-implementation
+  uid: /score/isr/req/lock-acquire
 rationale: null
 requirement-type: functional
 text: |
-  When the directive is called, the lock contained in the object referenced by
-  the ${../if/lock-initialize:/params[0]/name} parameter shall be acquired.
+  The ${../if/lock-acquire:/name} directive shall acquire the lock referenced by
+  the ${../if/lock-acquire:/params[0]/name} parameter as specified by
+  ${/score/isr/req/lock-acquire:/spec} where the lock disables maskable
+  interrupts at the acquire and restores their status from the lock context at
+  the release.
 type: requirement

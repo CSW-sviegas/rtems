@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  The lock context shall contain the status of maskable interrupts which
+  ${../if/lock-acquire:/name} or ${../if/lock-isr-disable:/name} stored in it on
+  the calling processor. Calling the directive under other conditions is
+  undefined behaviour.
+type: constraint

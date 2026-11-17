@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Initializes the ISR lock.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -23,6 +23,10 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
+- role: constraint
+  uid: ../constraint/lock-not-concurrent
+- role: constraint
+  uid: ../constraint/lock-uninitialized
 name: rtems_interrupt_lock_initialize
 notes: |
   ISR locks may also be statically defined by ${lock-define:/name} or statically

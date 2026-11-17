@@ -1,15 +1,18 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
-enabled-by: RTEMS_SMP
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
 functional-type: function
 links:
 - role: interface-function
   uid: ../if/lock-initialize
+- role: function-implementation
+  uid: /score/isr/req/lock-initialize
 rationale: null
 requirement-type: functional
 text: |
-  When the ${../if/lock-initialize:/name} directive is called, the lock contained
-  in the object referenced by the ${../if/lock-initialize:/params[0]/name}
-  parameter shall be initialized so that it is available.
+  The ${../if/lock-initialize:/name} directive shall initialize the lock
+  referenced by the ${../if/lock-initialize:/params[0]/name} parameter as
+  specified by ${/score/isr/req/lock-initialize:/spec} where the lock is
+  initialized by a function.
 type: requirement

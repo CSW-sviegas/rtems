@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/lock-release-isr
+- role: function-implementation
+  uid: /score/isr/req/lock-fifo
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/lock-release-isr:/name} directive shall pass the lock referenced by
+  the ${../if/lock-release-isr:/params[0]/name} parameter to a waiting processor
+  as specified by ${/score/isr/req/lock-fifo:/spec} where the lock does not
+  change the status of maskable interrupts.
+type: requirement

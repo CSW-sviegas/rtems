@@ -1,13 +1,11 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
 - role: interface-function
   uid: ../if/local-disable
-- role: interface-function
-  uid: ../if/lock-acquire
 - role: interface-function
   uid: ../if/lock-isr-disable
 rationale: null

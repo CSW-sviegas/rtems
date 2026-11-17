@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Acquires the ISR lock.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -30,14 +30,21 @@ links:
   uid: /constraint/directive-ctx-any
 - role: constraint
   uid: /constraint/directive-no-preempt
+- role: constraint
+  uid: ../constraint/lock-not-owned
+- role: constraint
+  uid: ../constraint/lock-interrupts-disabled
+- role: constraint
+  uid: ../constraint/lock-initialized
+- role: constraint
+  uid: ../constraint/lock-no-blocking
 name: rtems_interrupt_lock_acquire
 notes: |
   A caller-specific lock context shall be provided for each acquire/release pair,
   for example an automatic variable.
 
   Where the system was built with SMP support enabled, this directive acquires an
-  SMP lock. An attempt to recursively acquire the lock may result in an infinite
-  loop with maskable interrupts disabled.
+  SMP lock.
 
   This directive establishes a non-preemptive critical section with system wide
   mutual exclusion on the local node in all RTEMS build configurations.
@@ -65,7 +72,9 @@ params:
   name: _lock
 - description: |
     is the ISR lock context. This lock context shall be used to release the lock by
-    calling ${lock-release:/name}.
+    calling ${lock-release:/name} or ${lock-release-isr:/name}. After
+    ${lock-release-isr:/name}, it shall be used to restore the status of maskable
+    interrupts by calling ${lock-isr-enable:/name}.
   dir: out
   name: _lock_context
 return: null

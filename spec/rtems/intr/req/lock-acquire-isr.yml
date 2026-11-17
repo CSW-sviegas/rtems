@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/lock-acquire-isr
+- role: function-implementation
+  uid: /score/isr/req/lock-acquire
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/lock-acquire-isr:/name} directive shall acquire the lock referenced
+  by the ${../if/lock-acquire-isr:/params[0]/name} parameter as specified by
+  ${/score/isr/req/lock-acquire:/spec} where the lock does not change the status
+  of maskable interrupts.
+type: requirement

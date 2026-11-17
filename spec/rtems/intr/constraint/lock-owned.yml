@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  The directive shall be called by the processor which owns the lock, with the
+  lock context which the processor used to acquire the lock. Calling the
+  directive under other conditions is undefined behaviour.
+type: constraint

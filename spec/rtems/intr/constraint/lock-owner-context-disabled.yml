@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  While the calling processor owns an interrupt lock, the lock context shall not
+  contain a status with enabled maskable interrupts. Calling the directive under
+  this condition is undefined behaviour.
+type: constraint

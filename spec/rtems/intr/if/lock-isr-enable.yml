@@ -28,6 +28,12 @@ links:
   uid: /constraint/directive-no-preempt
 - role: constraint
   uid: /constraint/interrupt-enable
+- role: constraint
+  uid: ../constraint/lock-context-saved
+- role: constraint
+  uid: ../constraint/lock-isr-enable-disabled
+- role: constraint
+  uid: ../constraint/lock-owner-context-disabled
 name: rtems_interrupt_lock_interrupt_enable
 notes: null
 params:

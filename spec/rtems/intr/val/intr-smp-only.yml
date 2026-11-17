@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: RTEMS_SMP
 links: []
 test-actions:
@@ -14,7 +14,6 @@ test-actions:
     } lock = { .member = RTEMS_INTERRUPT_LOCK_INITIALIZER( "name" ) };
 
     RTEMS_INTERRUPT_LOCK_REFERENCE( ref, &the_lock )
-    rtems_interrupt_lock_context lock_context;
   checks:
   - brief: |
       Assert that ${../if/lock-needs-object:/name} is a constant expression which
@@ -45,113 +44,6 @@ test-actions:
     links:
     - role: validation
       uid: ../req/lock-initializer
-  - brief: |
-      Check that maskable interrupts are disabled before the call to
-      ${../if/lock-isr-disable:/name} and disabled afterwards.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-      rtems_interrupt_lock_interrupt_disable( &lock_context );
-      T_false( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../if/lock-isr-disable
-    - role: validation
-      uid: ../req/disable-interrupts
-    - role: validation
-      uid: ../req/lock-store-interrupt-status
-  - brief: |
-      Check that the maskable interrupt status is not changed by the
-      ${../if/lock-acquire-isr:/name} call. Check that the lock is no longer
-      available.
-    code: |
-      T_false( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-      rtems_interrupt_lock_acquire_isr( &lock.member, &lock_context );
-      T_false( AreInterruptsEnabled() );
-      T_false( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../req/lock-acquire
-  - brief: |
-      Check that the maskable interrupt status is restored by the call to
-      ${../if/lock-release:/name} according to the
-      ${../if/lock-release:/params[1]/name} parameter. Check that the lock is
-      available afterwards.
-    code: |
-      T_false( AreInterruptsEnabled() );
-      T_false( ISRLockIsAvailable( &lock.member ) );
-      rtems_interrupt_lock_release( &lock.member, &lock_context );
-      T_true( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../req/lock-release
-    - role: validation
-      uid: ../req/lock-restore-interrupts
-  - brief: |
-      Check that the maskable interrupt status is not changed by the
-      ${../if/lock-destroy:/name} call.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      rtems_interrupt_lock_destroy( &lock.member );
-      T_true( AreInterruptsEnabled() );
-    links:
-    - role: validation
-      uid: ../req/lock-destroy
-  - brief: |
-      Initialize the lock using ${../if/lock-initialize:/name}. Check that the lock
-      is available after initialization.
-    code: |
-      rtems_interrupt_lock_initialize( &lock.member, "name" );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../req/lock-initialize
-  - brief: |
-      Check that maskable interrupts are disabled before the call to
-      ${../if/lock-acquire:/name} and disabled afterwards. Check that the lock is no
-      longer available.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-      rtems_interrupt_lock_acquire( &lock.member, &lock_context );
-      T_false( AreInterruptsEnabled() );
-      T_false( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../if/lock-acquire
-    - role: validation
-      uid: ../req/disable-interrupts
-    - role: validation
-      uid: ../req/lock-store-interrupt-status
-  - brief: |
-      Check that the maskable interrupt status is restored by the call to
-      ${../if/lock-release:/name} according to the
-      ${../if/lock-release:/params[1]/name} parameter. Check that the lock is
-      available afterwards.
-    code: |
-      T_false( AreInterruptsEnabled() );
-      T_false( ISRLockIsAvailable( &lock.member ) );
-      rtems_interrupt_lock_release( &lock.member, &lock_context );
-      T_true( AreInterruptsEnabled() );
-      T_true( ISRLockIsAvailable( &lock.member ) );
-    links:
-    - role: validation
-      uid: ../req/lock-release
-    - role: validation
-      uid: ../req/lock-restore-interrupts
-  - brief: |
-      Check that the maskable interrupt status is not changed by the
-      ${../if/lock-destroy:/name} call.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      rtems_interrupt_lock_destroy( &lock.member );
-      T_true( AreInterruptsEnabled() );
-    links:
-    - role: validation
-      uid: ../req/lock-destroy
   links:
   - role: validation
     uid: ../req/lock-declare-identifier
@@ -165,15 +57,48 @@ test-actions:
     uid: ../req/lock-member-identifier
   - role: validation
     uid: ../req/lock-member-type
+- action-brief: |
+    Validate the order in which processors acquire an interrupt lock.
+  action-code: |
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
+  checks:
+  - brief: |
+      Validate the order for ${../if/lock-release:/name}.
+    code: |
+      ${/score/isr/req/lock-fifo:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-release-fifo
+  - brief: |
+      Validate the order for ${../if/lock-release-isr:/name}.
+    code: |
+      ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_NONE );
+      ${/score/isr/req/lock-fifo:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-release-isr-fifo
+  links: []
 test-brief: |
   Tests some ${../if/group:/name} directives.
-test-context: []
+test-context:
+- brief: |
+    This member contains the context of the ISR lock test runs.
+  description: null
+  member: |
+    ISRLockContext lock_ctx
+- brief: |
+    This member contains the lock under test.
+  description: null
+  member: |
+    rtems_interrupt_lock lock
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - rtems.h
 test-local-includes:
+- tr-isr-lock-fifo.h
+- tx-isr-lock.h
 - tx-support.h
 test-setup: null
 test-stop: null

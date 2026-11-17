@@ -1,17 +1,21 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
 - role: interface-function
-  uid: ../if/lock-acquire
-- role: interface-function
   uid: ../if/lock-isr-disable
-rationale: null
+- role: function-implementation
+  uid: /score/isr/req/lock-isr-disable
+rationale: |
+  The stored status is the status which ${../if/lock-release:/name} or
+  ${../if/lock-isr-enable:/name} restores, see
+  ${/score/isr/req/lock-release:/spec}.
 requirement-type: functional
 text: |
-  When the directive is called, the status of the maskable interrupts before
-  maskable interrupts are disabled by the directive shall be stored to the lock
-  context parameter.
+  The ${../if/lock-isr-disable:/name} directive shall store the status of
+  maskable interrupts before the call in the lock context referenced by the
+  ${../if/lock-isr-disable:/params[0]/name} parameter as specified by
+  ${/score/isr/req/lock-isr-disable:/spec}.
 type: requirement

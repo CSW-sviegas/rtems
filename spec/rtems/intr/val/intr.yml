@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links: []
 test-actions:
@@ -72,13 +72,12 @@ test-actions:
       uid: ../req/local-enable
   links: []
 - action-brief: |
-    Validate the interrupt lock directives.
+    Validate ${../if/lock-isr-disable:/name}.
   action-code: |
-    RTEMS_INTERRUPT_LOCK_DEFINE(, lock, "name" );
     rtems_interrupt_lock_context lock_context;
   checks:
   - brief: |
-      Check that maskable interrupts are disabled before the call to
+      Check that maskable interrupts are enabled before the call to
       ${../if/lock-isr-disable:/name} and disabled afterwards.
     code: |
       T_true( AreInterruptsEnabled() );
@@ -89,60 +88,15 @@ test-actions:
       uid: ../if/lock-isr-disable
     - role: validation
       uid: ../req/disable-interrupts
-    - role: validation
-      uid: ../req/lock-store-interrupt-status
   - brief: |
-      Check that the maskable interrupt status is not changed by the
-      ${../if/lock-acquire-isr:/name} call.
+      Restore the status of maskable interrupts with ${../if/lock-isr-enable:/name}.
+      Check that maskable interrupts are enabled afterwards.
     code: |
-      T_false( AreInterruptsEnabled() );
-      rtems_interrupt_lock_acquire_isr( &lock, &lock_context );
-      T_false( AreInterruptsEnabled() );
-    links: []
-  - brief: |
-      Check that the maskable interrupt status is restored by the call to
-      ${../if/lock-release:/name} according to the
-      ${../if/lock-release:/params[1]/name} parameter.
-    code: |
-      T_false( AreInterruptsEnabled() );
-      rtems_interrupt_lock_release( &lock, &lock_context );
+      rtems_interrupt_lock_interrupt_enable( &lock_context );
       T_true( AreInterruptsEnabled() );
     links:
     - role: validation
-      uid: ../req/lock-restore-interrupts
-  - brief: |
-      Check that maskable interrupts are disabled before the call to
-      ${../if/lock-acquire:/name} and disabled afterwards.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      rtems_interrupt_lock_acquire( &lock, &lock_context );
-      T_false( AreInterruptsEnabled() );
-    links:
-    - role: validation
-      uid: ../if/lock-acquire
-    - role: validation
-      uid: ../req/disable-interrupts
-    - role: validation
-      uid: ../req/lock-store-interrupt-status
-  - brief: |
-      Check that the maskable interrupt status is restored by the call to
-      ${../if/lock-release:/name} according to the
-      ${../if/lock-release:/params[1]/name} parameter.
-    code: |
-      T_false( AreInterruptsEnabled() );
-      rtems_interrupt_lock_release( &lock, &lock_context );
-      T_true( AreInterruptsEnabled() );
-    links:
-    - role: validation
-      uid: ../req/lock-restore-interrupts
-  - brief: |
-      Check that the maskable interrupt status is not changed by the
-      ${../if/lock-destroy:/name} call.
-    code: |
-      T_true( AreInterruptsEnabled() );
-      rtems_interrupt_lock_destroy( &lock );
-      T_true( AreInterruptsEnabled() );
-    links: []
+      uid: ../req/lock-restore-interrupt-status
   links: []
 - action-brief: |
     Validate the interrupt entry initialization.

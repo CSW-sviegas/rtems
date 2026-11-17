@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Acquires the ISR lock from within an ISR.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -41,31 +41,34 @@ links:
   uid: /constraint/directive-ctx-any
 - role: constraint
   uid: /constraint/directive-no-preempt
+- role: constraint
+  uid: ../constraint/lock-not-owned
+- role: constraint
+  uid: ../constraint/lock-interrupts-disabled
+- role: constraint
+  uid: ../constraint/lock-initialized
+- role: constraint
+  uid: ../constraint/lock-no-blocking
 name: rtems_interrupt_lock_acquire_isr
 notes: |
   A caller-specific lock context shall be provided for each acquire/release pair,
   for example an automatic variable.
 
   Where the system was built with SMP support enabled, this directive acquires an
-  SMP lock. An attempt to recursively acquire the lock may result in an infinite
-  loop.
+  SMP lock.
 
   This directive is intended for device drivers and should be called from the
   corresponding interrupt service routine.
-
-  In case the corresponding interrupt service routine can be interrupted by
-  higher priority interrupts and these interrupts enter the critical section
-  protected by this lock, then the result is unpredictable. This directive may be
-  used under specific circumstances as an optimization. In doubt, use
-  ${lock-acquire:/name} and ${lock-release:/name}.
 params:
 - description: |
     is the ISR lock to acquire within an ISR.
   dir: inout
   name: _lock
 - description: |
-    is the ISR lock context. This lock context shall be used to release the lock by
-    calling ${lock-release-isr:/name}.
+    is the ISR lock context. The directive does not change the status of maskable
+    interrupts which ${lock-isr-disable:/name} stored in this lock context. This
+    lock context shall be used to release the lock by calling
+    ${lock-release-isr:/name} or ${lock-release:/name}.
   dir: out
   name: _lock_context
 return: null

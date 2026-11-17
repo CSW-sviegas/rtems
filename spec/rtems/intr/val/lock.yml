@@ -1,0 +1,169 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Validate the initialization of an interrupt lock.
+  action-code: |
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
+  checks:
+  - brief: |
+      Validate ${../if/lock-initialize:/name}.
+    code: |
+      ctx->lock_ctx.method = ISR_LOCK_METHOD_FUNCTION;
+      ${/score/isr/req/lock-initialize:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-initialize
+  - brief: |
+      Validate ${../if/lock-initializer:/name}.
+    code: |
+      ctx->lock_ctx.method = ISR_LOCK_METHOD_INITIALIZER;
+      ${/score/isr/req/lock-initialize:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-initializer
+  links: []
+- action-brief: |
+    Validate the directives which acquire and release an interrupt lock and which
+    disable and restore maskable interrupts with the lock context.
+  action-code: |
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
+  checks:
+  - brief: |
+      Validate ${../if/lock-acquire:/name}.
+    code: |
+      ${/score/isr/req/lock-acquire:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-acquire
+  - brief: |
+      Validate ${../if/lock-release:/name}. Validate also the release of a lock which
+      ${../if/lock-acquire-isr:/name} acquired after ${../if/lock-isr-disable:/name}.
+    code: |
+      ${/score/isr/req/lock-release:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-release
+    - role: validation
+      uid: ../req/lock-store-interrupt-status
+  links: []
+- action-brief: |
+    Validate the directives which acquire and release an interrupt lock and which
+    do not change the status of maskable interrupts.
+  action-code: |
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_NONE );
+  checks:
+  - brief: |
+      Validate ${../if/lock-acquire-isr:/name}.
+    code: |
+      ${/score/isr/req/lock-acquire:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-acquire-isr
+  - brief: |
+      Validate ${../if/lock-release-isr:/name}.
+    code: |
+      ${/score/isr/req/lock-release:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-release-isr
+  links: []
+- action-brief: |
+    Validate the directive which destroys an interrupt lock.
+  action-code: |
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
+  checks:
+  - brief: |
+      Validate ${../if/lock-destroy:/name}.
+    code: |
+      ${/score/isr/req/lock-destroy:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-destroy
+  links: []
+- action-brief: |
+    Validate the directives which disable maskable interrupts and restore their
+    status with a lock context.
+  action-code: |
+    rtems_interrupt_lock_context lock_context;
+    bool                         enabled;
+    bool                         is_free;
+
+    ISRLockSetClassic( &ctx->lock_ctx, &ctx->lock, ISR_LOCK_RESTORE_TO_CONTEXT );
+    rtems_interrupt_lock_initialize( &ctx->lock, "Test" );
+  checks:
+  - brief: |
+      Validate ${../if/lock-isr-disable:/name}.
+    code: |
+      ${/score/isr/req/lock-isr-disable:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-store-interrupt-status
+  - brief: |
+      Validate ${../if/lock-isr-enable:/name}.
+    code: |
+      ${/score/isr/req/lock-isr-enable:/test-run}( &ctx->lock_ctx );
+    links:
+    - role: validation
+      uid: ../req/lock-restore-interrupt-status
+  - brief: |
+      Acquire the lock with ${../if/lock-acquire:/name} and release it with
+      ${../if/lock-release-isr:/name}. Check that the lock is free and that maskable
+      interrupts are still disabled. Check that ${../if/lock-isr-enable:/name}
+      enables them.
+    code: |
+      rtems_interrupt_lock_acquire( &ctx->lock, &lock_context );
+      rtems_interrupt_lock_release_isr( &ctx->lock, &lock_context );
+      enabled = AreInterruptsEnabled();
+      is_free = ISRLockIsFree( &ctx->lock_ctx );
+      rtems_interrupt_lock_interrupt_enable( &lock_context );
+      T_false( enabled );
+      T_true( is_free );
+      T_true( AreInterruptsEnabled() );
+    links:
+    - role: validation
+      uid: ../req/lock-acquire
+    - role: validation
+      uid: ../req/lock-restore-interrupt-status
+  - brief: |
+      Destroy the lock.
+    code: |
+      rtems_interrupt_lock_destroy( &ctx->lock );
+    links: []
+  links: []
+test-brief: |
+  Tests the interrupt lock directives.
+test-context:
+- brief: |
+    This member contains the context of the ISR lock test runs.
+  description: null
+  member: |
+    ISRLockContext lock_ctx
+- brief: |
+    This member contains the lock under test.
+  description: null
+  member: |
+    rtems_interrupt_lock lock
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+test-local-includes:
+- tr-isr-lock-acquire.h
+- tr-isr-lock-destroy.h
+- tr-isr-lock-initialize.h
+- tr-isr-lock-isr-disable.h
+- tr-isr-lock-isr-enable.h
+- tr-isr-lock-release.h
+- tx-isr-lock.h
+- tx-support.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-intr-lock.c
+test-teardown: null
+type: test-case

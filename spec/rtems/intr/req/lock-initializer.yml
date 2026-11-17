@@ -1,15 +1,18 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
-enabled-by: RTEMS_SMP
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+enabled-by: true
 functional-type: function
 links:
 - role: interface-function
   uid: ../if/lock-initializer
+- role: function-implementation
+  uid: /score/isr/req/lock-initialize
 rationale: null
 requirement-type: functional
 text: |
-  When the ${../if/lock-initializer:/name} is used to statically initialize an
-  object of type ${../if/lock:/name}, the lock contained in the object shall be
-  initialized so that it is available.
+  The ${../if/lock-initializer:/name} macro shall expand to an initializer which
+  initializes an object of type ${../if/lock:/name} as specified by
+  ${/score/isr/req/lock-initialize:/spec} where the lock is initialized by an
+  initializer for static initialization.
 type: requirement
