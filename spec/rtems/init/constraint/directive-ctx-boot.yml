@@ -7,5 +7,5 @@ links:
   uid: /req/usage-constraints
 rationale: null
 text: |
-  The directive should be called by ${/bsp/if/boot-card:/name} only.
+  The directive shall be called by ${/bsp/if/boot-card:/name} only.
 type: constraint
