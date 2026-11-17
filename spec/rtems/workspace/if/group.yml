@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  The Workspace Services provide directives to allocate and free memory areas of
+  the RTEMS Workspace and to get information about it.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+description: null
+enabled-by: true
+identifier: RTEMSAPIClassicWorkspace
+index-entries: []
+interface-type: group
+links:
+- role: interface-placement
+  uid: ../../support/if/header
+- role: interface-ingroup
+  uid: /rtems/if/group
+name: Workspace Services
+text: |
+  The Classic API shall provide an interface to the Workspace Services.
+type: interface

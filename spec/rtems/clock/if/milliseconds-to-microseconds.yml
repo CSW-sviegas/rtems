@@ -18,7 +18,7 @@ index-entries: []
 interface-type: macro
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint

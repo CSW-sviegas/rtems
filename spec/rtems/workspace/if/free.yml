@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Frees space of a greedy allocation to the RTEMS Workspace.
+  Frees the memory area allocated from the RTEMS Workspace.
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
@@ -10,7 +10,7 @@ definition:
     body: null
     params:
     - void *${.:/params[0]/name}
-    return: void
+    return: ${/c/if/bool:/name}
   variants: []
 description: null
 enabled-by: true
@@ -18,7 +18,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint
@@ -29,14 +29,15 @@ links:
   uid: /constraint/directive-ctx-task
 - role: constraint
   uid: /constraint/object-allocator
-name: rtems_workspace_greedy_free
-notes: |
-  This directive is intended to be used by tests of the RTEMS test suites.
+name: rtems_workspace_free
+notes: null
 params:
 - description: |
-    is the pointer value returned by ${workspace-greedy-allocate:/name} or
-    ${workspace-greedy-allocate-all-except-largest:/name}.
+    is the begin address of the memory area to free.
   dir: null
-  name: opaque
-return: null
+  name: pointer
+return:
+  return: |
+    Returns true, if freeing the memory area was successful, otherwise false.
+  return-values: []
 type: interface

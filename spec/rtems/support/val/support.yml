@@ -5,8 +5,8 @@ enabled-by: true
 links: []
 test-actions:
 - action-brief: |
-    Validates the characters returned by the ${../if/name-to-characters:/name}
-    directive.
+    Validates the characters returned by the
+    ${../../object/if/name-to-characters:/name} directive.
   action-code: |
     char c1;
     char c2;
@@ -45,7 +45,7 @@ test-actions:
       uid: ../req/name-to-characters-4
   links: []
 test-brief: |
-  Tests some ${../if/group:/name} directives.
+  Tests the ${../../object/if/name-to-characters:/name} directive.
 test-context: []
 test-context-support: null
 test-description: null

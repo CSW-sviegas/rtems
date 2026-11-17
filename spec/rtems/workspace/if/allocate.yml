@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Frees the memory area allocated from the RTEMS Workspace.
+  Allocates a memory area from the RTEMS Workspace.
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
@@ -9,7 +9,8 @@ definition:
     attributes: null
     body: null
     params:
-    - void *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[0]/name}
+    - void **${.:/params[1]/name}
     return: ${/c/if/bool:/name}
   variants: []
 description: null
@@ -18,7 +19,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint
@@ -29,15 +30,22 @@ links:
   uid: /constraint/directive-ctx-task
 - role: constraint
   uid: /constraint/object-allocator
-name: rtems_workspace_free
-notes: null
+name: rtems_workspace_allocate
+notes: |
+  This directive is intended to be used by tests of the RTEMS test suites.
 params:
 - description: |
-    is the begin address of the memory area to free.
+    is the number of bytes to allocated.
   dir: null
+  name: bytes
+- description: |
+    is the pointer to a `void` pointer object. When the directive call is
+    successful, the begin address of the allocated memory area will be stored in
+    this object.
+  dir: out
   name: pointer
 return:
   return: |
-    Returns true, if freeing the memory area was successful, otherwise false.
+    Returns true, if the allocation was successful, otherwise false.
   return-values: []
 type: interface

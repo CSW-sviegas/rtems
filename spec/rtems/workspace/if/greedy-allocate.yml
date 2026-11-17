@@ -22,7 +22,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint
@@ -41,6 +41,6 @@ params:
 return:
   return: |
     The returned pointer value may be used to free the greedy allocation by calling
-    ${workspace-greedy-free:/name}.
+    ${greedy-free:/name}.
   return-values: []
 type: interface

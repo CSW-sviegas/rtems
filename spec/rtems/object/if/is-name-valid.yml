@@ -19,7 +19,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint

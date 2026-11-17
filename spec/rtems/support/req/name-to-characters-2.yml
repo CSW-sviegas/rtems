@@ -5,12 +5,13 @@ enabled-by: true
 functional-type: function
 links:
 - role: interface-function
-  uid: ../if/name-to-characters
+  uid: ../../object/if/name-to-characters
 rationale: null
 requirement-type: functional
 text: |
-  When the call to ${../if/name-to-characters:/name} returned, the object
-  referenced by the ${../if/name-to-characters:/params[2]/name} parameter shall
-  be set the value of ${../if/name-to-characters:/params[0]/name} divided by
-  65536 modulo 256.
+  When the call to ${../../object/if/name-to-characters:/name} returned, the
+  object referenced by the ${../../object/if/name-to-characters:/params[2]/name}
+  parameter shall be set the value of
+  ${../../object/if/name-to-characters:/params[0]/name} divided by 65536 modulo
+  256\.
 type: requirement

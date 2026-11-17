@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Allocates a memory area from the RTEMS Workspace.
+  Frees space of a greedy allocation to the RTEMS Workspace.
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
@@ -9,9 +9,8 @@ definition:
     attributes: null
     body: null
     params:
-    - ${/c/if/size_t:/name} ${.:/params[0]/name}
-    - void **${.:/params[1]/name}
-    return: ${/c/if/bool:/name}
+    - void *${.:/params[0]/name}
+    return: void
   variants: []
 description: null
 enabled-by: true
@@ -19,7 +18,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: header
+  uid: ../../support/if/header
 - role: interface-ingroup
   uid: group
 - role: constraint
@@ -30,22 +29,14 @@ links:
   uid: /constraint/directive-ctx-task
 - role: constraint
   uid: /constraint/object-allocator
-name: rtems_workspace_allocate
+name: rtems_workspace_greedy_free
 notes: |
   This directive is intended to be used by tests of the RTEMS test suites.
 params:
 - description: |
-    is the number of bytes to allocated.
+    is the pointer value returned by ${greedy-allocate:/name} or
+    ${greedy-allocate-all-except-largest:/name}.
   dir: null
-  name: bytes
-- description: |
-    is the pointer to a `void` pointer object. When the directive call is
-    successful, the begin address of the allocated memory area will be stored in
-    this object.
-  dir: out
-  name: pointer
-return:
-  return: |
-    Returns true, if the allocation was successful, otherwise false.
-  return-values: []
+  name: opaque
+return: null
 type: interface
