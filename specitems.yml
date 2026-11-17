@@ -4,7 +4,7 @@ copyrights:
 enabled-by: true
 inline-items:
 - data:
-    directory: https://docs.rtems.org/docs/main
+    directory: '@rtemsdocs'
   uid: /pkg/deployment/doc-rtems
 item-cache:
   paths:
