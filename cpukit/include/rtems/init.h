@@ -88,7 +88,7 @@ extern "C" {
  *   Applications which are restricted to only use interfaces of the
  *   pre-qualified feature set of RTEMS shall not use the directive.
  *
- * - The directive should be called by boot_card() only.
+ * - The directive shall be called by boot_card() only.
  *
  * - The directive will not return to the caller.
  * @endparblock
