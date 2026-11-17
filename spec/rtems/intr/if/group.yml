@@ -7,7 +7,7 @@ brief: |
   ability to alter task execution which allows a task to be preempted upon exit
   from an ISR.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 description: null
 enabled-by: true
@@ -61,6 +61,8 @@ links:
   uid: lock-release-isr
 - role: placement-order
   uid: lock-isr-disable
+- role: placement-order
+  uid: lock-isr-enable
 - role: placement-order
   uid: lock-declare
 - role: placement-order

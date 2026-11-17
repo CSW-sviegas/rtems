@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2023 embedded brains GmbH & Co. KG
+- Copyright (C) 2023, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links:
 - role: validation
@@ -163,6 +163,8 @@ links:
   uid: /score/isr/if/lock-isr-disable
 - role: validation
   uid: /score/isr/if/lock-isr-disable-acquire
+- role: validation
+  uid: /score/isr/if/lock-isr-enable
 - role: validation
   uid: /score/isr/if/lock-needs-object
 - role: validation
