@@ -21,7 +21,6 @@ source:
 - cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/ioprintf.c
 - cpukit/libc/search/qsort.c
-- cpukit/libc/string/memcmp.c
 - cpukit/libmd/sha256c.c
 - cpukit/posix/src/pspindestroy.c
 - cpukit/posix/src/pspininit.c
