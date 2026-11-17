@@ -120,169 +120,81 @@ static inline bool _RBTree_Is_red( const RBTree_Node *the_node )
 }
 
 /**
- * @brief Sets the color of the first node to black and the color of the
- *   second node to red.
+ * @brief Returns the parent of the node of the specified color.
  *
- * @param[out] black is the node to color black.
+ * @param the_node is the node.
  *
- * @param[out] red is the node to color red.
+ * @param color is the color of the node.
+ *
+ * @return Returns the parent of the node.
+ *
+ * @par Notes
+ * Bit 1 of the parent and color word of a node in a tree is zero.  The
+ * function subtracts the color from the word to get the parent.  The compiler
+ * folds the subtraction of a constant color into the offset of the next load
+ * through the parent.
  */
-static inline void _RBTree_Set_black_red(
-  RBTree_Node *black,
-  RBTree_Node *red
+static inline RBTree_Node *_RBTree_Parent_of_color(
+  const RBTree_Node *the_node,
+  int                color
 )
 {
-  _RBTree_Set_color( black, RTEMS_RB_BLACK );
-  _RBTree_Set_color( red, RTEMS_RB_RED );
+  _Assert( _RBTree_Color( the_node ) == color );
+  return (RBTree_Node *) ( the_node->rbn_parent_color - (uintptr_t) color );
 }
 
 /**
- * @brief Replaces the node by another node in the child link of the parent of
- *   the node.
+ * @brief Returns the parent and color word of the node.
  *
- * @param[in, out] head is the red-black tree control.
+ * @param the_node is the node.
  *
- * @param out is the node to replace.
- *
- * @param in is the node which replaces the node.
+ * @return Returns the parent and color word of the node.
  */
-static inline void _RBTree_Swap_child(
-  RBTree_Control *head,
-  RBTree_Node    *out,
-  RBTree_Node    *in
+static inline uintptr_t _RBTree_Get_parent_color( const RBTree_Node *the_node )
+{
+  return the_node->rbn_parent_color;
+}
+
+/**
+ * @brief Sets the parent and color word of the node.
+ *
+ * @param[out] the_node is the node.
+ *
+ * @param parent_color is the parent and color word.
+ */
+static inline void _RBTree_Set_parent_color_word(
+  RBTree_Node *the_node,
+  uintptr_t    parent_color
 )
 {
-  if ( _RBTree_Parent( out ) == NULL ) {
-    _RBTree_Set_root( head, in );
-  } else if ( out == _RBTree_Left( _RBTree_Parent( out ) ) ) {
-    _RBTree_Set_left( _RBTree_Parent( out ), in );
+  the_node->rbn_parent_color = parent_color;
+}
+
+/**
+ * @brief Replaces the old node by the new node in the link of the parent.
+ *
+ * @param[in, out] head is the tree.
+ *
+ * @param old_node is the old node.
+ *
+ * @param[in, out] new_node is the new node.
+ *
+ * @param[in, out] parent is the parent of the old node, else NULL.
+ */
+static inline void _RBTree_Relink_child(
+  RBTree_Control *head,
+  RBTree_Node    *old_node,
+  RBTree_Node    *new_node,
+  RBTree_Node    *parent
+)
+{
+  if ( parent == NULL ) {
+    _RBTree_Set_root( head, new_node );
+  } else if ( _RBTree_Left( parent ) == old_node ) {
+    _RBTree_Set_left( parent, new_node );
   } else {
-    _RBTree_Set_right( _RBTree_Parent( out ), in );
+    _RBTree_Set_right( parent, new_node );
   }
-}
-
-/**
- * @brief Rotates the right child of the node to the left.
- *
- * @param[in, out] head is the red-black tree control.
- *
- * @param[in, out] elm is the node.
- *
- * @return Returns the right child of the node before the rotation.
- */
-static inline RBTree_Node *_RBTree_Rotate_left(
-  RBTree_Control *head,
-  RBTree_Node    *elm
-)
-{
-  RBTree_Node *tmp;
-
-  tmp = _RBTree_Right( elm );
-  _RBTree_Set_right( elm, _RBTree_Left( tmp ) );
-
-  if ( _RBTree_Right( elm ) != NULL ) {
-    _RBTree_Set_parent( _RBTree_Right( elm ), elm );
-  }
-
-  _RBTree_Set_parent( tmp, _RBTree_Parent( elm ) );
-  _RBTree_Swap_child( head, elm, tmp );
-  _RBTree_Set_left( tmp, elm );
-  _RBTree_Set_parent( elm, tmp );
-  return tmp;
-}
-
-/**
- * @brief Rotates the left child of the node to the right.
- *
- * @param[in, out] head is the red-black tree control.
- *
- * @param[in, out] elm is the node.
- *
- * @return Returns the left child of the node before the rotation.
- */
-static inline RBTree_Node *_RBTree_Rotate_right(
-  RBTree_Control *head,
-  RBTree_Node    *elm
-)
-{
-  RBTree_Node *tmp;
-
-  tmp = _RBTree_Left( elm );
-  _RBTree_Set_left( elm, _RBTree_Right( tmp ) );
-
-  if ( _RBTree_Left( elm ) != NULL ) {
-    _RBTree_Set_parent( _RBTree_Left( elm ), elm );
-  }
-
-  _RBTree_Set_parent( tmp, _RBTree_Parent( elm ) );
-  _RBTree_Swap_child( head, elm, tmp );
-  _RBTree_Set_right( tmp, elm );
-  _RBTree_Set_parent( elm, tmp );
-  return tmp;
-}
-
-/**
- * @brief Rotates the right child of the left child of the parent to the left.
- *
- * The left child is the left child of the parent.
- *
- * @param[in, out] parent is the parent.
- *
- * @param[in, out] left is the left child of the parent.
- *
- * @return Returns the right child of the left child before the rotation.
- */
-static inline RBTree_Node *_RBTree_Parent_rotate_left(
-  RBTree_Node *parent,
-  RBTree_Node *left
-)
-{
-  RBTree_Node *tmp;
-
-  tmp = _RBTree_Right( left );
-  _RBTree_Set_right( left, _RBTree_Left( tmp ) );
-
-  if ( _RBTree_Right( left ) != NULL ) {
-    _RBTree_Set_parent( _RBTree_Right( left ), left );
-  }
-
-  _RBTree_Set_parent( tmp, parent );
-  _RBTree_Set_left( parent, tmp );
-  _RBTree_Set_left( tmp, left );
-  _RBTree_Set_parent( left, tmp );
-  return tmp;
-}
-
-/**
- * @brief Rotates the left child of the right child of the parent to the right.
- *
- * The right child is the right child of the parent.
- *
- * @param[in, out] parent is the parent.
- *
- * @param[in, out] right is the right child of the parent.
- *
- * @return Returns the left child of the right child before the rotation.
- */
-static inline RBTree_Node *_RBTree_Parent_rotate_right(
-  RBTree_Node *parent,
-  RBTree_Node *right
-)
-{
-  RBTree_Node *tmp;
-
-  tmp = _RBTree_Left( right );
-  _RBTree_Set_left( right, _RBTree_Right( tmp ) );
-
-  if ( _RBTree_Left( right ) != NULL ) {
-    _RBTree_Set_parent( _RBTree_Left( right ), right );
-  }
-
-  _RBTree_Set_parent( tmp, parent );
-  _RBTree_Set_right( parent, tmp );
-  _RBTree_Set_right( tmp, right );
-  _RBTree_Set_parent( right, tmp );
-  return tmp;
 }
 
 /** @} */
