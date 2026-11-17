@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+-with-RTEMS-exception */
+/* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
  * @file
@@ -10,12 +10,29 @@
  */
 
 /*
- *  COPYRIGHT (c) 2003, Ralf Corsepius, Ulm, Germany.
- *  COPYRIGHT (c) 2003, On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
+ * Copyright (C) 2003 On-Line Applications Research Corporation (OAR)
  *
- *  The license and distribution terms for this file may be
- *  found in the file LICENSE in this distribution or at
- *  http://www.rtems.org/license/LICENSE.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <rtems/version.h>
@@ -24,17 +41,12 @@
 
 #include <bspopts.h>
 
-#ifndef RTEMS_VERSION
-#error "Missing RTEMS_VERSION"
-#endif
-#ifndef CPU_NAME
-#error "Missing CPU_NAME"
-#endif
-#ifndef CPU_MODEL_NAME
-#error "Missing CPU_MODEL_NAME"
-#endif
-#ifndef RTEMS_BSP
-#error "Missing RTEMS_BSP"
+/*
+ * RTEMS_XSTRING() turns an undefined RTEMS_BSP into the string "RTEMS_BSP".
+ * The string concatenation below fails for each other undefined macro.
+ */
+#if !defined( RTEMS_BSP )
+#error "the build shall define RTEMS_BSP"
 #endif
 
 const char _RTEMS_version[] =
