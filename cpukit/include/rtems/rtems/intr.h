@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -824,11 +824,13 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @brief Disables maskable interrupts on the current processor.
  *
- * @param[out] _lock_context is the ISR lock context for an acquire and release
- *   pair.
+ * @param[out] _lock_context is the ISR lock context. This lock context shall
+ *   be used to restore the status of maskable interrupts by calling
+ *   rtems_interrupt_lock_interrupt_enable(), or to acquire the lock by calling
+ *   rtems_interrupt_lock_acquire_isr().
  *
  * This directive disables maskable interrupts on the current processor and
- * stores the previous interrupt level in `_lock_context`.
+ * stores the previous status of maskable interrupts in `_lock_context`.
  *
  * @par Constraints
  * @parblock
@@ -841,6 +843,38 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define rtems_interrupt_lock_interrupt_disable( _lock_context ) \
   _ISR_lock_ISR_disable( _lock_context )
+
+/* Find related documentation with spec:/rtems/intr/if/lock-isr-enable */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief Restores the status of maskable interrupts on the current processor.
+ *
+ * @param[in] _lock_context is the ISR lock context. The status of maskable
+ *   interrupts shall have been stored in this lock context by calling
+ *   rtems_interrupt_lock_interrupt_disable() or
+ *   rtems_interrupt_lock_acquire().
+ *
+ * This directive restores the status of maskable interrupts on the current
+ * processor to the status stored in `_lock_context`.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ *
+ * - While at least one maskable interrupt is pending, when the directive
+ *   enables maskable interrupts, the pending interrupts are immediately
+ *   serviced. The interrupt service routines may unblock higher priority tasks
+ *   which may preempt the calling task.
+ * @endparblock
+ */
+#define rtems_interrupt_lock_interrupt_enable( _lock_context ) \
+  _ISR_lock_ISR_enable( _lock_context )
 
 /* Find related documentation with spec:/rtems/intr/if/lock-declare */
 
