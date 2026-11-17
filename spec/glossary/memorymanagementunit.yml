@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: Memory Management Unit
+text: |
+  This term defines a hardware unit which translates virtual addresses to
+  physical addresses and which controls the access rights and the memory
+  attributes of address ranges.
+type: glossary
