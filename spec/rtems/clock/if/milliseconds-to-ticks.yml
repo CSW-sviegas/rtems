@@ -9,8 +9,9 @@ definition:
     attributes: null
     body: |
       ${microseconds-to-ticks:/name}( ${milliseconds-to-microseconds:/name}( ${.:/params[0]/name} ) )
-    params: []
-    return: null
+    params:
+    - ${/c/if/uint32_t:/name} ${.:/params[0]/name}
+    return: unsigned long
   variants: []
 description: null
 enabled-by: true
