@@ -3644,7 +3644,9 @@
  * - The value of the configuration option shall be less than or equal to a
  *   value defined by the Clock Driver.
  *
- * - The resulting clock ticks per second should be an integer.
+ * - The value of the configuration option shall divide 1000000 without a
+ *   remainder. Otherwise a compile time error in the configuration file will
+ *   occur.
  * @endparblock
  *
  * @par Notes
