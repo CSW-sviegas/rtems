@@ -44,7 +44,7 @@
  *
  * @ingroup TestsuitesValidationNoClock1
  *
- * @brief Tests some @ref RTEMSAPIClassicSupport directives.
+ * @brief Tests the rtems_name_to_characters() directive.
  *
  * This test case performs the following actions:
  *

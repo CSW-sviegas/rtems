@@ -5,11 +5,12 @@
  *
  * @ingroup RTEMSImplClassic
  *
- * @brief This header file defines support services of the API.
+ * @brief This header file defines the workspace directives, the object name
+ *   directives and the clock tick conversion macros of the Classic API.
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,45 +56,21 @@
 extern "C" {
 #endif
 
-/* Find related documentation with spec:/rtems/support/if/group */
+/* Find related documentation with spec:/rtems/workspace/if/group */
 
 /**
- * @defgroup RTEMSAPIClassicSupport Support Services
+ * @defgroup RTEMSAPIClassicWorkspace Workspace Services
  *
  * @ingroup RTEMSAPIClassic
  *
- * @brief Items of this group should move to other groups.
+ * @brief The Workspace Services provide directives to allocate and free memory
+ *   areas of the RTEMS Workspace and to get information about it.
  */
 
-/* Find related documentation with spec:/rtems/support/if/is-name-valid */
+/* Find related documentation with spec:/rtems/clock/if/microseconds-to-ticks */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
- *
- * @brief Checks if the object name is valid.
- *
- * @param name is the object name to check.
- *
- * @return Returns true, if the object name is valid, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive may be called from within any runtime context.
- *
- * - The directive will not cause the calling task to be preempted.
- * @endparblock
- */
-static inline bool rtems_is_name_valid( rtems_name name )
-{
-  return name != 0;
-}
-
-/* Find related documentation with spec:/rtems/support/if/microseconds-to-ticks */
-
-/**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicClock
  *
  * @brief Gets the number of clock ticks for the microseconds value.
  *
@@ -122,10 +99,10 @@ static inline bool rtems_is_name_valid( rtems_name name )
 #define RTEMS_MICROSECONDS_TO_TICKS( _us ) \
   ( ( _us ) / rtems_configuration_get_microseconds_per_tick() )
 
-/* Find related documentation with spec:/rtems/support/if/milliseconds-to-microseconds */
+/* Find related documentation with spec:/rtems/clock/if/milliseconds-to-microseconds */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicClock
  *
  * @brief Gets the number of microseconds for the milliseconds value.
  *
@@ -150,10 +127,10 @@ static inline bool rtems_is_name_valid( rtems_name name )
  */
 #define RTEMS_MILLISECONDS_TO_MICROSECONDS( _ms ) ( ( _ms ) * 1000UL )
 
-/* Find related documentation with spec:/rtems/support/if/milliseconds-to-ticks */
+/* Find related documentation with spec:/rtems/clock/if/milliseconds-to-ticks */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicClock
  *
  * @brief Gets the number of clock ticks for the milliseconds value.
  *
@@ -181,10 +158,35 @@ static inline bool rtems_is_name_valid( rtems_name name )
 #define RTEMS_MILLISECONDS_TO_TICKS( _ms ) \
   RTEMS_MICROSECONDS_TO_TICKS( RTEMS_MILLISECONDS_TO_MICROSECONDS( _ms ) )
 
-/* Find related documentation with spec:/rtems/support/if/name-to-characters */
+/* Find related documentation with spec:/rtems/object/if/is-name-valid */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicObject
+ *
+ * @brief Checks if the object name is valid.
+ *
+ * @param name is the object name to check.
+ *
+ * @return Returns true, if the object name is valid, otherwise false.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within any runtime context.
+ *
+ * - The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+static inline bool rtems_is_name_valid( rtems_name name )
+{
+  return name != 0;
+}
+
+/* Find related documentation with spec:/rtems/object/if/name-to-characters */
+
+/**
+ * @ingroup RTEMSAPIClassicObject
  *
  * @brief Breaks the object name into the four component characters.
  *
@@ -221,10 +223,10 @@ static inline void rtems_name_to_characters(
   *c4 = (char) ( ( name ) & 0xff );
 }
 
-/* Find related documentation with spec:/rtems/support/if/workspace-allocate */
+/* Find related documentation with spec:/rtems/workspace/if/allocate */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Allocates a memory area from the RTEMS Workspace.
  *
@@ -258,10 +260,10 @@ static inline void rtems_name_to_characters(
  */
 bool rtems_workspace_allocate( size_t bytes, void **pointer );
 
-/* Find related documentation with spec:/rtems/support/if/workspace-free */
+/* Find related documentation with spec:/rtems/workspace/if/free */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Frees the memory area allocated from the RTEMS Workspace.
  *
@@ -289,10 +291,10 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  */
 bool rtems_workspace_free( void *pointer );
 
-/* Find related documentation with spec:/rtems/support/if/workspace-get-information */
+/* Find related documentation with spec:/rtems/workspace/if/get-information */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Gets information about the RTEMS Workspace.
  *
@@ -322,10 +324,10 @@ bool rtems_workspace_free( void *pointer );
  */
 bool rtems_workspace_get_information( Heap_Information_block *the_info );
 
-/* Find related documentation with spec:/rtems/support/if/workspace-greedy-allocate */
+/* Find related documentation with spec:/rtems/workspace/if/greedy-allocate */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Greedy allocates that empties the RTEMS Workspace.
  *
@@ -354,10 +356,10 @@ void *rtems_workspace_greedy_allocate(
   size_t           block_count
 );
 
-/* Find related documentation with spec:/rtems/support/if/workspace-greedy-allocate-all-except-largest */
+/* Find related documentation with spec:/rtems/workspace/if/greedy-allocate-all-except-largest */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Greedy allocates all blocks of the RTEMS Workspace except the largest
  *   free block.
@@ -395,10 +397,10 @@ void *rtems_workspace_greedy_allocate_all_except_largest(
   uintptr_t *allocatable_size
 );
 
-/* Find related documentation with spec:/rtems/support/if/workspace-greedy-free */
+/* Find related documentation with spec:/rtems/workspace/if/greedy-free */
 
 /**
- * @ingroup RTEMSAPIClassicSupport
+ * @ingroup RTEMSAPIClassicWorkspace
  *
  * @brief Frees space of a greedy allocation to the RTEMS Workspace.
  *
