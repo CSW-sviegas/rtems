@@ -32,6 +32,7 @@ source:
 - cpukit/libc/misc/ffs.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/ffsl.c
+- cpukit/libc/string/ffsll.c
 - cpukit/libc/string/flsl.c
 - cpukit/libc/string/memchr.c
 - cpukit/libc/string/memcmp.c
