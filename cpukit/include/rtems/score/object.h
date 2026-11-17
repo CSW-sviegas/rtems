@@ -63,6 +63,9 @@ extern "C" {
  *
  * @brief This group contains the implementation to support a processor
  *   architecture.
+ *
+ * Each subgroup of this group contains the implementation of one processor
+ * architecture.
  */
 
 /**
