@@ -8,5 +8,6 @@ links:
 rationale: null
 text: |
   The value of the application configuration option shall be a list of exactly
-  ${../if/max-processors:/name} elements.
+  ${../if/max-processors:/name} elements. Otherwise a compile time error in the
+  configuration file will occur.
 type: constraint

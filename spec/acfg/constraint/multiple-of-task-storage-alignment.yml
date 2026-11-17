@@ -8,5 +8,6 @@ links:
 rationale: null
 text: |
   The value of the application configuration option shall be an integral multiple
-  of ${/rtems/task/if/storage-alignment:/name}.
+  of ${/rtems/task/if/storage-alignment:/name}. Otherwise a compile time error in
+  the configuration file will occur.
 type: constraint
