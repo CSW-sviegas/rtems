@@ -15,6 +15,7 @@ extra-files:
 - testsuites/validation/ts-fatal-sysinit.h
 - testsuites/validation/ts-idle.h
 - testsuites/validation/tx-assert.h
+- testsuites/validation/tx-isr-lock.h
 - testsuites/validation/tx-register-check.h
 - testsuites/validation/tx-support.h
 - testsuites/validation/tx-thread-queue.h

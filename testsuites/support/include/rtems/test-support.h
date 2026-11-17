@@ -2097,6 +2097,38 @@ bool EndsWith( const char *s, const char *suffix );
 bool TicketLockIsAvailable( const SMP_ticket_lock_Control *lock );
 
 /**
+ * @brief Gets the count of processors which wait for the ticket lock.
+ *
+ * The count excludes the owner of the lock.
+ *
+ * @param lock is the ticket lock.
+ *
+ * @return Returns the count of processors which wait for the lock.  It is
+ *   zero, if no processor owns the lock.
+ */
+unsigned int TicketLockGetWaiters( const SMP_ticket_lock_Control *lock );
+
+/**
+ * @brief Gets the ticket of the owner of the ticket lock.
+ *
+ * @param lock is the ticket lock.
+ *
+ * @return Returns the ticket of the owner.  It is the ticket of the next
+ *   owner, if no processor owns the lock.
+ */
+unsigned int TicketLockGetOwnerTicket( const SMP_ticket_lock_Control *lock );
+
+/**
+ * @brief Gets the ticket of the processor which took the last ticket of the
+ *   ticket lock.
+ *
+ * @param lock is the ticket lock.
+ *
+ * @return Returns the last ticket of the lock.
+ */
+unsigned int TicketLockGetLastTicket( const SMP_ticket_lock_Control *lock );
+
+/**
  * @brief Waits until a processor owns the ticket lock.
  *
  * The wait has no bound.

@@ -1274,6 +1274,31 @@ bool TicketLockIsAvailable( const SMP_ticket_lock_Control *lock )
   return now_serving == next_ticket;
 }
 
+unsigned int TicketLockGetWaiters( const SMP_ticket_lock_Control *lock )
+{
+  unsigned int now_serving;
+  unsigned int next_ticket;
+
+  now_serving = _Atomic_Load_uint( &lock->now_serving, ATOMIC_ORDER_RELAXED );
+  next_ticket = _Atomic_Load_uint( &lock->next_ticket, ATOMIC_ORDER_RELAXED );
+
+  if ( now_serving == next_ticket ) {
+    return 0;
+  }
+
+  return next_ticket - now_serving - 1;
+}
+
+unsigned int TicketLockGetOwnerTicket( const SMP_ticket_lock_Control *lock )
+{
+  return _Atomic_Load_uint( &lock->now_serving, ATOMIC_ORDER_RELAXED );
+}
+
+unsigned int TicketLockGetLastTicket( const SMP_ticket_lock_Control *lock )
+{
+  return _Atomic_Load_uint( &lock->next_ticket, ATOMIC_ORDER_RELAXED ) - 1;
+}
+
 void TicketLockWaitForOwned( const SMP_ticket_lock_Control *lock )
 {
   while ( TicketLockIsAvailable( lock ) ) {
