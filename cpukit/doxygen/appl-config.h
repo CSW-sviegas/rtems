@@ -511,7 +511,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_BARRIERS
@@ -551,7 +551,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>. You have to account for the memory used to store the messages
  * of each message queue, see @ref CONFIGURE_MESSAGE_BUFFER_MEMORY.
  */
@@ -592,7 +592,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_PARTITIONS
@@ -632,7 +632,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_PERIODS
@@ -677,7 +677,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_PORTS
@@ -722,7 +722,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_REGIONS
@@ -763,14 +763,14 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * In SMP configurations, the size of a Semaphore Control Block depends on the
  * scheduler count (see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#configuration-step-3-scheduler-table">Configuration
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#configuration-step-3-scheduler-table">Configuration
  * Step 3 - Scheduler Table</a>). The semaphores using the <a
- * href="https://docs.rtems.org/docs/main/c-user/key_concepts.html#multiprocessor-resource-sharing-protocol-mrsp">Multiprocessor
+ * href="@rtemsdocs/c-user/key_concepts.html#multiprocessor-resource-sharing-protocol-mrsp">Multiprocessor
  * Resource Sharing Protocol (MrsP)</a> need a ceiling priority per scheduler.
  * @endparblock
  */
@@ -817,7 +817,7 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * The calculations for the required memory in the RTEMS Workspace for tasks
@@ -872,7 +872,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_TIMERS
@@ -1204,7 +1204,7 @@
  * otherwise a compile time error in the configuration file will occur.
  *
  * The Classic API initialization task performs the <a
- * href="https://docs.rtems.org/docs/main/c-user/initialization/operations.html#global-construction">Global
+ * href="@rtemsdocs/c-user/initialization/operations.html#global-construction">Global
  * Construction</a>.
  * @endparblock
  */
@@ -1984,7 +1984,7 @@
  *
  * then the event records are dumped in Base64 encoding in a fatal error
  * extension (see <a
- * href="https://docs.rtems.org/docs/main/c-user/fatal-error/background.html#terminate">System
+ * href="@rtemsdocs/c-user/fatal-error/background.html#terminate">System
  * Termination Procedure</a>).
  *
  * @par Default Configuration
@@ -2017,7 +2017,7 @@
  *
  * then the event records are compressed by zlib and dumped in Base64 encoding
  * in a fatal error extension (see <a
- * href="https://docs.rtems.org/docs/main/c-user/fatal-error/background.html#terminate">System
+ * href="@rtemsdocs/c-user/fatal-error/background.html#terminate">System
  * Termination Procedure</a>).
  *
  * @par Default Configuration
@@ -3215,8 +3215,7 @@
  * extensions.
  *
  * It is recommended that applications provide a fatal extension to customize
- * the <a
- * href="https://docs.rtems.org/docs/main/c-user/fatal-error/background.html#terminate">System
+ * the <a href="@rtemsdocs/c-user/fatal-error/background.html#terminate">System
  * Termination Procedure</a>.
  * @endparblock
  */
@@ -3801,7 +3800,7 @@
  * pool is very undesirable.
  *
  * In high memory environments, this is desirable when you want to use the <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a> option. You will be able to create objects until you run out of
  * all available memory rather then just until you run out of RTEMS Workspace.
  * @endparblock
@@ -3818,7 +3817,7 @@
  * If @ref CONFIGURE_UNLIMITED_OBJECTS is defined, then the value of this
  * configuration option defines the default objects maximum of all object
  * classes supporting <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a> to `rtems_resource_unlimited(
  * CONFIGURE_UNLIMITED_ALLOCATION_SIZE )`.
  *
@@ -4030,7 +4029,7 @@
  *
  * If no Classic API initialization task and no POSIX API initialization thread
  * is configured, then no <a
- * href="https://docs.rtems.org/docs/main/c-user/initialization/operations.html#global-construction">Global
+ * href="@rtemsdocs/c-user/initialization/operations.html#global-construction">Global
  * Construction</a> is performed.
  * @endparblock
  */
@@ -4108,9 +4107,9 @@
  * value defined by the @ref CONFIGURE_IDLE_TASK_STACK_SIZE configuration
  * option, for example because the thread-local storage size is larger than
  * expected, then the system terminates with the <a
- * href="https://docs.rtems.org/docs/main/c-user/fatal-error/background.html#fatal-sources">INTERNAL_ERROR_CORE</a>
+ * href="@rtemsdocs/c-user/fatal-error/background.html#fatal-sources">INTERNAL_ERROR_CORE</a>
  * fatal source and the <a
- * href="https://docs.rtems.org/docs/main/c-user/fatal-error/background.html#internal-errors">INTERNAL_ERROR_IDLE_THREAD_STACK_TOO_SMALL</a>
+ * href="@rtemsdocs/c-user/fatal-error/background.html#internal-errors">INTERNAL_ERROR_IDLE_THREAD_STACK_TOO_SMALL</a>
  * fatal code during system initialization.
  *
  * The value of this configuration option is passed to
@@ -4330,7 +4329,7 @@
  * Since a proxy is used to represent a remote task/thread which is blocking on
  * this node. This configuration parameter reflects the maximum number of
  * remote tasks/threads which can be blocked on objects on this node, see <a
- * href="https://docs.rtems.org/docs/main/c-user/multiprocessing/background.html#proxies">Proxies</a>.
+ * href="@rtemsdocs/c-user/multiprocessing/background.html#proxies">Proxies</a>.
  *
  * This configuration option is only evaluated if @ref CONFIGURE_MP_APPLICATION
  * is defined.
@@ -4475,7 +4474,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_POSIX_KEYS
@@ -4522,7 +4521,7 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * A key value pair is created by pthread_setspecific() if the value is not <a
@@ -4577,7 +4576,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>. You have to account for the memory used to store the messages
  * of each message queue, see @ref CONFIGURE_MESSAGE_BUFFER_MEMORY.
  */
@@ -4679,7 +4678,7 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * Named semaphores are created with sem_open(). Semaphores initialized with
@@ -4734,7 +4733,7 @@
  *
  * @par Notes
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  */
 #define CONFIGURE_MAXIMUM_POSIX_SHMS
@@ -4780,7 +4779,7 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * This calculations for the required memory in the RTEMS Workspace for threads
@@ -4843,7 +4842,7 @@
  * @par Notes
  * @parblock
  * This object class can be configured in unlimited allocation mode, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * href="@rtemsdocs/c-user/config/intro.html#unlimited-objects">Unlimited
  * Objects</a>.
  *
  * Timers are only available if RTEMS was built with the POSIX API build
@@ -5002,7 +5001,7 @@
  *
  * If no Classic API initialization task is configured, then the POSIX API
  * initialization thread performs the <a
- * href="https://docs.rtems.org/docs/main/c-user/initialization/operations.html#global-construction">Global
+ * href="@rtemsdocs/c-user/initialization/operations.html#global-construction">Global
  * Construction</a>.
  * @endparblock
  */
@@ -5025,16 +5024,16 @@
  * described in this section.
  *
  * By default, the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
+ * href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
  * Priority Scheduler</a> algorithm is used in uniprocessor configurations. In
  * case SMP is enabled and the configured maximum processors (@ref
  * CONFIGURE_MAXIMUM_PROCESSORS) is greater than one, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
+ * href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
  * Deadline First SMP Scheduler</a> is selected as the default scheduler
  * algorithm.
  *
  * For the schedulers provided by RTEMS (see <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/index.html#scheduling-concepts">Scheduling
+ * href="@rtemsdocs/c-user/scheduling-concepts/index.html#scheduling-concepts">Scheduling
  * Concepts</a>), the configuration is straightforward. All that is required is
  * to define the configuration option which specifies which scheduler you want
  * for in your application.
@@ -5095,18 +5094,18 @@
  * For the following schedulers
  *
  * - <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
+ *   href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
  *   Priority Scheduler</a>, which is the default in uniprocessor
  *   configurations and can be configured through the @ref
  *   CONFIGURE_SCHEDULER_PRIORITY configuration option,
  *
  * - <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
  *   Priority SMP Scheduler</a> which can be configured through the @ref
  *   CONFIGURE_SCHEDULER_PRIORITY_SMP configuration option, and
  *
  * - <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
  *   Processor Affinity Priority SMP Scheduler</a> which can be configured
  *   through the @ref CONFIGURE_SCHEDULER_PRIORITY_AFFINITY_SMP configuration
  *   option
@@ -5192,7 +5191,7 @@
  * option is evaluated, otherwise it is ignored.
  *
  * This is an advanced configuration option, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a>.
  * @endparblock
  */
@@ -5206,7 +5205,7 @@
  * @anchor CONFIGURE_SCHEDULER_CBS
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#constant-bandwidth-server-scheduling-cbs">Constant
+ * href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#constant-bandwidth-server-scheduling-cbs">Constant
  * Bandwidth Server Scheduling (CBS)</a> algorithm is made available to the
  * application.
  *
@@ -5226,7 +5225,7 @@
  * Think twice before you use it.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * exactly one processor.
  * @endparblock
@@ -5241,7 +5240,7 @@
  * @anchor CONFIGURE_SCHEDULER_EDF
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#earliest-deadline-first-scheduler">Earliest
+ * href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#earliest-deadline-first-scheduler">Earliest
  * Deadline First Scheduler</a> algorithm is made available to the application.
  *
  * @par Default Configuration
@@ -5260,7 +5259,7 @@
  * Think twice before you use it.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * exactly one processor.
  * @endparblock
@@ -5275,7 +5274,7 @@
  * @anchor CONFIGURE_SCHEDULER_EDF_SMP
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
+ * href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
  * Deadline First SMP Scheduler</a> algorithm is made available to the
  * application.
  *
@@ -5292,7 +5291,7 @@
  * support enabled.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * up to 32 processors.
  *
@@ -5317,35 +5316,35 @@
  * The default value is
  *
  * - `"MEDF"` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#earliest-deadline-first-smp-scheduler">Earliest
  *   Deadline First SMP Scheduler</a>,
  *
  * - `"MPA "` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
  *   Processor Affinity Priority SMP Scheduler</a>,
  *
  * - `"MPD "` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
  *   Priority SMP Scheduler</a>,
  *
  * - `"MPS "` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#simple-priority-smp-scheduler">Simple
+ *   href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#simple-priority-smp-scheduler">Simple
  *   Priority SMP Scheduler</a>,
  *
  * - `"UCBS"` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#constant-bandwidth-server-scheduling-cbs">Constant
+ *   href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#constant-bandwidth-server-scheduling-cbs">Constant
  *   Bandwidth Server Scheduling (CBS)</a>,
  *
  * - `"UEDF"` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#earliest-deadline-first-scheduler">Earliest
+ *   href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#earliest-deadline-first-scheduler">Earliest
  *   Deadline First Scheduler</a>,
  *
  * - `"UPD "` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
+ *   href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
  *   Priority Scheduler</a>, and
  *
  * - `"UPS "` for the <a
- *   href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#simple-priority-scheduler">Simple
+ *   href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#simple-priority-scheduler">Simple
  *   Priority Scheduler</a>.
  * @endparblock
  *
@@ -5373,7 +5372,7 @@
  * @anchor CONFIGURE_SCHEDULER_PRIORITY
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
+ * href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#deterministic-priority-scheduler">Deterministic
  * Priority Scheduler</a> algorithm is made available to the application.
  *
  * @par Default Configuration
@@ -5386,7 +5385,7 @@
  * Think twice before you use it.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * exactly one processor.
  *
@@ -5407,7 +5406,7 @@
  * @anchor CONFIGURE_SCHEDULER_PRIORITY_AFFINITY_SMP
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
+ * href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#arbitrary-processor-affinity-priority-smp-scheduler">Arbitrary
  * Processor Affinity Priority SMP Scheduler</a> algorithm is made available to
  * the application.
  *
@@ -5430,7 +5429,7 @@
  * support enabled.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * up to 32 processors.
  *
@@ -5448,7 +5447,7 @@
  * @anchor CONFIGURE_SCHEDULER_PRIORITY_SMP
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
+ * href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#deterministic-priority-smp-scheduler">Deterministic
  * Priority SMP Scheduler</a> algorithm is made available to the application.
  *
  * @par Default Configuration
@@ -5470,7 +5469,7 @@
  * support enabled.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * up to 32 processors.
  *
@@ -5488,7 +5487,7 @@
  * @anchor CONFIGURE_SCHEDULER_SIMPLE
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/uniprocessor-schedulers.html#simple-priority-scheduler">Simple
+ * href="@rtemsdocs/c-user/scheduling-concepts/uniprocessor-schedulers.html#simple-priority-scheduler">Simple
  * Priority Scheduler</a> algorithm is made available to the application.
  *
  * @par Default Configuration
@@ -5507,7 +5506,7 @@
  * Think twice before you use it.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * exactly one processor.
  * @endparblock
@@ -5522,7 +5521,7 @@
  * @anchor CONFIGURE_SCHEDULER_SIMPLE_SMP
  *
  * In case this configuration option is defined, then the <a
- * href="https://docs.rtems.org/docs/main/c-user/scheduling-concepts/smp-schedulers.html#simple-priority-smp-scheduler">Simple
+ * href="@rtemsdocs/c-user/scheduling-concepts/smp-schedulers.html#simple-priority-smp-scheduler">Simple
  * Priority SMP Scheduler</a> algorithm is made available to the application.
  *
  * @par Default Configuration
@@ -5544,7 +5543,7 @@
  * support enabled.
  *
  * In case no explicit <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a> is present, then it is used as the scheduler for
  * up to 32 processors.
  * @endparblock
@@ -5625,7 +5624,7 @@
  *
  *   The `name` macro parameter shall be the name associated with the scheduler
  *   data structures, see <a
- *   href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ *   href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  *   Scheduler Configuration</a>.
  *
  *   The `obj_name` macro parameter shall be the scheduler object name. It is
@@ -5643,7 +5642,7 @@
  * the index of the scheduler.
  *
  * This is an advanced configuration option, see <a
- * href="https://docs.rtems.org/docs/main/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
+ * href="@rtemsdocs/c-user/config/scheduler-clustered.html#clustered-scheduler-configuration">Clustered
  * Scheduler Configuration</a>.
  * @endparblock
  */
