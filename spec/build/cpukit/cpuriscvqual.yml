@@ -26,5 +26,4 @@ source:
 - cpukit/compiler-rt/lib/builtins/paritydi2.c
 - cpukit/compiler-rt/lib/builtins/popcountdi2.c
 - cpukit/libc/misc/init-array.c
-- cpukit/score/cpu/riscv/ffs.c
 type: build

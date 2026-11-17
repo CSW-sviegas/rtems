@@ -29,6 +29,7 @@ source:
 - cpukit/libc/ctype/tolower.c
 - cpukit/libc/ctype/toupper.c
 - cpukit/libc/misc/errno.c
+- cpukit/libc/misc/ffs.c
 - cpukit/libc/string/explicit_bzero.c
 - cpukit/libc/string/flsl.c
 - cpukit/libc/string/memchr.c
