@@ -97,6 +97,7 @@ install:
   - cpukit/include/rtems/dev/io.h
 - destination: ${BSP_INCLUDEDIR}/rtems/posix
   source:
+  - cpukit/include/rtems/posix/condimpl.h
   - cpukit/include/rtems/posix/muteximpl.h
   - cpukit/include/rtems/posix/posixapi.h
   - cpukit/include/rtems/posix/priorityimpl.h
@@ -352,6 +353,21 @@ source:
 - cpukit/posix/src/clockgetres.c
 - cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/condattrdestroy.c
+- cpukit/posix/src/condattrgetclock.c
+- cpukit/posix/src/condattrgetpshared.c
+- cpukit/posix/src/condattrinit.c
+- cpukit/posix/src/condattrsetclock.c
+- cpukit/posix/src/condattrsetpshared.c
+- cpukit/posix/src/condbroadcast.c
+- cpukit/posix/src/conddefaultattributes.c
+- cpukit/posix/src/conddestroy.c
+- cpukit/posix/src/condinit.c
+- cpukit/posix/src/condsignal.c
+- cpukit/posix/src/condsignalsupp.c
+- cpukit/posix/src/condtimedwait.c
+- cpukit/posix/src/condwait.c
+- cpukit/posix/src/condwaitsupp.c
 - cpukit/posix/src/mutexattrdestroy.c
 - cpukit/posix/src/mutexattrgetprioceiling.c
 - cpukit/posix/src/mutexattrgetprotocol.c
@@ -605,6 +621,7 @@ source:
 - cpukit/score/src/threadqflush.c
 - cpukit/score/src/threadqops.c
 - cpukit/score/src/threadqtimeout.c
+- cpukit/score/src/threadqtimeoutbyclockid.c
 - cpukit/score/src/threadresettimeslice.c
 - cpukit/score/src/threadrestart.c
 - cpukit/score/src/threadscheduler.c
