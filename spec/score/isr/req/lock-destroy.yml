@@ -1,0 +1,154 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: ISRLevel
+  states:
+  - name: Nop
+    test-code: |
+      T_eq( ctx->isr_enabled_after, ctx->isr_enabled_before );
+    text: |
+      The status of maskable interrupts on the calling processor shall not change.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->lock_compare, 0 );
+    text: |
+      The lock object shall not change.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: ISRLevel
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->isr_enabled = true;
+    text: |
+      While maskable interrupts are enabled on the calling processor.
+  - name: Disabled
+    test-code: |
+      ctx->isr_enabled = false;
+    text: |
+      While maskable interrupts are disabled on the calling processor.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  A destroy of a lock which a processor owns or waits for is undefined behaviour.
+  After the destroy, only an initialization of the lock is defined.
+
+  Where the system was built with SMP support and profiling enabled, the destroy
+  removes the statistics of the lock from the registered statistics. This may
+  change the lock object, so the lock object is not specified for this
+  configuration.
+
+  Dimension ISRLevel covers the status of maskable interrupts on the calling
+  processor, 2 states.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ISR_Level level;
+
+  level = 0;
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_disable( level );
+  }
+
+  T_quiet_le_sz( ctx->lock_ctx->lock_size, sizeof( ctx->lock_before ) );
+  memcpy( ctx->lock_before, ctx->lock_ctx->lock, ctx->lock_ctx->lock_size );
+  ctx->isr_enabled_before = AreInterruptsEnabled();
+  ( *ctx->lock_ctx->destroy )( ctx->lock_ctx );
+  ctx->isr_enabled_after = AreInterruptsEnabled();
+  ctx->lock_compare = memcmp(
+    ctx->lock_before,
+    ctx->lock_ctx->lock,
+    ctx->lock_ctx->lock_size
+  );
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_enable( level );
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    If this member is true, then maskable interrupts shall be enabled before the
+    destroy.
+  description: null
+  member: |
+    bool isr_enabled
+- brief: |
+    This member is true, if maskable interrupts were enabled before the destroy.
+  description: null
+  member: |
+    bool isr_enabled_before
+- brief: |
+    This member is true, if maskable interrupts were enabled after the destroy.
+  description: null
+  member: |
+    bool isr_enabled_after
+- brief: |
+    This member contains a copy of the lock object before the destroy.
+  description: null
+  member: |
+    uint8_t lock_before[ 256 ]
+- brief: |
+    This member contains the result of the comparison of the lock object after the
+    destroy with the copy before the destroy.
+  description: null
+  member: |
+    int lock_compare
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-isr-lock.h
+  run-params:
+  - description: |
+      is the lock context.
+    dir: inout
+    name: lock_ctx
+    specifier: ISRLockContext *${.:name}
+  target: testsuites/validation/tr-isr-lock-destroy.h
+test-includes:
+- string.h
+test-local-includes:
+- tr-isr-lock-destroy.h
+- tx-support.h
+test-prepare: |
+  ( *ctx->lock_ctx->initialize )( ctx->lock_ctx );
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-isr-lock-destroy.c
+test-teardown: null
+text: |
+  When the lock is destroyed.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    ISRLevel: Nop
+    Lock: Nop
+  pre-conditions:
+    ISRLevel: all
+- enabled-by:
+    and:
+    - RTEMS_SMP
+    - RTEMS_PROFILING
+  post-conditions:
+    ISRLevel: Nop
+    Lock: N/A
+  pre-conditions:
+    ISRLevel: all
+type: requirement

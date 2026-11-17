@@ -1,0 +1,159 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: Owner
+  states:
+  - name: FirstWaiter
+    test-code: |
+      for ( i = 0; i < ctx->worker_count; ++i ) {
+        T_eq_uint( ctx->workers[ i ].sequence, i );
+      }
+    text: |
+      The processor which started to wait first shall own the lock.
+  test-epilogue: null
+  test-prologue: |
+    unsigned int i;
+pre-conditions:
+- name: ISRRestoreLevel
+  states:
+  - name: ToContext
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_TO_CONTEXT ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock disables maskable interrupts at the acquire and restores their
+      status from the lock context at the release.
+  - name: ToObject
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_TO_OBJECT ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock disables maskable interrupts at the acquire and restores their
+      status from the lock object at the release.
+  - name: None
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_NONE ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock does not change the status of maskable interrupts.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: More
+    test-code: |
+      if ( ctx->worker_count < 2 ) {
+        ${.:skip}
+      }
+    text: |
+      While at least two other processors wait for the lock.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension ISRRestoreLevel covers the place where the lock saves the status of
+  maskable interrupts, 3 states. It is the same dimension as the one of
+  ${lock-acquire:/spec}.
+
+  Dimension Waiters covers the processors which wait for the lock, 1 state. The
+  order needs at least two waiting processors. For one waiting processor,
+  ${lock-release:/spec} specifies that it owns the lock after the release. The
+  test uses all online processors. It skips the test run on a system with fewer
+  than three processors.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  const SMP_ticket_lock_Control *ticket_lock;
+  ISR_Level                      level;
+  ISR_lock_Context               lock_context;
+  unsigned int                   i;
+
+  ticket_lock = ( *ctx->lock_ctx->get_ticket_lock )( ctx->lock_ctx );
+  ctx->lock_ctx->sequence = 0;
+  _ISR_Local_disable( level );
+  ( *ctx->lock_ctx->acquire )( ctx->lock_ctx, &lock_context );
+
+  for ( i = 0; i < ctx->worker_count; ++i ) {
+    ISRLockStartWorker(
+      ctx->lock_ctx,
+      &ctx->workers[ i ],
+      ctx->cpu_indices[ i ],
+      0,
+      false
+    );
+    TicketLockWaitForOthers( ticket_lock, i + 1 );
+  }
+
+  ( *ctx->lock_ctx->release )( ctx->lock_ctx, &lock_context );
+  _ISR_Local_enable( level );
+
+  for ( i = 0; i < ctx->worker_count; ++i ) {
+    ISRLockWaitForWorker( &ctx->workers[ i ] );
+  }
+test-brief: null
+test-cleanup: |
+  ( *ctx->lock_ctx->destroy )( ctx->lock_ctx );
+test-context:
+- brief: |
+    This member contains the indices of the processors of the workers.
+  description: null
+  member: |
+    uint32_t cpu_indices[ 8 ]
+- brief: |
+    This member contains the count of workers.
+  description: null
+  member: |
+    uint32_t worker_count
+- brief: |
+    This member contains the workers which wait for the lock.
+  description: null
+  member: |
+    ISRLockWorker workers[ 8 ]
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-isr-lock.h
+  run-params:
+  - description: |
+      is the lock context.
+    dir: inout
+    name: lock_ctx
+    specifier: ISRLockContext *${.:name}
+  target: testsuites/validation/tr-isr-lock-fifo.h
+test-includes: []
+test-local-includes:
+- tr-isr-lock-fifo.h
+- tx-support.h
+test-prepare: |
+  ( *ctx->lock_ctx->initialize )( ctx->lock_ctx );
+  ctx->worker_count = ISRLockGetOtherProcessors(
+    ctx->cpu_indices,
+    RTEMS_ARRAY_SIZE( ctx->cpu_indices )
+  );
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-isr-lock-fifo.c
+test-teardown: null
+text: |
+  When the owner releases the lock.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Owner: FirstWaiter
+  pre-conditions:
+    ISRRestoreLevel: all
+    Waiters: all
+type: requirement

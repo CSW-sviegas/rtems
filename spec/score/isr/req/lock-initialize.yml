@@ -1,0 +1,203 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: ISRLevel
+  states:
+  - name: Nop
+    test-code: |
+      T_eq( ctx->isr_enabled_after, ctx->isr_enabled_before );
+    text: |
+      The status of maskable interrupts on the calling processor shall not change.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Free
+    test-code: |
+      T_true( ctx->free_after );
+    text: |
+      The lock shall be free.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Method
+  states:
+  - name: Initializer
+    test-code: |
+      if ( ctx->lock_ctx->method != ISR_LOCK_METHOD_INITIALIZER ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock is initialized by an initializer for static initialization.
+  - name: Function
+    test-code: |
+      if ( ctx->lock_ctx->method != ISR_LOCK_METHOD_FUNCTION ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock is initialized by a function.
+  test-epilogue: null
+  test-prologue: null
+- name: ISRLevel
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->isr_enabled = true;
+    text: |
+      While maskable interrupts are enabled on the calling processor.
+  - name: Disabled
+    test-code: |
+      ctx->isr_enabled = false;
+    text: |
+      While maskable interrupts are disabled on the calling processor.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: Arbitrary
+    test-code: |
+      FillArbitrary( ctx );
+    text: |
+      While the lock object has an arbitrary content.
+  - name: Destroyed
+    test-code: |
+      MakeDestroyed( ctx );
+    text: |
+      While the lock is destroyed.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Method covers the ways to initialize a lock, 2 states.
+
+  Dimension ISRLevel covers the status of maskable interrupts on the calling
+  processor, 2 states.
+
+  Dimension State covers the lock object before the initialization, 2 states. An
+  initialization of a lock which was initialized and not destroyed is undefined
+  behaviour. Where the system was built with profiling enabled, the
+  initialization would overwrite the statistics of the lock while they are
+  registered. An initialization of a lock which a processor owns or waits for is
+  undefined behaviour as well.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ISR_Level level;
+
+  level = 0;
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_disable( level );
+  }
+
+  ctx->isr_enabled_before = AreInterruptsEnabled();
+  ( *ctx->lock_ctx->initialize )( ctx->lock_ctx );
+  ctx->isr_enabled_after = AreInterruptsEnabled();
+  ctx->free_after = ISRLockIsFree( ctx->lock_ctx );
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_enable( level );
+  }
+test-brief: null
+test-cleanup: |
+  ( *ctx->lock_ctx->destroy )( ctx->lock_ctx );
+test-context:
+- brief: |
+    If this member is true, then maskable interrupts shall be enabled before the
+    initialization.
+  description: null
+  member: |
+    bool isr_enabled
+- brief: |
+    This member is true, if maskable interrupts were enabled before the
+    initialization.
+  description: null
+  member: |
+    bool isr_enabled_before
+- brief: |
+    This member is true, if maskable interrupts were enabled after the
+    initialization.
+  description: null
+  member: |
+    bool isr_enabled_after
+- brief: |
+    This member is true, if the lock was free after the initialization.
+  description: null
+  member: |
+    bool free_after
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-isr-lock.h
+  run-params:
+  - description: |
+      is the lock context.
+    dir: inout
+    name: lock_ctx
+    specifier: ISRLockContext *${.:name}
+  target: testsuites/validation/tr-isr-lock-initialize.h
+test-includes: []
+test-local-includes:
+- tr-isr-lock-initialize.h
+- tx-support.h
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void FillArbitrary( Context *ctx )
+  {
+    uint8_t *bytes;
+    size_t   i;
+
+    bytes = ctx->lock_ctx->lock;
+
+    for ( i = 0; i < ctx->lock_ctx->lock_size; ++i ) {
+      bytes[ i ] = (uint8_t) ( 0x11 * ( ( i % 15 ) + 1 ) );
+    }
+  }
+
+  static void MakeDestroyed( Context *ctx )
+  {
+    ISR_Level        level;
+    ISR_lock_Context lock_context;
+
+    ( *ctx->lock_ctx->initialize )( ctx->lock_ctx );
+    _ISR_Local_disable( level );
+    ( *ctx->lock_ctx->acquire )( ctx->lock_ctx, &lock_context );
+    ( *ctx->lock_ctx->release )( ctx->lock_ctx, &lock_context );
+    _ISR_Local_enable( level );
+    ( *ctx->lock_ctx->destroy )( ctx->lock_ctx );
+  }
+test-target: testsuites/validation/tr-isr-lock-initialize.c
+test-teardown: null
+text: |
+  When the lock is initialized.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    ISRLevel: Nop
+    Lock: N/A
+  pre-conditions:
+    Method: all
+    ISRLevel: all
+    State: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    ISRLevel: Nop
+    Lock: Free
+  pre-conditions:
+    Method: all
+    ISRLevel: all
+    State: all
+type: requirement

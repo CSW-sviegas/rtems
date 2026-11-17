@@ -1,0 +1,361 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: ISRLevel
+  states:
+  - name: Disabled
+    test-code: |
+      T_false( ctx->isr_enabled_after );
+    text: |
+      Maskable interrupts shall be disabled on the calling processor.
+  test-epilogue: null
+  test-prologue: null
+- name: Saved
+  states:
+  - name: Enabled
+    test-code: |
+      T_true( ctx->saved_enabled );
+    text: |
+      The lock shall save that maskable interrupts were enabled.
+  - name: Disabled
+    test-code: |
+      T_false( ctx->saved_enabled );
+    text: |
+      The lock shall save that maskable interrupts were disabled.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Caller
+    test-code: |
+      T_false( ctx->free_after );
+    text: |
+      The calling processor shall own the lock.
+  test-epilogue: null
+  test-prologue: null
+- name: Wait
+  states:
+  - name: UntilReleased
+    test-code: |
+      T_true( ctx->owner_released );
+    text: |
+      The calling processor shall wait until the owner releases the lock.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: ISRRestoreLevel
+  states:
+  - name: ToContext
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_TO_CONTEXT ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock disables maskable interrupts at the acquire and restores their
+      status from the lock context at the release.
+  - name: ToObject
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_TO_OBJECT ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock disables maskable interrupts at the acquire and restores their
+      status from the lock object at the release.
+  - name: None
+    test-code: |
+      if ( ctx->lock_ctx->restore != ISR_LOCK_RESTORE_NONE ) {
+        ${.:skip}
+      }
+    text: |
+      Where the lock does not change the status of maskable interrupts.
+  test-epilogue: null
+  test-prologue: null
+- name: ISRLevel
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->isr_enabled = true;
+    text: |
+      While maskable interrupts are enabled on the calling processor.
+  - name: Disabled
+    test-code: |
+      ctx->isr_enabled = false;
+    text: |
+      While maskable interrupts are disabled on the calling processor.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Free
+    test-code: |
+      ctx->other = false;
+    text: |
+      While no processor owns the lock.
+  - name: Other
+    test-code: |
+      ctx->other = true;
+
+      #if defined( RTEMS_SMP )
+      if ( ISRLockGetOtherProcessors( &ctx->other_cpu_index, 1 ) == 0 ) {
+        ${.:skip}
+      }
+      #endif
+    text: |
+      While another processor owns the lock.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension ISRRestoreLevel covers the place where the lock saves the status of
+  maskable interrupts, 3 states. The lock saves it in the lock context or in the
+  lock object, or the lock leaves the status of maskable interrupts to the
+  caller.
+
+  Dimension ISRLevel covers the status of maskable interrupts on the calling
+  processor, 2 states. Where the lock does not change the status of maskable
+  interrupts, a call with maskable interrupts enabled is undefined behaviour.
+
+  Dimension Owner covers the owner of the lock, 2 states. An acquire of a lock
+  which the calling processor owns is undefined behaviour in every configuration,
+  so it is not a state. The calling processor waits only for a lock which another
+  processor owns, and so only where the system was built with SMP support
+  enabled.
+requirement-type: functional
+skip-reasons:
+  InterruptsEnabled: |
+    Where the lock acquire directive does not change the status of maskable
+    interrupts, a call with maskable interrupts enabled is undefined behaviour.
+  NeedsSMP: |
+    Where the system was built with SMP support disabled, no other processor can
+    own the lock.
+test-action: |
+  ISR_Level level;
+
+  level = 0;
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_disable( level );
+  }
+
+  #if defined( RTEMS_SMP )
+  if ( ctx->other ) {
+    ISRLockStartWorker(
+      ctx->lock_ctx,
+      &ctx->worker,
+      ctx->other_cpu_index,
+      1,
+      false
+    );
+    TicketLockWaitForOwned(
+      ( *ctx->lock_ctx->get_ticket_lock )( ctx->lock_ctx )
+    );
+  }
+  #endif
+
+  ( *ctx->lock_ctx->acquire )( ctx->lock_ctx, &ctx->lock_context );
+  ctx->isr_enabled_after = AreInterruptsEnabled();
+  ctx->free_after = ISRLockIsFree( ctx->lock_ctx );
+
+  #if defined( RTEMS_SMP )
+  if ( ctx->other ) {
+    ctx->owner_released = ISRLockWorkerReleased( &ctx->worker );
+  }
+  #endif
+
+  if ( ctx->lock_ctx->get_saved_level != NULL ) {
+    ctx->saved_enabled = _ISR_Is_enabled(
+      ( *ctx->lock_ctx->get_saved_level )( ctx->lock_ctx, &ctx->lock_context )
+    );
+  }
+
+  ( *ctx->lock_ctx->release )( ctx->lock_ctx, &ctx->lock_context );
+
+  if ( !ctx->isr_enabled ) {
+    _ISR_Local_enable( level );
+  }
+
+  #if defined( RTEMS_SMP )
+  if ( ctx->other ) {
+    ISRLockWaitForWorker( &ctx->worker );
+  }
+  #endif
+test-brief: null
+test-cleanup: |
+  ( *ctx->lock_ctx->destroy )( ctx->lock_ctx );
+test-context:
+- brief: |
+    If this member is true, then maskable interrupts shall be enabled before the
+    acquire.
+  description: null
+  member: |
+    bool isr_enabled
+- brief: |
+    If this member is true, then another processor shall own the lock before the
+    acquire.
+  description: null
+  member: |
+    bool other
+- brief: |
+    This member contains the index of the processor which owns the lock before the
+    acquire.
+  description: null
+  member: |
+    uint32_t other_cpu_index
+- brief: |
+    This member contains the lock context of the acquire.
+  description: null
+  member: |
+    ISR_lock_Context lock_context
+- brief: |
+    This member is true, if maskable interrupts were enabled after the acquire.
+  description: null
+  member: |
+    bool isr_enabled_after
+- brief: |
+    This member is true, if the lock was free after the acquire.
+  description: null
+  member: |
+    bool free_after
+- brief: |
+    This member is true, if the saved status of maskable interrupts is enabled.
+  description: null
+  member: |
+    bool saved_enabled
+- brief: |
+    This member is true, if the owner released the lock before the acquire
+    returned.
+  description: null
+  member: |
+    bool owner_released
+- brief: |
+    This member contains the worker which owns the lock on another processor.
+  description: null
+  member: |
+    ISRLockWorker worker
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-isr-lock.h
+  run-params:
+  - description: |
+      is the lock context.
+    dir: inout
+    name: lock_ctx
+    specifier: ISRLockContext *${.:name}
+  target: testsuites/validation/tr-isr-lock-acquire.h
+test-includes: []
+test-local-includes:
+- tr-isr-lock-acquire.h
+- tx-support.h
+test-prepare: |
+  ( *ctx->lock_ctx->initialize )( ctx->lock_ctx );
+  ctx->isr_enabled_after = true;
+  ctx->free_after = true;
+  ctx->saved_enabled = false;
+  ctx->owner_released = false;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-isr-lock-acquire.c
+test-teardown: null
+text: |
+  When the calling processor acquires the lock.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    ISRLevel: Disabled
+    Saved:
+    - specified-by: ISRLevel
+    Owner: N/A
+    Wait: N/A
+  pre-conditions:
+    ISRRestoreLevel:
+    - ToContext
+    - ToObject
+    ISRLevel: all
+    Owner:
+    - Free
+- enabled-by: true
+  post-conditions:
+    ISRLevel: Disabled
+    Saved: N/A
+    Owner: N/A
+    Wait: N/A
+  pre-conditions:
+    ISRRestoreLevel:
+    - None
+    ISRLevel:
+    - Disabled
+    Owner:
+    - Free
+- enabled-by: true
+  post-conditions: InterruptsEnabled
+  pre-conditions:
+    ISRRestoreLevel:
+    - None
+    ISRLevel:
+    - Enabled
+    Owner: all
+- enabled-by: true
+  post-conditions: NeedsSMP
+  pre-conditions:
+    ISRRestoreLevel:
+    - ToContext
+    - ToObject
+    ISRLevel: all
+    Owner:
+    - Other
+- enabled-by: true
+  post-conditions: NeedsSMP
+  pre-conditions:
+    ISRRestoreLevel:
+    - None
+    ISRLevel:
+    - Disabled
+    Owner:
+    - Other
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    ISRLevel: Disabled
+    Saved:
+    - specified-by: ISRLevel
+    Owner: Caller
+    Wait:
+    - if:
+        pre-conditions:
+          Owner: Other
+      then: UntilReleased
+    - else: N/A
+  pre-conditions:
+    ISRRestoreLevel:
+    - ToContext
+    - ToObject
+    ISRLevel: all
+    Owner: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    ISRLevel: Disabled
+    Saved: N/A
+    Owner: Caller
+    Wait:
+    - if:
+        pre-conditions:
+          Owner: Other
+      then: UntilReleased
+    - else: N/A
+  pre-conditions:
+    ISRRestoreLevel:
+    - None
+    ISRLevel:
+    - Disabled
+    Owner: all
+type: requirement

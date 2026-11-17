@@ -1,0 +1,116 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: ISRLevel
+  states:
+  - name: Enabled
+    test-code: |
+      T_true( ctx->isr_enabled_after );
+    text: |
+      Maskable interrupts shall be enabled on the calling processor.
+  - name: Disabled
+    test-code: |
+      T_false( ctx->isr_enabled_after );
+    text: |
+      Maskable interrupts shall be disabled on the calling processor.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: SavedISRLevel
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->saved_enabled = true;
+    text: |
+      While the lock context contains the status of enabled maskable interrupts.
+  - name: Disabled
+    test-code: |
+      ctx->saved_enabled = false;
+    text: |
+      While the lock context contains the status of disabled maskable interrupts.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Maskable interrupts are disabled on the calling processor before the call.
+  Calling it with enabled maskable interrupts is undefined behaviour, because the
+  RISC-V and x86_64 ports only set the bit which enables maskable interrupts.
+
+  Dimension SavedISRLevel covers the status of maskable interrupts which the lock
+  context contains, 2 states. The test stores the status by
+  ${lock-isr-disable:/spec}. A lock context which does not contain a status
+  stored on the calling processor is undefined behaviour. While the calling
+  processor owns a lock, a lock context with the status of enabled maskable
+  interrupts is undefined behaviour, so the owner is not a dimension.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ISR_lock_Context lock_context;
+  ISR_Level        level;
+
+  _ISR_Local_disable( level );
+
+  if ( ctx->saved_enabled ) {
+    _ISR_Local_enable( level );
+  }
+
+  ( *ctx->lock_ctx->interrupt_disable )( ctx->lock_ctx, &lock_context );
+  T_quiet_false( AreInterruptsEnabled() );
+  ( *ctx->lock_ctx->interrupt_enable )( ctx->lock_ctx, &lock_context );
+  ctx->isr_enabled_after = AreInterruptsEnabled();
+  _ISR_Local_enable( level );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    If this member is true, then the lock context shall contain the status of
+    enabled maskable interrupts before the call.
+  description: null
+  member: |
+    bool saved_enabled
+- brief: |
+    This member is true, if maskable interrupts were enabled after the call.
+  description: null
+  member: |
+    bool isr_enabled_after
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-isr-lock.h
+  run-params:
+  - description: |
+      is the lock context.
+    dir: inout
+    name: lock_ctx
+    specifier: ISRLockContext *${.:name}
+  target: testsuites/validation/tr-isr-lock-isr-enable.h
+test-includes: []
+test-local-includes:
+- tr-isr-lock-isr-enable.h
+- tx-support.h
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-isr-lock-isr-enable.c
+test-teardown: null
+text: |
+  When the calling processor restores the status of maskable interrupts from the
+  lock context.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    ISRLevel:
+    - specified-by: SavedISRLevel
+  pre-conditions:
+    SavedISRLevel: all
+type: requirement
