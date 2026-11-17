@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1989, 2014 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,10 @@
  * It exposes no license requirements on application code.  Everything necessary
  * to build RTEMS applications is available as open source software.  This makes
  * you completely vendor independent.
+ *
+ * The [glossary](@rtemsdocs/c-user/glossary.html) of the
+ * [RTEMS Classic API Guide](@rtemsdocs/c-user/index.html) defines the terms and
+ * abbreviations which this documentation uses.
  *
  * RTEMS provides the following basic feature set:
  *
