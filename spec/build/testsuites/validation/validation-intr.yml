@@ -40,6 +40,12 @@ source:
 - testsuites/validation/tc-score-isr.c
 - testsuites/validation/tr-intr-get-priority.c
 - testsuites/validation/tr-intr-set-priority.c
+- testsuites/validation/tr-isr-lock-acquire.c
+- testsuites/validation/tr-isr-lock-destroy.c
+- testsuites/validation/tr-isr-lock-initialize.c
+- testsuites/validation/tr-isr-lock-isr-disable.c
+- testsuites/validation/tr-isr-lock-isr-enable.c
+- testsuites/validation/tr-isr-lock-release.c
 - testsuites/validation/ts-validation-intr.c
 stlib: []
 target: testsuites/validation/ts-validation-intr.exe

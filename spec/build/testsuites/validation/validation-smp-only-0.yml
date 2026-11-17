@@ -34,6 +34,7 @@ source:
 - testsuites/validation/tc-task-smp.c
 - testsuites/validation/tc-timer-delete-during-clock-set.c
 - testsuites/validation/tc-timer-delete-during-tickle.c
+- testsuites/validation/tr-isr-lock-fifo.c
 - testsuites/validation/ts-validation-smp-only-0.c
 stlib: []
 target: testsuites/validation/ts-validation-smp-only-0.exe
