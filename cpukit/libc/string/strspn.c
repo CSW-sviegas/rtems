@@ -49,8 +49,12 @@ strspn (const char *s1,
 	  if (*s1 == *c)
 	    goto found;
 	}
+#ifndef __rtems__
       if (*c == '\0')
 	break;
+#else /* __rtems__ */
+      break;
+#endif /* __rtems__ */
 found:
       s1++;
     }
