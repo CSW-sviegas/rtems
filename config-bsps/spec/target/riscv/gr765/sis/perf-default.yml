@@ -237,24 +237,24 @@ links:
 - limits:
     DirtyCache:
       max-upper-bound: 4.114000000000001e-06
-      median-lower-bound: 3.366e-06
+      median-lower-bound: 3.024e-06
       median-upper-bound: 4.114000000000001e-06
-      min-lower-bound: 3.366e-06
+      min-lower-bound: 3.024e-06
     FullCache:
       max-upper-bound: 4.026e-06
-      median-lower-bound: 3.294e-06
+      median-lower-bound: 2.952e-06
       median-upper-bound: 4.026e-06
-      min-lower-bound: 3.294e-06
+      min-lower-bound: 2.952e-06
     HotCache:
       max-upper-bound: 4.026e-06
-      median-lower-bound: 3.294e-06
+      median-lower-bound: 2.952e-06
       median-upper-bound: 4.026e-06
-      min-lower-bound: 3.294e-06
+      min-lower-bound: 2.952e-06
     Load/1:
       max-upper-bound: 4.114000000000001e-06
-      median-lower-bound: 3.366e-06
+      median-lower-bound: 3.024e-06
       median-upper-bound: 4.114000000000001e-06
-      min-lower-bound: 3.366e-06
+      min-lower-bound: 3.024e-06
   role: performance-runtime-limits
   uid: /rtems/message/req/perf-send
 - limits:
