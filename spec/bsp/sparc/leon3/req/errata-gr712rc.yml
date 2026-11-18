@@ -9,6 +9,9 @@ links:
   uid: ../if/group
 - role: reference
   uid: /ref/soc/gaisler/gr712rc/gr712rc-um-2-17
+- location: section 2.2
+  role: reference
+  uid: /ref/ip/gaisler/grlib-tn-0016-1-0
 non-functional-type: errata-group
 rationale: null
 requirement-type: non-functional

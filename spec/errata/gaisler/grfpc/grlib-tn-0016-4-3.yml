@@ -1,0 +1,11 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+identifier: grlib-tn-0016-4-3
+links:
+- location: section 4.3
+  role: reference
+  uid: /ref/ip/gaisler/grlib-tn-0016-1-0
+title: Current exception field updating from DIV/SQRT
+type: errata

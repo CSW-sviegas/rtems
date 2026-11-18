@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+author: Frontgrade Gaisler
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+organization: Frontgrade Gaisler AB
+reference-type: manual
+title: 'GRLIB-TN-0016, GRFPU Floating-point controller (GRFPC): Clarifications on
+  FSR register behavior, Issue 1.0'
+type: reference
+work-hash: 3Z06vLb_FBmCkI5bE3QeS3PX5KdfX5oKs8TVsIRrl6k=
+work-url: https://download.gaisler.com/technical_notes/GRLIB-TN-0016.pdf
