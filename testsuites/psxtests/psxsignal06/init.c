@@ -34,6 +34,7 @@
 #include "test_support.h"
 #include <pthread.h>
 #include <errno.h>
+#include <stdatomic.h>
 
 const char rtems_test_name[] = "PSXSIGNAL 6";
 
@@ -45,6 +46,7 @@ void *TestThread( void *argument );
 pthread_t       ThreadId;
 pthread_cond_t  CondVarId;
 pthread_mutex_t MutexId;
+static atomic_bool CondWaitDone;
 
 void Handler( int signo )
 {
@@ -84,6 +86,7 @@ void *TestThread( void *argument )
   status = pthread_cond_wait( &CondVarId, &MutexId );
   rtems_test_assert( !status );
   puts( "Test: pthread_cond_wait - interrupted by signal" );
+  atomic_store( &CondWaitDone, true );
 
   left = sleep( 10 );
   printf( "Test: seconds left=%d\n", left );
@@ -122,6 +125,8 @@ void *POSIX_Init( void *argument )
   sleep( 2 );
 
   /* let TestThread run */
+
+  rtems_test_assert( atomic_load( &CondWaitDone ) );
 
   puts( "Init: pthread_kill - SIGUSR to Test Thread - OK" );
   status = pthread_kill( ThreadId, SIGUSR1 );
