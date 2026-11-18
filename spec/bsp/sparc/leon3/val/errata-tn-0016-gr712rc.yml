@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: sparc/gr712rc
+links:
+- role: validation
+  uid: ../req/errata-gr712rc
+- role: errata-resolution
+  uid: /errata/gaisler/grfpc/grlib-tn-0016-4-1
+- role: errata-resolution
+  uid: /errata/gaisler/grfpc/grlib-tn-0016-4-2
+- role: errata-resolution
+  uid: /errata/gaisler/grfpc/grlib-tn-0016-4-3
+- location: cpukit/score/cpu/sparc/cpu_asm.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/sparc-bad-trap.S
+  role: reference
+  uid: /ref/rtems/source
+- location: cpukit/score/cpu/sparc/syscall.S
+  role: reference
+  uid: /ref/rtems/source
+method: by-analysis
+text: |
+  The software product executes the `st %fsr` instruction in the context switch,
+  in the interrupt and system call trap handlers and in the handler of unexpected
+  traps. The floating-point environment functions of the C library execute it as
+  well.
+
+  Section 4.1 of the technical note concerns an FPop1 instruction which the
+  `st %fsr` instruction directly follows. A check of the machine code of the
+  libraries of the software product found no such sequence in the flow of
+  execution. No function starts with the `st %fsr` instruction, so an FPop1
+  instruction in the delay slot of a call does not directly precede it. No
+  `st %fsr` instruction directly follows the return of a call. An interrupt trap
+  enters the `st %fsr` instruction of the interrupt trap handler through the trap
+  table and the first instructions of the handler. The behaviour of section 4.1
+  therefore does not occur.
+
+  Section 4.2 of the technical note concerns two `st %fsr` instructions within
+  three instructions after an fp_exception trap. The handler of unexpected traps
+  handles this trap. It executes one `st %fsr` instruction and terminates the
+  system. In the machine code of the libraries, no `st %fsr` instruction follows
+  another one within three instructions. The behaviour of section 4.2 therefore
+  does not occur.
+
+  Section 4.3 of the technical note concerns the field cexc of the FSR after FDIV
+  and FSQRT instructions. The software product saves and restores the FSR as a
+  whole. Neither the software product nor the C library reads the field cexc. The
+  behaviour of section 4.3 therefore has no effect on the software product.
+type: validation
