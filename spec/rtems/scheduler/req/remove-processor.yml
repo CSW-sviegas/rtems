@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -519,6 +519,7 @@ test-setup:
         ctx->worker_id[ WORKER_C ] = CreateTask( "WRKC", PRIO_NORMAL );
         SetScheduler( ctx->worker_id[ WORKER_C ], SCHEDULER_C_ID, PRIO_NORMAL );
         StartTask( ctx->worker_id[ WORKER_C ], WorkerC, ctx );
+        SendAndSync( ctx, WORKER_C, 0 );
 
         if ( rtems_scheduler_get_processor_maximum() >= 4 ) {
           RemoveProcessor( SCHEDULER_C_ID, 3 );
