@@ -46,6 +46,14 @@
 #include <rtems/score/status.h>
 #include <rtems/score/threaddispatch.h>
 
+#if defined( RTEMS_POSIX_API )
+#define POSIX_CONDITION_VARIABLES_WAIT_STATE \
+  ( STATES_WAITING_FOR_CONDITION_VARIABLE | STATES_INTERRUPTIBLE_BY_SIGNAL )
+#else
+#define POSIX_CONDITION_VARIABLES_WAIT_STATE \
+  STATES_WAITING_FOR_CONDITION_VARIABLE
+#endif
+
 static void _POSIX_Condition_variables_Mutex_unlock(
   Thread_queue_Queue   *queue,
   Thread_Control       *the_thread,
@@ -152,7 +160,7 @@ int _POSIX_Condition_variables_Wait_support(
 
   _Thread_queue_Context_set_thread_state(
     &queue_context,
-    STATES_WAITING_FOR_CONDITION_VARIABLE
+    POSIX_CONDITION_VARIABLES_WAIT_STATE
   );
   _Thread_queue_Enqueue(
     &the_cond->Queue.Queue,
@@ -162,17 +170,17 @@ int _POSIX_Condition_variables_Wait_support(
   );
   error = _POSIX_Get_error_after_wait( executing );
 
+#if defined( RTEMS_POSIX_API )
   /*
-   *  If the thread is interrupted, while in the thread queue, by
-   *  a POSIX signal, then pthread_cond_wait returns spuriously,
-   *  according to the POSIX standard. It means that pthread_cond_wait
-   *  returns a success status, except for the fact that it was not
-   *  woken up a pthread_cond_signal() or a pthread_cond_broadcast().
+   * A POSIX signal ends the wait with EINTR.  The call returns zero for this
+   * spurious wakeup.
    */
-
   if ( error == EINTR ) {
     error = 0;
   }
+#else
+  _Assert( error != EINTR );
+#endif
 
   /*
    *  When we get here the dispatch disable level is 0.

@@ -7,5 +7,5 @@ Test: pthread_cond_wait - OK
 Init: pthread_kill - SIGUSR to Test Thread - OK
 Test: pthread_cond_wait - interrupted by signal
 Init: pthread_kill - SIGUSR to Test Thread - OK
-Test: seconds left=8
+Test: seconds left=7
 *** END OF POSIX TEST SIGNAL 06 ***
