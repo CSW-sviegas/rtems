@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -948,6 +948,7 @@ static void RtemsSchedulerReqRemoveProcessor_Setup(
     ctx->worker_id[ WORKER_C ] = CreateTask( "WRKC", PRIO_NORMAL );
     SetScheduler( ctx->worker_id[ WORKER_C ], SCHEDULER_C_ID, PRIO_NORMAL );
     StartTask( ctx->worker_id[ WORKER_C ], WorkerC, ctx );
+    SendAndSync( ctx, WORKER_C, 0 );
 
     if ( rtems_scheduler_get_processor_maximum() >= 4 ) {
       RemoveProcessor( SCHEDULER_C_ID, 3 );
