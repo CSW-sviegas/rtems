@@ -83,7 +83,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = isdigit( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( isdigit )( ctx->values[ i ] );
+      ctx->results[ i ] = (isdigit) ( ctx->values[ i ] );
     }
   }
 test-brief: null

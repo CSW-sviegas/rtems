@@ -266,20 +266,12 @@ test-action: |
   );
   SetSelfScheduler( SCHEDULER_A_ID, PRIO_ULTRA_HIGH );
 
-  TQSendAndWaitForIntendToBlock(
-    ctx->tq_ctx,
-    TQ_BLOCKER_A,
-    TQ_EVENT_ENQUEUE
-  );
+  TQSendAndWaitForIntendToBlock( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE );
 
   SetSelfScheduler( SCHEDULER_B_ID, PRIO_ULTRA_HIGH );
 
   if ( ctx->gains_new_helping_scheduler ) {
-    TQSend(
-      ctx->tq_ctx,
-      TQ_BLOCKER_D,
-      TQ_EVENT_ENQUEUE
-    );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_D, TQ_EVENT_ENQUEUE );
     YieldTask( ctx->tq_ctx->worker_id[ TQ_HELPER_A ] );
     TQWaitForEventsReceived( ctx->tq_ctx, TQ_BLOCKER_D );
     TQWaitForIntendToBlock( ctx->tq_ctx, TQ_BLOCKER_D );
@@ -299,8 +291,7 @@ test-action: |
   TQSendAndWaitForExecutionStop(
     ctx->tq_ctx,
     TQ_HELPER_A,
-    TQ_EVENT_SCHEDULER_RECORD_START |
-      TQ_EVENT_SURRENDER
+    TQ_EVENT_SCHEDULER_RECORD_START | TQ_EVENT_SURRENDER
   );
   TQSchedulerRecordStop( ctx->tq_ctx );
   T_eq_ptr(

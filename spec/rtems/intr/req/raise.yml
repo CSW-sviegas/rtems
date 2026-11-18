@@ -92,9 +92,7 @@ skip-reasons: {}
 test-action: |
   if ( ctx->valid_vector ) {
     for (
-      ctx->vector = 0;
-      ctx->vector < BSP_INTERRUPT_VECTOR_COUNT;
-      ++ctx->vector
+      ctx->vector = 0; ctx->vector < BSP_INTERRUPT_VECTOR_COUNT; ++ctx->vector
     ) {
       rtems_status_code          sc;
       rtems_interrupt_attributes attr;
@@ -109,7 +107,9 @@ test-action: |
 
       T_rsc_success( sc );
 
-      has_installed_entries = HasInterruptVectorEntriesInstalled( ctx->vector );
+      has_installed_entries = HasInterruptVectorEntriesInstalled(
+        ctx->vector
+      );
       CheckRaise( ctx, &attr, has_installed_entries );
     }
   } else {

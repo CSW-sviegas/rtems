@@ -113,7 +113,7 @@ test-action: |
   T_eq_int( status, TQConvertStatus( ctx->tq_ctx, STATUS_SUCCESSFUL ) );
 
   if ( ctx->intend_to_block ) {
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
     SMP_barrier_State state;
   #endif
 
@@ -131,8 +131,7 @@ test-action: |
       ctx->expected_blocker_b_counter = 2;
     }
 
-
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
     _SMP_barrier_Control_initialize( &ctx->barrier );
     _SMP_barrier_State_initialize( &state );
   #endif
@@ -140,7 +139,7 @@ test-action: |
     T_scheduler_set_event_handler( SchedulerBlock, ctx );
     TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE );
 
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
     /* B0 */
     _SMP_barrier_Wait( &ctx->barrier, &state, 2 );
 

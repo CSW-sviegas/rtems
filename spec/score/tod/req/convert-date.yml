@@ -232,7 +232,11 @@ test-action: |
   ctx->tod.minute = 30;
   ctx->tod.second = 30;
   ctx->tod.ticks = 0;
-  ctx->expected = DaysFromCivil( ctx->tod.year, ctx->tod.month, ctx->tod.day ) *
+  ctx->expected = DaysFromCivil(
+                    ctx->tod.year,
+                    ctx->tod.month,
+                    ctx->tod.day
+                  ) *
                     86400 +
                   (int64_t) ctx->tod.hour * 3600 +
                   (int64_t) ctx->tod.minute * 60 + ctx->tod.second;

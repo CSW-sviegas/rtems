@@ -112,7 +112,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = isprint( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( isprint )( ctx->values[ i ] );
+      ctx->results[ i ] = (isprint) ( ctx->values[ i ] );
     }
   }
 test-brief: null

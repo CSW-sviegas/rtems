@@ -279,9 +279,10 @@ test-action: |
   ctx->userext_iter_returned = false;
   ctx->userext_iter_ended = false;
   ctx->userext_iter_check_end = true;
-  ctx->life_protected_by_handler =
-    ctx->userext_iter == USER_EXT_ITER_RESTART ||
-    ctx->userext_iter == USER_EXT_ITER_TERMINATE;
+  ctx->life_protected_by_handler = ctx->userext_iter ==
+                                     USER_EXT_ITER_RESTART ||
+                                   ctx->userext_iter ==
+                                     USER_EXT_ITER_TERMINATE;
 
   StartTask( ctx->worker_id, Worker, ctx );
 

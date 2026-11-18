@@ -189,7 +189,11 @@ requirement-type: functional
 skip-reasons: {}
 test-action: |
   memcpy( &ctx->attr_before, &ctx->attr_obj, sizeof( ctx->attr_before ) );
-  ctx->status = pthread_attr_setstack( ctx->attr, ctx->stackaddr, ctx->stacksize );
+  ctx->status = pthread_attr_setstack(
+    ctx->attr,
+    ctx->stackaddr,
+    ctx->stacksize
+  );
 test-brief: null
 test-cleanup: null
 test-context:

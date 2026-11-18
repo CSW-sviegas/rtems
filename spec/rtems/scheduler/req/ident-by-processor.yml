@@ -118,22 +118,22 @@ skip-reasons:
     Where the system is build with SMP support disabled, the system has exactly one
     processor available and this processor is always owned by a scheduler.
 test-action: |
-  #if defined(RTEMS_SMP)
-  rtems_status_code sc;
+  #if defined( RTEMS_SMP )
+    rtems_status_code sc;
 
-  if ( !ctx->cpu_has_scheduler ) {
-    sc = rtems_scheduler_remove_processor( ctx->second_scheduler_id, 1 );
-    T_rsc_success( sc );
-  }
+    if ( !ctx->cpu_has_scheduler ) {
+      sc = rtems_scheduler_remove_processor( ctx->second_scheduler_id, 1 );
+      T_rsc_success( sc );
+    }
   #endif
 
-  ctx->status = rtems_scheduler_ident_by_processor( ctx->cpu_index, ctx->id );
+    ctx->status = rtems_scheduler_ident_by_processor( ctx->cpu_index, ctx->id );
 
-  #if defined(RTEMS_SMP)
-  if ( !ctx->cpu_has_scheduler ) {
-    sc = rtems_scheduler_add_processor( ctx->second_scheduler_id, 1 );
-    T_rsc_success( sc );
-  }
+  #if defined( RTEMS_SMP )
+    if ( !ctx->cpu_has_scheduler ) {
+      sc = rtems_scheduler_add_processor( ctx->second_scheduler_id, 1 );
+      T_rsc_success( sc );
+    }
   #endif
 test-brief: null
 test-cleanup: null

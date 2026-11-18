@@ -220,20 +220,24 @@ requirement-type: functional
 skip-reasons: {}
 test-action: |
   #if LEON3_IRQMAP_BUS_LINE_COUNT != 0
-  if ( ctx->bus_line < BUS_LINE_COUNT ) {
-    ctx->entry_before = LEON3_IrqCtrl_Mapping[ ctx->bus_line ];
-    LEON3_IrqCtrl_Mapping[ ctx->bus_line ] = (uint8_t) ctx->entry;
-  }
+    if ( ctx->bus_line < BUS_LINE_COUNT ) {
+      ctx->entry_before = LEON3_IrqCtrl_Mapping[ ctx->bus_line ];
+      LEON3_IrqCtrl_Mapping[ ctx->bus_line ] = (uint8_t) ctx->entry;
+    }
 
-  memcpy( ctx->mapping_before, LEON3_IrqCtrl_Mapping, sizeof( ctx->mapping_before ) );
-  SaveMapRegisters( ctx );
+    memcpy(
+      ctx->mapping_before,
+      LEON3_IrqCtrl_Mapping,
+      sizeof( ctx->mapping_before )
+    );
+    SaveMapRegisters( ctx );
   #endif
 
-  ctx->controller_line = CONTROLLER_LINE_INITIAL;
-  ctx->status = leon3_irqmap_get(
-    ctx->bus_line,
-    ctx->controller_line_pointer
-  );
+    ctx->controller_line = CONTROLLER_LINE_INITIAL;
+    ctx->status = leon3_irqmap_get(
+      ctx->bus_line,
+      ctx->controller_line_pointer
+    );
 test-brief: null
 test-cleanup: |
   #if LEON3_IRQMAP_BUS_LINE_COUNT != 0

@@ -84,7 +84,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = isascii( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( isascii )( ctx->values[ i ] );
+      ctx->results[ i ] = (isascii) ( ctx->values[ i ] );
     }
   }
 test-brief: null

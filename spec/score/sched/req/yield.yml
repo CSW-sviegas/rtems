@@ -202,7 +202,7 @@ test-action: |
   Yield();
   TQSchedulerRecordStop( &ctx->tq_ctx );
 
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
   ctx->tq_ctx.busy_wait[ COUNTER ] = false;
 
   while ( cpu->heir == ctx->tq_ctx.worker_tcb[ COUNTER ] ) {

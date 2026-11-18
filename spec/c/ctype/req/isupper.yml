@@ -91,7 +91,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = isupper( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( isupper )( ctx->values[ i ] );
+      ctx->results[ i ] = (isupper) ( ctx->values[ i ] );
     }
   }
 test-brief: null

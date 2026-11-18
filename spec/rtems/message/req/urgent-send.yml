@@ -255,7 +255,7 @@ test-action: |
     SendEvents( ctx->worker_id, EVENT_RECEIVE );
   }
 
-  ctx->status = (ctx->action)(
+  ctx->status = ( ctx->action )(
     ctx->id_param,
     ctx->buffer_param,
     ctx->size_param

@@ -87,7 +87,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = toupper( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( toupper )( ctx->values[ i ] );
+      ctx->results[ i ] = (toupper) ( ctx->values[ i ] );
     }
   }
 test-brief: null

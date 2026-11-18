@@ -374,7 +374,7 @@ test-action: |
     T_rsc_success( sc );
   }
 
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
   sc = rtems_task_get_priority(
     ctx->worker_id[ 0 ],
     ctx->scheduler_b_id,

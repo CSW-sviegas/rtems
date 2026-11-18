@@ -167,9 +167,7 @@ test-action: |
     ctx->cpuset == ctx->cpuset_obj
   ) {
     for (
-      ctx->vector = 0;
-      ctx->vector < BSP_INTERRUPT_VECTOR_COUNT;
-      ++ctx->vector
+      ctx->vector = 0; ctx->vector < BSP_INTERRUPT_VECTOR_COUNT; ++ctx->vector
     ) {
       rtems_status_code          sc;
       rtems_interrupt_attributes attr;
@@ -194,8 +192,8 @@ test-action: |
       ctx->vector = BSP_INTERRUPT_VECTOR_COUNT;
     }
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Warray-bounds"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Warray-bounds"
 
     CPU_FILL_S( sizeof( ctx->cpuset_obj ), ctx->cpuset_obj );
 
@@ -206,8 +204,7 @@ test-action: |
     );
 
     if (
-      ctx->cpuset == NULL ||
-      ctx->cpusetsize != sizeof( ctx->cpuset_obj )
+      ctx->cpuset == NULL || ctx->cpusetsize != sizeof( ctx->cpuset_obj )
     ) {
       CPU_FILL_S( sizeof( set ), set );
     } else {
@@ -216,7 +213,7 @@ test-action: |
 
     T_true( CPU_EQUAL_S( sizeof( set ), ctx->cpuset_obj, set ) );
 
-    #pragma GCC diagnostic pop
+  #pragma GCC diagnostic pop
   }
 test-brief: null
 test-cleanup: null

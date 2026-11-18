@@ -142,9 +142,9 @@ skip-reasons:
 test-action: |
   TQSend( &ctx->tq_ctx->base, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE );
   ctx->owner_during_call = TQGetOwner( &ctx->tq_ctx->base );
-  ctx->wait_state_during_call =
-    ctx->tq_ctx->base.worker_tcb[ TQ_BLOCKER_A ]->current_state &
-    STATES_WAITING_FOR_CONDITION_VARIABLE;
+  ctx->wait_state_during_call = ctx->tq_ctx->base.worker_tcb[ TQ_BLOCKER_A ]
+                                  ->current_state &
+                                STATES_WAITING_FOR_CONDITION_VARIABLE;
   TQSurrender( &ctx->tq_ctx->base );
   TQWaitForDone( &ctx->tq_ctx->base, TQ_BLOCKER_A );
 test-brief: null

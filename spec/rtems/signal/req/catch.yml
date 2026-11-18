@@ -226,11 +226,11 @@ test-action: |
   if ( ctx->pending_signals != 0 ) {
     rtems_interrupt_level level;
 
-    rtems_interrupt_local_disable(level);
+    rtems_interrupt_local_disable( level );
     _SMP_barrier_Wait( &ctx->barrier, &ctx->runner_barrier_state, 2 );
     _SMP_barrier_Wait( &ctx->barrier, &ctx->runner_barrier_state, 2 );
     ctx->catch_status = rtems_signal_catch( ctx->handler, ctx->mode );
-    rtems_interrupt_local_enable(level);
+    rtems_interrupt_local_enable( level );
   } else {
     ctx->catch_status = rtems_signal_catch( ctx->handler, ctx->mode );
   }

@@ -257,7 +257,7 @@ test-action: |
   ) {
     DoRemoveProcessor( ctx );
   } else {
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
     if ( ctx->owned && !ctx->home && ctx->helping ) {
       RemoveWithHelpingOnly( ctx );
     } else {

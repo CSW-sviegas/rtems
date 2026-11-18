@@ -296,11 +296,7 @@ test-action: |
   priority = PRIO_FLEXIBLE;
   TQSetScheduler( ctx->tq_ctx, THREAD, ctx->scheduler_id, priority );
 
-  TQSend(
-    ctx->tq_ctx,
-    OWNER,
-    TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_ENQUEUE
-  );
+  TQSend( ctx->tq_ctx, OWNER, TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_ENQUEUE );
 
   if ( ctx->owner_obtain != 0 ) {
     TQSend(

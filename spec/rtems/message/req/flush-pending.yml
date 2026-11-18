@@ -198,10 +198,7 @@ skip-reasons:
     The ${/glossary/messagequeue:/term} must be empty for an
     ${../glossary/receiver:/term} to wait for a message.
 test-action: |
-  ctx->status = (ctx->action)(
-    ctx->id_param,
-    ctx->count_param
-  );
+  ctx->status = ( ctx->action )( ctx->id_param, ctx->count_param );
 
   FinalClockTick();
 test-brief: null

@@ -201,9 +201,7 @@ skip-reasons:
   NoTime: |
     The parameter specifies no time of day.
 test-action: |
-  TOD_Hook hook = {
-    .handler = TODHook
-  };
+  TOD_Hook hook = { .handler = TODHook };
 
   if ( ctx->register_hook ) {
     _TOD_Hook_Register( &hook );

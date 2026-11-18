@@ -98,7 +98,7 @@ test-action: |
     if ( ctx->macro ) {
       ctx->results[ i ] = isalnum( ctx->values[ i ] );
     } else {
-      ctx->results[ i ] = ( isalnum )( ctx->values[ i ] );
+      ctx->results[ i ] = (isalnum) ( ctx->values[ i ] );
     }
   }
 test-brief: null

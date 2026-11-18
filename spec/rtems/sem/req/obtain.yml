@@ -320,7 +320,7 @@ test-action: |
   );
   T_rsc_success( sc );
 
-  #if defined(RTEMS_SMP)
+  #if defined( RTEMS_SMP )
   if ( ( ctx->attribute_set & RTEMS_MULTIPROCESSOR_RESOURCE_SHARING ) != 0 ) {
     rtems_task_priority prio;
 

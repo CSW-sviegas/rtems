@@ -190,9 +190,7 @@ test-action: |
     ctx->cpuset == &ctx->cpuset_obj[ 0 ] && !CPU_EMPTY( &ctx->cpuset_obj[ 0 ] )
   ) {
     for (
-      ctx->vector = 0;
-      ctx->vector < BSP_INTERRUPT_VECTOR_COUNT;
-      ++ctx->vector
+      ctx->vector = 0; ctx->vector < BSP_INTERRUPT_VECTOR_COUNT; ++ctx->vector
     ) {
       rtems_interrupt_attributes attr;
 

@@ -168,7 +168,10 @@ requirement-type: functional
 skip-reasons: {}
 test-action: |
   memcpy( &ctx->attr_before, &ctx->attr_obj, sizeof( ctx->attr_before ) );
-  ctx->status = pthread_mutexattr_setprioceiling( ctx->attr, ctx->prio_ceiling );
+  ctx->status = pthread_mutexattr_setprioceiling(
+    ctx->attr,
+    ctx->prio_ceiling
+  );
 test-brief: null
 test-cleanup: null
 test-context:

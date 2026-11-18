@@ -388,12 +388,8 @@ test-action: |
   }
 
   if ( ctx->queue_priority != PRIO_INVALID ) {
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B , ctx->queue_priority );
-    TQSend(
-      ctx->tq_ctx,
-      TQ_BLOCKER_B,
-      TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER
-    );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, ctx->queue_priority );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_B, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
   }
 
   if ( ctx->other_after ) {

@@ -63,7 +63,8 @@ rationale: |
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: explicit_bzero( ctx->s, ctx->n );
+test-action: |
+  explicit_bzero( ctx->s, ctx->n );
 test-brief: null
 test-cleanup: null
 test-context:
