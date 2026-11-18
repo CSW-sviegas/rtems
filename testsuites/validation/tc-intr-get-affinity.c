@@ -532,8 +532,8 @@ static void RtemsIntrReqGetAffinity_Action(
       ctx->vector = BSP_INTERRUPT_VECTOR_COUNT;
     }
 
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Warray-bounds"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Warray-bounds"
 
     CPU_FILL_S( sizeof( ctx->cpuset_obj ), ctx->cpuset_obj );
 
@@ -553,7 +553,7 @@ static void RtemsIntrReqGetAffinity_Action(
 
     T_true( CPU_EQUAL_S( sizeof( set ), ctx->cpuset_obj, set ) );
 
-    #pragma GCC diagnostic pop
+  #pragma GCC diagnostic pop
   }
 }
 
