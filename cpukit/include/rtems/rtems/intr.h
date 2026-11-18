@@ -582,6 +582,19 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * @par Notes
  * ISR locks may also be statically defined by RTEMS_INTERRUPT_LOCK_DEFINE() or
  * statically initialized by RTEMS_INTERRUPT_LOCK_INITIALIZER().
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive shall not be called concurrently with a directive for the
+ *   same lock. Calling the directive under this condition is undefined
+ *   behaviour.
+ *
+ * - The directive shall not be called for a lock which was initialized and not
+ *   destroyed. Calling the directive under this condition is undefined
+ *   behaviour.
+ * @endparblock
  */
 #define rtems_interrupt_lock_initialize( _lock, _name ) \
   _ISR_lock_Initialize( _lock, _name )
@@ -595,17 +608,6 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param[in,out] _lock is the ISR lock to destroy.
  *
- * @par Notes
- * @parblock
- * The lock must have been dynamically initialized by
- * rtems_interrupt_lock_initialize(), statically defined by
- * RTEMS_INTERRUPT_LOCK_DEFINE(), or statically initialized by
- * RTEMS_INTERRUPT_LOCK_INITIALIZER().
- *
- * Concurrent lock use during the destruction or concurrent destruction leads
- * to unpredictable results.
- * @endparblock
- *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
@@ -613,6 +615,18 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * - The directive may be called from within any runtime context.
  *
  * - The directive will not cause the calling task to be preempted.
+ *
+ * - The directive shall not be called while a processor owns the lock or waits
+ *   for the lock. Calling the directive under this condition is undefined
+ *   behaviour.
+ *
+ * - The directive shall not be called concurrently with a directive for the
+ *   same lock. Calling the directive under this condition is undefined
+ *   behaviour.
+ *
+ * - The lock shall be initialized and not destroyed. Calling the directive for
+ *   a lock which was not initialized or which was destroyed is undefined
+ *   behaviour.
  * @endparblock
  */
 #define rtems_interrupt_lock_destroy( _lock ) _ISR_lock_Destroy( _lock )
@@ -627,7 +641,10 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * @param[in,out] _lock is the ISR lock to acquire.
  *
  * @param[out] _lock_context is the ISR lock context. This lock context shall
- *   be used to release the lock by calling rtems_interrupt_lock_release().
+ *   be used to release the lock by calling rtems_interrupt_lock_release() or
+ *   rtems_interrupt_lock_release_isr(). After
+ *   rtems_interrupt_lock_release_isr(), it shall be used to restore the status
+ *   of maskable interrupts by calling rtems_interrupt_lock_interrupt_enable().
  *
  * This directive acquires the ISR lock specified by `_lock` using the lock
  * context provided by `_lock_context`. Maskable interrupts will be disabled on
@@ -639,8 +656,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * pair, for example an automatic variable.
  *
  * Where the system was built with SMP support enabled, this directive acquires
- * an SMP lock. An attempt to recursively acquire the lock may result in an
- * infinite loop with maskable interrupts disabled.
+ * an SMP lock.
  *
  * This directive establishes a non-preemptive critical section with system
  * wide mutual exclusion on the local node in all RTEMS build configurations.
@@ -670,6 +686,21 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * - The directive may be called from within any runtime context.
  *
  * - The directive will not cause the calling task to be preempted.
+ *
+ * - The directive shall not be called by a processor which owns the lock.
+ *   Calling the directive under this condition is undefined behaviour.
+ *
+ * - While the calling processor owns the lock or waits for the lock, maskable
+ *   interrupts shall be disabled on the processor. Enabling maskable
+ *   interrupts under this condition is undefined behaviour.
+ *
+ * - The lock shall be initialized and not destroyed. Calling the directive for
+ *   a lock which was not initialized or which was destroyed is undefined
+ *   behaviour.
+ *
+ * - While the calling processor owns the lock, a directive which may block the
+ *   calling thread shall not be called. Calling such a directive under this
+ *   condition is undefined behaviour.
  * @endparblock
  */
 #define rtems_interrupt_lock_acquire( _lock, _lock_context ) \
@@ -686,20 +717,15 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param[in,out] _lock_context is the ISR lock context. This lock context
  *   shall have been used to acquire the lock by calling
- *   rtems_interrupt_lock_acquire().
+ *   rtems_interrupt_lock_acquire() or rtems_interrupt_lock_acquire_isr().
  *
  * This directive releases the ISR lock specified by `_lock` using the lock
  * context provided by `_lock_context`. The previous interrupt level will be
  * restored on the current processor.
  *
  * @par Notes
- * @parblock
- * The lock context shall be the one used to acquire the lock, otherwise the
- * result is unpredictable.
- *
  * Where the system was built with SMP support enabled, this directive releases
  * an SMP lock.
- * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -713,6 +739,23 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *   enables maskable interrupts, the pending interrupts are immediately
  *   serviced. The interrupt service routines may unblock higher priority tasks
  *   which may preempt the calling task.
+ *
+ * - The directive shall be called by the processor which owns the lock, with
+ *   the lock context which the processor used to acquire the lock. Calling the
+ *   directive under other conditions is undefined behaviour.
+ *
+ * - The lock context shall contain the status of maskable interrupts which
+ *   rtems_interrupt_lock_acquire() or rtems_interrupt_lock_interrupt_disable()
+ *   stored in it on the calling processor. Calling the directive under other
+ *   conditions is undefined behaviour.
+ *
+ * - While the calling processor owns the lock or waits for the lock, maskable
+ *   interrupts shall be disabled on the processor. Enabling maskable
+ *   interrupts under this condition is undefined behaviour.
+ *
+ * - The lock shall be initialized and not destroyed. Calling the directive for
+ *   a lock which was not initialized or which was destroyed is undefined
+ *   behaviour.
  * @endparblock
  */
 #define rtems_interrupt_lock_release( _lock, _lock_context ) \
@@ -727,8 +770,11 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param[in,out] _lock is the ISR lock to acquire within an ISR.
  *
- * @param[out] _lock_context is the ISR lock context. This lock context shall
- *   be used to release the lock by calling rtems_interrupt_lock_release_isr().
+ * @param[out] _lock_context is the ISR lock context. The directive does not
+ *   change the status of maskable interrupts which
+ *   rtems_interrupt_lock_interrupt_disable() stored in this lock context. This
+ *   lock context shall be used to release the lock by calling
+ *   rtems_interrupt_lock_release_isr() or rtems_interrupt_lock_release().
  *
  * This directive acquires the ISR lock specified by `_lock` using the lock
  * context provided by `_lock_context`. The interrupt level will remain
@@ -740,17 +786,10 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * pair, for example an automatic variable.
  *
  * Where the system was built with SMP support enabled, this directive acquires
- * an SMP lock. An attempt to recursively acquire the lock may result in an
- * infinite loop.
+ * an SMP lock.
  *
  * This directive is intended for device drivers and should be called from the
  * corresponding interrupt service routine.
- *
- * In case the corresponding interrupt service routine can be interrupted by
- * higher priority interrupts and these interrupts enter the critical section
- * protected by this lock, then the result is unpredictable. This directive may
- * be used under specific circumstances as an optimization. In doubt, use
- * rtems_interrupt_lock_acquire() and rtems_interrupt_lock_release().
  * @endparblock
  *
  * @par Constraints
@@ -760,6 +799,21 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * - The directive may be called from within any runtime context.
  *
  * - The directive will not cause the calling task to be preempted.
+ *
+ * - The directive shall not be called by a processor which owns the lock.
+ *   Calling the directive under this condition is undefined behaviour.
+ *
+ * - While the calling processor owns the lock or waits for the lock, maskable
+ *   interrupts shall be disabled on the processor. Enabling maskable
+ *   interrupts under this condition is undefined behaviour.
+ *
+ * - The lock shall be initialized and not destroyed. Calling the directive for
+ *   a lock which was not initialized or which was destroyed is undefined
+ *   behaviour.
+ *
+ * - While the calling processor owns the lock, a directive which may block the
+ *   calling thread shall not be called. Calling such a directive under this
+ *   condition is undefined behaviour.
  * @endparblock
  */
 #if ISR_LOCK_NEEDS_OBJECT
@@ -783,20 +837,15 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param[in,out] _lock_context is the ISR lock context. This lock context
  *   shall have been used to acquire the lock by calling
- *   rtems_interrupt_lock_acquire_isr().
+ *   rtems_interrupt_lock_acquire_isr() or rtems_interrupt_lock_acquire().
  *
  * This directive releases the ISR lock specified by `_lock` using the lock
  * context provided by `_lock_context`. The interrupt level will remain
  * unchanged.
  *
  * @par Notes
- * @parblock
- * The lock context shall be the one used to acquire the lock, otherwise the
- * result is unpredictable.
- *
  * Where the system was built with SMP support enabled, this directive releases
  * an SMP lock.
- * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -805,6 +854,18 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * - The directive may be called from within any runtime context.
  *
  * - The directive will not cause the calling task to be preempted.
+ *
+ * - The directive shall be called by the processor which owns the lock, with
+ *   the lock context which the processor used to acquire the lock. Calling the
+ *   directive under other conditions is undefined behaviour.
+ *
+ * - While the calling processor owns the lock or waits for the lock, maskable
+ *   interrupts shall be disabled on the processor. Enabling maskable
+ *   interrupts under this condition is undefined behaviour.
+ *
+ * - The lock shall be initialized and not destroyed. Calling the directive for
+ *   a lock which was not initialized or which was destroyed is undefined
+ *   behaviour.
  * @endparblock
  */
 #if ISR_LOCK_NEEDS_OBJECT
@@ -871,6 +932,18 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *   enables maskable interrupts, the pending interrupts are immediately
  *   serviced. The interrupt service routines may unblock higher priority tasks
  *   which may preempt the calling task.
+ *
+ * - The lock context shall contain the status of maskable interrupts which
+ *   rtems_interrupt_lock_acquire() or rtems_interrupt_lock_interrupt_disable()
+ *   stored in it on the calling processor. Calling the directive under other
+ *   conditions is undefined behaviour.
+ *
+ * - Maskable interrupts shall be disabled on the calling processor. Calling
+ *   the directive with enabled maskable interrupts is undefined behaviour.
+ *
+ * - While the calling processor owns an interrupt lock, the lock context shall
+ *   not contain a status with enabled maskable interrupts. Calling the
+ *   directive under this condition is undefined behaviour.
  * @endparblock
  */
 #define rtems_interrupt_lock_interrupt_enable( _lock_context ) \
