@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
+/*
+ * Copyright (c) 1994-2009 Red Hat, Inc. All rights reserved.
+ */
+
 /*
 FUNCTION
 	<<isspace>>, <<isspace_l>>---whitespace character predicate

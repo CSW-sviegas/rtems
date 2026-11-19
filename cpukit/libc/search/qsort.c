@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 /*
 FUNCTION
 <<qsort>>---sort an array

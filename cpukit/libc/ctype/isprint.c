@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
+/*
+ * Copyright (c) 1994-2009 Red Hat, Inc. All rights reserved.
+ */
+
 /*
 FUNCTION
 	<<isprint>>, <<isgraph>>, <<isprint_l>>, <<isgraph_l>>---printable character predicates

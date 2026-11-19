@@ -1,3 +1,9 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
+/*
+ * Copyright (c) 1994-2009 Red Hat, Inc. All rights reserved.
+ */
+
 /*
 FUNCTION
 	<<isascii>>, <<isascii_l>>---ASCII character predicate

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: LicenseRef-scancode-codesourcery-2004 */
+
 /**
  * @file
  *
