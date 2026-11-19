@@ -1,7 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 branch: ${.:/component/ident}
-clone-depth: 20
-commit: fc5d06f0283aded6394bb8471c5640a1ec7b1c9e
+clone-depth: 32
+commit: 0de8fd72f9c89b39fe074708e623570c14fceee4
 copyrights:
 - Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 description: |
@@ -48,7 +48,7 @@ links:
   role: input-to
   uid: ../deployment/archive
 origin-branch: releases/gcc-16
-origin-commit: 97a97ee00a96ace7ea7f9571df5fab584fc664a3
+origin-commit: c4b0d6df609061b67f94e2bf27ee8d154b4b5610
 origin-commit-url: https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=${.:/origin-commit}
 origin-fetch: []
 origin-url: https://gcc.gnu.org/git/gcc.git
