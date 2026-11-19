@@ -11,7 +11,7 @@ enabled-by: true
 enabled-set: []
 enabled-set-actions: []
 enabled-set-feedback-mapping: {}
-gcc-reported-version: 16.1.1 20260619
+gcc-reported-version: 16.2.1 20261118
 ident: ${.:/name}
 license: CC-BY-SA-4.0
 links:
