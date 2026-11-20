@@ -130,6 +130,7 @@ _CATEGORIES: dict[str, str] = {
     "CONTRIBUTING.md": CATEGORY_PKG,
     "DCO.txt": CATEGORY_PKG,
     "LICENSE.LLVM": CATEGORY_PKG,
+    "LICENSES/": CATEGORY_PKG,
     "Makefile": CATEGORY_PKG,
     "build_tools.py": CATEGORY_PKG,
     "config-bsps/": CATEGORY_PKG,
