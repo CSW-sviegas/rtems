@@ -116,6 +116,7 @@ bsps: | prepare
 	./waf bsplist "--rtems-bsps=$(subst $(eval) ,$(comma),$(ARCHS:%=%/.*))" | \
 	    grep -v '_ilp32' | \
 	    python3 ./run_tests.py config --default "OPTIMIZATION_FLAGS=$(TEST_OPTIMIZATION_FLAGS)" \
+	        --default "BUILD_VALIDATIONTESTS=True" \
 	        --all-bsps $$(for arch in $(ARCHS); do python3 ./run_tests.py list $$arch; done | cut -f1) \
 	        >config.ini
 	./waf configure "--rtems-tools=$(TOOLS_PREFIX)"
