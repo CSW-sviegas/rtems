@@ -44,8 +44,9 @@
 
 bool _POSIX_Mutex_Auto_initialization( POSIX_Mutex_Control *the_mutex )
 {
-  unsigned long zero;
-  unsigned long flags;
+  const struct _Priority_Node *ceiling;
+  unsigned long                zero;
+  unsigned long                flags;
 
   /* We cannot use memset() and memcmp() due to structure internal padding */
   zero = 0;
@@ -67,11 +68,19 @@ bool _POSIX_Mutex_Auto_initialization( POSIX_Mutex_Control *the_mutex )
   zero |= (unsigned long) the_mutex->Recursive.Mutex.Queue.Queue.owner;
   zero |= (unsigned long) the_mutex->Recursive.Mutex.Queue.Queue.name;
   zero |= the_mutex->Recursive.nest_level;
-  zero |= (unsigned long) the_mutex->Priority_ceiling.Node.RBTree.rbn_left;
-  zero |= (unsigned long) the_mutex->Priority_ceiling.Node.RBTree.rbn_right;
-  zero |= the_mutex->Priority_ceiling.Node.RBTree.rbn_parent_color;
-  zero |= (unsigned long) the_mutex->Priority_ceiling.priority;
-  zero |= (unsigned long) ( the_mutex->Priority_ceiling.priority >> 32 );
+
+  /*
+   * The initializer sets the members of the Newlib priority node.  On a
+   * 64-bit target, the priority of the RTEMS node overlaps the color member
+   * of the Newlib node and its padding.
+   */
+  ceiling = &the_mutex->Reserved_priority_ceiling;
+  zero |= (unsigned long) ceiling->_Node._RBTree._left;
+  zero |= (unsigned long) ceiling->_Node._RBTree._right;
+  zero |= (unsigned long) ceiling->_Node._RBTree._parent;
+  zero |= (unsigned long) ceiling->_Node._RBTree._color;
+  zero |= (unsigned long) ceiling->_priority;
+  zero |= (unsigned long) ( ceiling->_priority >> 32 );
   zero |= (unsigned long) the_mutex->scheduler;
 
   if ( zero != 0 ) {
