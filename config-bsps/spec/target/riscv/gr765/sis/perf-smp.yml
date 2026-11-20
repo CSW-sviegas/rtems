@@ -2402,37 +2402,37 @@ links:
       max-upper-bound: 1.177e-05
       median-lower-bound: 9.414e-06
       median-upper-bound: 1.1506000000000001e-05
-      min-lower-bound: 9.252e-06
+      min-lower-bound: 8.316e-06
     FullCache:
       max-upper-bound: 1.1682000000000001e-05
-      median-lower-bound: 9.342000000000001e-06
+      median-lower-bound: 8.406e-06
       median-upper-bound: 1.1418000000000001e-05
-      min-lower-bound: 9.18e-06
+      min-lower-bound: 8.244000000000001e-06
     HotCache:
       max-upper-bound: 1.155e-05
-      median-lower-bound: 9.342000000000001e-06
+      median-lower-bound: 8.406e-06
       median-upper-bound: 1.1418000000000001e-05
-      min-lower-bound: 9.234e-06
+      min-lower-bound: 8.298000000000001e-06
     Load/1:
       max-upper-bound: 1.177e-05
       median-lower-bound: 9.414e-06
       median-upper-bound: 1.1506000000000001e-05
-      min-lower-bound: 9.252e-06
+      min-lower-bound: 8.316e-06
     Load/2:
       max-upper-bound: 1.177e-05
       median-lower-bound: 9.414e-06
       median-upper-bound: 1.1506000000000001e-05
-      min-lower-bound: 9.252e-06
+      min-lower-bound: 8.316e-06
     Load/3:
       max-upper-bound: 1.177e-05
       median-lower-bound: 9.414e-06
       median-upper-bound: 1.1506000000000001e-05
-      min-lower-bound: 9.252e-06
+      min-lower-bound: 8.316e-06
     Load/4:
       max-upper-bound: 1.177e-05
       median-lower-bound: 9.414e-06
       median-upper-bound: 1.1506000000000001e-05
-      min-lower-bound: 9.252e-06
+      min-lower-bound: 8.316e-06
   role: performance-runtime-limits
   uid: /score/rbtree/req/perf-insert-random-1
 - limits:
@@ -3014,17 +3014,17 @@ links:
     FullCache:
       max-upper-bound: 1.1726000000000001e-05
       median-lower-bound: 9.126e-06
-      median-upper-bound: 1.1154e-05
+      median-upper-bound: 1.232e-05
       min-lower-bound: 8.856000000000001e-06
     HotCache:
-      max-upper-bound: 1.1682000000000001e-05
+      max-upper-bound: 1.2892000000000001e-05
       median-lower-bound: 9.27e-06
       median-upper-bound: 1.133e-05
       min-lower-bound: 8.874e-06
     Load/1:
       max-upper-bound: 1.1814e-05
       median-lower-bound: 9.198e-06
-      median-upper-bound: 1.1242000000000002e-05
+      median-upper-bound: 1.2408000000000002e-05
       min-lower-bound: 8.928e-06
     Load/2:
       max-upper-bound: 1.1814e-05

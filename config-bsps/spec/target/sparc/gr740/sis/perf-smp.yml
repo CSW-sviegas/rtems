@@ -1571,7 +1571,7 @@ links:
       max-upper-bound: 2.64e-06
       median-lower-bound: 2.16e-06
       median-upper-bound: 2.64e-06
-      min-lower-bound: 1.9296e-06
+      min-lower-bound: 1.6776e-06
     HotCache:
       max-upper-bound: 2.64e-06
       median-lower-bound: 2.16e-06
@@ -3007,12 +3007,12 @@ links:
   uid: /score/rbtree/req/perf-minimum-89
 - limits:
     DirtyCache:
-      max-upper-bound: 4.4616e-06
+      max-upper-bound: 4.9632e-06
       median-lower-bound: 3.5460000000000004e-06
       median-upper-bound: 4.334000000000001e-06
       min-lower-bound: 3.4956000000000005e-06
     FullCache:
-      max-upper-bound: 4.430800000000001e-06
+      max-upper-bound: 4.9324e-06
       median-lower-bound: 3.5424e-06
       median-upper-bound: 4.329600000000001e-06
       min-lower-bound: 3.4704000000000003e-06
@@ -3022,22 +3022,22 @@ links:
       median-upper-bound: 4.356e-06
       min-lower-bound: 3.4704000000000003e-06
     Load/1:
-      max-upper-bound: 4.4616e-06
+      max-upper-bound: 4.9632e-06
       median-lower-bound: 3.5676e-06
       median-upper-bound: 4.3604e-06
       min-lower-bound: 3.4956000000000005e-06
     Load/2:
-      max-upper-bound: 4.4616e-06
+      max-upper-bound: 4.9632e-06
       median-lower-bound: 3.5676e-06
       median-upper-bound: 4.3604e-06
       min-lower-bound: 3.4956000000000005e-06
     Load/3:
-      max-upper-bound: 4.4616e-06
+      max-upper-bound: 4.9632e-06
       median-lower-bound: 3.5460000000000004e-06
       median-upper-bound: 4.334000000000001e-06
       min-lower-bound: 3.4956000000000005e-06
     Load/4:
-      max-upper-bound: 4.4616e-06
+      max-upper-bound: 4.9632e-06
       median-lower-bound: 3.5460000000000004e-06
       median-upper-bound: 4.334000000000001e-06
       min-lower-bound: 3.4956000000000005e-06
