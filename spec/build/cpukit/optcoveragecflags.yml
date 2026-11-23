@@ -12,6 +12,7 @@ default:
   - --coverage
   - -fprofile-info-section=.rtemsroset.gcov_info.content
   - -fprofile-update=atomic
+  - -fprofile-data-section=.data
 description: |
   Compiler flags recommended for components which should generate coverage
   information.
