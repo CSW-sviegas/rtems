@@ -18,7 +18,6 @@ source:
 - cpukit/base64/base64-decode.c
 - cpukit/base64/base64-encode.c
 - cpukit/crc/crc24q.c
-- cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/ioprintf.c
 - cpukit/libc/search/qsort.c
 - cpukit/libmd/sha256c.c

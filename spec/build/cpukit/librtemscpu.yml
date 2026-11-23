@@ -338,6 +338,7 @@ source:
 - contrib/cpukit/musl/src/time/__year_to_secs.c
 - contrib/cpukit/musl/src/time/gmtime_r.c
 - contrib/cpukit/musl/src/time/timegm.c
+- cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/iorelax.c
 - cpukit/libcsupport/src/__assert.c
 - cpukit/libcsupport/src/getchark.c

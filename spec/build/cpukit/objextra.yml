@@ -263,7 +263,6 @@ source:
 - cpukit/dev/can/can-devcommon.c
 - cpukit/dev/can/can-quekern.c
 - cpukit/dev/can/can-queue.c
-- cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/flash/flashdev.c
 - cpukit/dev/i2c/i2c-bus.c
 - cpukit/dev/i2c/i2c-dev.c
