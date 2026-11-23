@@ -37,6 +37,7 @@
 
 #include <setjmp.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "../validation/tx-support.h"
 
@@ -88,7 +89,7 @@
  *
  * - Check unsigned 64-bit comparisons for a sample set of values.
  *
- * - Check signed 64-bit arithmetic left shift for a sample set of values.
+ * - Check the 64-bit left shift for a sample set of values.
  *
  * - Check signed 64-bit arithmetic right shift for a sample set of values.
  *
@@ -110,6 +111,9 @@
  *
  * - Check unsigned 64-bit modulo operations for a sample set of values.
  *
+ * - Check the conversion of a signed 64-bit integer to a double for a sample
+ *   set of values.
+ *
  * @{
  */
 
@@ -130,6 +134,45 @@ uint64_t __udivmoddi4( uint64_t n, uint64_t d, uint64_t *r );
  */
 #define TEST_UDIVMODDI4_WITHOUT_REMINDER
 #endif
+
+#if defined( __sparc__ )
+/*
+ * The qualified library of SPARC provides these functions through
+ * compiler-rt.  GCC does a 64-bit shift by a variable count inline at -O2.
+ */
+#define TEST_SPARC_BUILTINS
+
+int64_t __ashldi3( int64_t a, int b );
+
+double __floatdidf( int64_t a );
+#endif
+
+static void CheckShiftLeft( uint64_t value, int count, uint64_t expected )
+{
+  RTEMS_OBFUSCATE_VARIABLE( value );
+  RTEMS_OBFUSCATE_VARIABLE( count );
+  T_eq_u64( value << count, expected );
+#if defined( TEST_SPARC_BUILTINS )
+  T_eq_u64( (uint64_t) __ashldi3( (int64_t) value, count ), expected );
+#endif
+}
+
+static uint64_t DoubleToBits( double d )
+{
+  uint64_t bits;
+
+  memcpy( &bits, &d, sizeof( bits ) );
+  return bits;
+}
+
+static void CheckIntToDouble( int64_t value, uint64_t expected )
+{
+  RTEMS_OBFUSCATE_VARIABLE( value );
+  T_eq_u64( DoubleToBits( (double) value ), expected );
+#if defined( TEST_SPARC_BUILTINS )
+  T_eq_u64( DoubleToBits( __floatdidf( value ) ), expected );
+#endif
+}
 
 static bool do_longjmp;
 
@@ -508,33 +551,71 @@ static void CompilerUnitBuiltins_Action_13( void )
 }
 
 /**
- * @brief Check signed 64-bit arithmetic left shift for a sample set of values.
+ * @brief Check the 64-bit left shift for a sample set of values.
  */
 static void CompilerUnitBuiltins_Action_14( void )
 {
-  volatile int64_t i;
-  volatile int     s;
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    0,
+    UINT64_C( 0x0123456789abcdef )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    1,
+    UINT64_C( 0x02468acf13579bde )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    31,
+    UINT64_C( 0xc4d5e6f780000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    32,
+    UINT64_C( 0x89abcdef00000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    33,
+    UINT64_C( 0x13579bde00000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0x0123456789abcdef ),
+    63,
+    UINT64_C( 0x8000000000000000 )
+  );
 
-  i = 0;
-  RTEMS_OBFUSCATE_VARIABLE( i );
-  s = 0;
-  RTEMS_OBFUSCATE_VARIABLE( s );
-
-  i = INT64_C( 1 );
-  s = 0;
-  T_eq_i64( i << s, INT64_C( 1 ) );
-
-  i = -INT64_C( 1 );
-  s = 0;
-  T_eq_i64( i << s, -INT64_C( 1 ) );
-
-  i = INT64_C( 1 );
-  s = 1;
-  T_eq_i64( i << s, INT64_C( 2 ) );
-
-  i = -INT64_C( 1 );
-  s = 1;
-  T_eq_i64( i << s, -INT64_C( 2 ) );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    0,
+    UINT64_C( 0xfedcba9876543210 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    1,
+    UINT64_C( 0xfdb97530eca86420 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    31,
+    UINT64_C( 0x3b2a190800000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    32,
+    UINT64_C( 0x7654321000000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    33,
+    UINT64_C( 0xeca8642000000000 )
+  );
+  CheckShiftLeft(
+    UINT64_C( 0xfedcba9876543210 ),
+    63,
+    UINT64_C( 0x0000000000000000 )
+  );
 }
 
 /**
@@ -1241,6 +1322,43 @@ static void CompilerUnitBuiltins_Action_24( void )
 }
 
 /**
+ * @brief Check the conversion of a signed 64-bit integer to a double for a
+ *   sample set of values.
+ */
+static void CompilerUnitBuiltins_Action_25( void )
+{
+  CheckIntToDouble( INT64_C( 0 ), UINT64_C( 0x0000000000000000 ) );
+  CheckIntToDouble( INT64_C( 1 ), UINT64_C( 0x3ff0000000000000 ) );
+  CheckIntToDouble( -INT64_C( 1 ), UINT64_C( 0xbff0000000000000 ) );
+  CheckIntToDouble(
+    INT64_C( 0x00000000ffffffff ),
+    UINT64_C( 0x41efffffffe00000 )
+  );
+  CheckIntToDouble(
+    INT64_C( 0x0000000100000000 ),
+    UINT64_C( 0x41f0000000000000 )
+  );
+  CheckIntToDouble(
+    INT64_C( 0x0020000000000001 ),
+    UINT64_C( 0x4340000000000000 )
+  );
+  CheckIntToDouble(
+    INT64_C( 0x0020000000000003 ),
+    UINT64_C( 0x4340000000000002 )
+  );
+  CheckIntToDouble(
+    INT64_C( 0x0123456789abcdef ),
+    UINT64_C( 0x43723456789abcdf )
+  );
+  CheckIntToDouble(
+    -INT64_C( 0x0123456789abcdef ),
+    UINT64_C( 0xc3723456789abcdf )
+  );
+  CheckIntToDouble( INT64_MAX, UINT64_C( 0x43e0000000000000 ) );
+  CheckIntToDouble( INT64_MIN, UINT64_C( 0xc3e0000000000000 ) );
+}
+
+/**
  * @fn void T_case_body_CompilerUnitBuiltins( void )
  */
 T_TEST_CASE_FIXTURE( CompilerUnitBuiltins, &CompilerUnitBuiltins_Fixture )
@@ -1270,6 +1388,7 @@ T_TEST_CASE_FIXTURE( CompilerUnitBuiltins, &CompilerUnitBuiltins_Fixture )
   CompilerUnitBuiltins_Action_22();
   CompilerUnitBuiltins_Action_23();
   CompilerUnitBuiltins_Action_24();
+  CompilerUnitBuiltins_Action_25();
 }
 
 /** @} */
