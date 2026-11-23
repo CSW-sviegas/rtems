@@ -55,15 +55,25 @@ static uint32_t jmr3904_tc_get_timecount( struct timecounter *tc )
 
 static void jmr3904_clock_initialize( void )
 {
-  TX3904_TIMER_WRITE( TX3904_TIMER0_BASE, TX3904_TIMER_CCDR, 0x3 );
-  TX3904_TIMER_WRITE(
-    TX3904_TIMER0_BASE,
-    TX3904_TIMER_CPRA,
-    JMR3904_TIMER_CLICKS_PER_TICK
+  uint32_t clicks_per_tick;
+
+  /*
+   * The 24 bits of the compare register hold the clicks of a clock tick of at
+   * most 2097151 microseconds.
+   */
+  clicks_per_tick = (uint32_t) (
+    ( UINT64_C( JMR3904_COUNTER_FREQUENCY ) *
+      rtems_configuration_get_microseconds_per_tick() ) /
+    1000000
   );
+  TX3904_TIMER_WRITE( TX3904_TIMER0_BASE, TX3904_TIMER_CPRA, clicks_per_tick );
   TX3904_TIMER_WRITE( TX3904_TIMER0_BASE, TX3904_TIMER_TISR, 0x00 );
   TX3904_TIMER_WRITE( TX3904_TIMER0_BASE, TX3904_TIMER_ITMR, 0x8001 );
-  TX3904_TIMER_WRITE( TX3904_TIMER0_BASE, TX3904_TIMER_TCR, 0xC0 );
+  TX3904_TIMER_WRITE(
+    TX3904_TIMER0_BASE,
+    TX3904_TIMER_TCR,
+    JMR3904_TIMER_TCR_START
+  );
   *( (volatile uint32_t *) 0xFFFFC01C ) = 0x00000700;
 
   /*

@@ -53,21 +53,19 @@ extern "C" {
  */
 
 /**
- * @brief This constant defines the clicks of the clock tick timer per clock
- *   tick.
+ * @brief This constant defines the frequency of the timers in Hz.
  *
- * The value is arbitrary.  It defines the frequency of the timers of this BSP
- * in terms of the clock tick, because they all run with the same divider.
+ * The timers run without the divider, and the simulator advances the timer
+ * clock by one per instruction.  This value therefore defines a simulated
+ * processor with eight instructions per microsecond.
  */
-#define JMR3904_TIMER_CLICKS_PER_TICK 5000
+#define JMR3904_COUNTER_FREQUENCY 8000000
 
 /**
- * @brief This constant defines the frequency of the free running counter in
- *   Hz.
+ * @brief This constant defines the value of the timer control register which
+ *   starts a timer in the interval mode without the divider.
  */
-#define JMR3904_COUNTER_FREQUENCY \
-  ( (uint32_t) ( ( UINT64_C( JMR3904_TIMER_CLICKS_PER_TICK ) * 1000000 ) / \
-                 rtems_configuration_get_microseconds_per_tick() ) )
+#define JMR3904_TIMER_TCR_START 0x80
 
 /**
  * @brief This constant defines the timer which provides the free running

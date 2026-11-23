@@ -46,7 +46,7 @@ uint32_t _CPU_Counter_frequency( void )
 /*
  * The counter is 24 bits wide, so a difference taken over more than one wrap
  * of it is wrong.  At the frequency of this BSP that is a measurement of more
- * than thirty seconds, which no user of this interface takes.
+ * than two seconds, which is longer than the longest clock tick.
  */
 CPU_Counter_ticks _CPU_Counter_read( void )
 {
@@ -58,11 +58,9 @@ static void jmr3904_counter_initialize( void )
   /*
    * Run the timer as a free running up counter: it wraps at the width of its
    * counter, so it needs no interrupt to carry a period and a reader never
-   * sees it go backwards.  Timer 0 is the clock tick and uses the same
-   * divider, which is what ties the frequency to the clicks per tick.
+   * sees it go backwards.
    */
   TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_TCR, 0x20 );
-  TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_CCDR, 0x3 );
   TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_TRR, 0x0 );
   TX3904_TIMER_WRITE(
     JMR3904_COUNTER_BASE,
@@ -71,7 +69,11 @@ static void jmr3904_counter_initialize( void )
   );
   TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_TISR, 0x00 );
   TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_ITMR, 0x0001 );
-  TX3904_TIMER_WRITE( JMR3904_COUNTER_BASE, TX3904_TIMER_TCR, 0xC0 );
+  TX3904_TIMER_WRITE(
+    JMR3904_COUNTER_BASE,
+    TX3904_TIMER_TCR,
+    JMR3904_TIMER_TCR_START
+  );
 }
 
 /*
