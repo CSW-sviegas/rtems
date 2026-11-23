@@ -83,16 +83,16 @@ options of `gr740` and adds the SMP configuration.
 
 6. Order the commits on one branch of `eb/qual`. The item, the generated test
    and its line in the build item of the suite enter `eb/qual` together. A
-   kernel fix which the test needs goes to a pull request against `eb/main`.
-   Harmonia merges it into `eb/qual` before the branch of the item. A commit
-   holds one category: `source`, `spec`, `build-qual`, `pkg` or `ci`. The
-   category gives the subject prefix, see [CONTRIBUTING.md](CONTRIBUTING.md). A
-   `spec` commit may leave its generated files to the `source` commits which
-   follow it. The last `source` commit of this run must provide them. A
-   `source` commit may register its new files in a build item whose name ends
-   in `extra.yml`, see [CONTRIBUTING.md](CONTRIBUTING.md). A file which the
-   test needs moves from such a build item into its library in one `build-qual`
-   commit before the test.
+   kernel fix which the test needs is a `source` commit of the same branch,
+   before the commits of the item. A commit holds one category: `source`,
+   `spec`, `build-qual`, `pkg` or `ci`. The category gives the subject prefix,
+   see [CONTRIBUTING.md](CONTRIBUTING.md). A `spec` commit may leave its
+   generated files to the `source` commits which follow it. The last `source`
+   commit of this run must provide them. A `source` commit may register its new
+   files in a build item whose name ends in `extra.yml`, see
+   [CONTRIBUTING.md](CONTRIBUTING.md). A file which the test needs moves from
+   such a build item into its library in one `build-qual` commit before the
+   test.
 
 7. Inspect the branch. `<base>` is the commit of `eb/qual` on which the branch
    starts:

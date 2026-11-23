@@ -13,10 +13,23 @@ output where a test fails.
 
 ## Branches
 
-| Branch    | Content                                                                                          | Changes enter through            |
-| --------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
-| `eb/main` | the baseline, the fixes of the regression test runs, and the build and CI infrastructure         | a pull request against `eb/main` |
-| `eb/qual` | `eb/main` plus the specification items in `spec/` and the pre-qualified RTEMS, ready for an ISVV | a pull request against `eb/qual` |
+| Branch    | Content                                                                                          | Changes enter through                            |
+| --------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `eb/main` | the baseline, the fixes of the regression test runs, and the build and CI infrastructure         | a pull request of a maintainer against `eb/main` |
+| `eb/qual` | `eb/main` plus the specification items in `spec/` and the pre-qualified RTEMS, ready for an ISVV | a pull request against `eb/qual`                 |
+
+Open your pull request against `eb/qual`. This holds for every change of a
+contributor, also for a kernel or BSP fix. A change of `eb/main` reaches every
+branch, so a maintainer makes it.
+
+A maintainer changes `eb/main` only for content which all branches need:
+
+- a fix which the regression test runs of `eb/main` need,
+- a change of the CI or of the tooling,
+- a change of the files which build and test RTEMS.
+
+A fix in a pull request against `eb/qual` stays on `eb/qual`. A maintainer
+moves it to `eb/main` only where `eb/main` needs it.
 
 The workflow Harmonia merges every change of `eb/main` into `eb/qual` through a
 pull request. The pull request merges by auto-merge with a merge commit. Never
@@ -24,18 +37,24 @@ merge it with "Rebase and merge" or "Squash and merge". These copy the commits
 of `eb/main` into `eb/qual`, and the next Harmonia pull request offers the same
 changes again.
 
-A change takes the branch of its content:
-
-| Change                                                 | Branch    |
-| ------------------------------------------------------ | --------- |
-| a kernel or BSP fix, a build item, the CI, the tooling | `eb/main` |
-| a specification item outside `spec/build/`             | `eb/qual` |
-| a `build-qual` item                                    | `eb/qual` |
-
 A change of a specification item enters `eb/qual` in one pull request. The pull
 request holds the item, the generated files and the build items of the
-generated tests. A kernel fix which the tests need enters `eb/main` first.
-Harmonia merges it into `eb/qual` before the pull request of the item.
+generated tests. A kernel fix which the tests need is a `source` commit of the
+same pull request, before the commits of the item.
+
+### Merge requests on rtems.org
+
+Open a merge request on
+[gitlab.rtems.org](https://gitlab.rtems.org/rtems/rtos/rtems) in parallel to
+your pull request. Submit the `source` commits which you want in the RTEMS
+mainline. A maintainer later rebases this repository onto a new baseline, for
+example after an RTEMS release. A commit which rtems.org accepted then drops
+out of the rebase, so the gap to the mainline shrinks.
+
+The merge request is not a condition of the merge of your pull request. It
+follows the rules of rtems.org. The
+[Software Development Handbook](https://embedded-brains.github.io/rtems-docs-ecss/doc/technical-notes/sdh/index.html)
+gives the steps.
 
 ### Linearize eb/qual
 
