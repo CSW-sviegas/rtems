@@ -1724,6 +1724,82 @@ def append_variant_builds(bld):
         waflib.Options.commands.append(bld.cmd + "_" + var)
 
 
+# The record lists each output of the last complete build of a variant
+# relative to the variant directory.
+_OUTPUT_RECORD = "build-outputs.txt"
+
+# GCC writes these files next to an object file.  No task declares them.
+_OBJECT_SIDE_FILE_SUFFIXES = (".d", ".gcda", ".gcno", ".su")
+
+# A task declares each file of the variant directory with such a suffix.
+_DECLARED_OUTPUT_SUFFIXES = (".exe", ".o")
+
+
+def _get_outputs(bld):
+    from waflib.Task import Task
+
+    tasks = []
+    for item in bld.get_all_task_gen():
+        if isinstance(item, Task):
+            tasks.append(item)
+        else:
+            if not getattr(item, "posted", False):
+                return None
+            tasks.extend(getattr(item, "tasks", []))
+    outputs = set()
+    for tsk in tasks:
+        for node in tsk.outputs:
+            if node.is_child_of(bld.bldnode):
+                outputs.add(node.path_from(bld.bldnode))
+    return outputs
+
+
+def _get_stale_declared_outputs(bld, outputs):
+    stale = set()
+    root = bld.bldnode.abspath()
+    for directory, _, files in os.walk(root):
+        for name in files:
+            if name.endswith(_DECLARED_OUTPUT_SUFFIXES):
+                path = os.path.relpath(os.path.join(directory, name), root)
+                if path not in outputs:
+                    stale.add(path)
+    return stale
+
+
+def _remove_stale_outputs(bld):
+    """
+    Remove each file of the previous build which the current build does not
+    produce.
+
+    waf keeps the outputs of a source, a test program or an option which
+    leaves the build.  A variant directory without a record only loses the
+    stale object files and executables.
+    """
+    from waflib import Logs
+
+    outputs = _get_outputs(bld)
+    if outputs is None:
+        return
+    record = bld.bldnode.make_node(_OUTPUT_RECORD)
+    try:
+        stale = set(record.read().splitlines()) - outputs
+    except EnvironmentError:
+        stale = _get_stale_declared_outputs(bld, outputs)
+    for path in sorted(stale):
+        paths = [path]
+        if path.endswith(".o"):
+            paths.extend(path[:-2] + suffix
+                         for suffix in _OBJECT_SIDE_FILE_SUFFIXES)
+        for stale_path in paths:
+            try:
+                os.remove(os.path.join(bld.bldnode.abspath(), stale_path))
+            except FileNotFoundError:
+                pass
+            else:
+                Logs.info("remove the stale file '%s'", stale_path)
+    record.write("".join(f"{path}\n" for path in sorted(outputs)))
+
+
 def build(bld):
     if not bld.variant:
         check_forbidden_options(
@@ -1737,6 +1813,7 @@ def build(bld):
                            [])
     bsps[bld.env.ARCH][bld.env.BSP_BASE].build(bld, bic)
     items[bld.env.TOPGROUP].build(bld, bic)
+    bld.add_post_fun(_remove_stale_outputs)
 
 
 def add_log_filter(name):
