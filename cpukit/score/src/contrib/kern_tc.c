@@ -2363,7 +2363,8 @@ _Timecounter_Tick_simple(uint32_t delta, uint32_t offset,
 #endif
 
 	th->th_offset_count = offset;
-	bintime_addx(&th->th_offset, th->th_scale * delta);
+	bintime_add_tc_delta(&th->th_offset, th->th_scale, th->th_large_delta,
+	    delta);
 	bt = th->th_offset;
 	bintime_add(&bt, &th->th_boottime);
 
