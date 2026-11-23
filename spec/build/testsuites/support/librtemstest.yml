@@ -64,6 +64,7 @@ source:
 - testsuites/support/src/tx-memory.c
 - testsuites/support/src/tx-preemption-intervention.c
 - testsuites/support/src/tx-register-check.c
+- testsuites/support/src/tx-software-interrupt.c
 - testsuites/support/src/tx-support.c
 - testsuites/support/src/tx-thread-queue.c
 - testsuites/support/src/tx-timecounter.c
