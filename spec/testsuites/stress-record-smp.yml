@@ -1,0 +1,80 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+  and:
+  - RTEMS_SMP
+  - not: RTEMS_QUAL
+links:
+- role: requirement-refinement
+  uid: stress
+test-brief: |
+  This stress test suite fetches the record items while a producer on each other
+  processor fills its record buffer.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  static char buffer[ 512 ];
+
+  static const T_action actions[] = { T_report_hash_sha256 };
+
+  static const T_config test_config = {
+    .name = rtems_test_name,
+    .buf = buffer,
+    .buf_size = sizeof( buffer ),
+    .putchar = rtems_put_char,
+    .verbosity = RTEMS_TEST_VERBOSITY,
+    .now = T_now_clock,
+    .action_count = T_ARRAY_SIZE( actions ),
+    .actions = actions
+  };
+
+  static void Init( rtems_task_argument arg )
+  {
+    int exit_code;
+
+    (void) arg;
+
+    rtems_test_begin( rtems_test_name, TEST_STATE );
+    T_register();
+    exit_code = T_main( &test_config );
+
+    if ( exit_code == 0 ) {
+      rtems_test_end( rtems_test_name );
+    }
+
+    rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, (uint32_t) exit_code );
+  }
+
+  #define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+
+  #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
+
+  #define CONFIGURE_MAXIMUM_PROCESSORS 32
+
+  #define CONFIGURE_MAXIMUM_TASKS ( 1 + CONFIGURE_MAXIMUM_PROCESSORS )
+
+  #define CONFIGURE_MICROSECONDS_PER_TICK 1000
+
+  #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS 16
+
+  #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+  #define CONFIGURE_INIT_TASK_PRIORITY 1
+
+  #define CONFIGURE_INIT
+
+  #include <rtems/confdefs.h>
+test-description: |
+  The suite configures one scheduler instance for all processors and record
+  buffers of 16 items. Its initialization task runs the test cases at a priority
+  above the priority of the producers.
+test-includes:
+- rtems.h
+- rtems/bspIo.h
+- rtems/test.h
+- rtems/test-info.h
+- rtems/testopts.h
+test-local-includes: []
+test-target: testsuites/stress/ts-stress-record-smp.c
+type: test-suite

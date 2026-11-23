@@ -1,0 +1,569 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+  and:
+  - RTEMS_SMP
+  - not: RTEMS_QUAL
+links: []
+test-actions:
+- action-brief: |
+    Start one producer on each processor except processor 0. Fetch the record items
+    of all processors with an item array of each item count of the rounds. Stop the
+    producers. Fetch the remaining record items.
+  action-code: |
+    rtems_status_code sc;
+    uint32_t          i;
+
+    atomic_store_explicit( &ctx->run, 1, memory_order_relaxed );
+
+    for ( i = 0; i < ctx->producer_count; ++i ) {
+      sc = rtems_task_start( ctx->producers[ i ].id, ProducerBody, i );
+      T_assert_rsc_success( sc );
+    }
+
+    for ( i = 0; i < ROUND_COUNT; ++i ) {
+      RunRound( ctx, &ctx->rounds[ i ] );
+    }
+
+    atomic_store_explicit( &ctx->run, 0, memory_order_relaxed );
+
+    while (
+      atomic_load_explicit( &ctx->acks, memory_order_acquire ) !=
+      ctx->producer_count
+    ) {
+      /* Wait for the producers */
+    }
+
+    Drain( ctx, &ctx->rounds[ ROUND_COUNT - 1 ] );
+  checks:
+  - brief: |
+      Check that each call of ${../if/fetch:/name} returned
+      ${../if/fetch-continue:/name} or ${../if/fetch-done:/name}. Check that each
+      fetched item array started with an ${../if/event:/enumerators[9]/name} item,
+      which an optional ${../if/event:/enumerators[8]/name} item followed. Check that
+      the other items were items of the producer of the processor.
+    code: |
+      T_eq_u32( ctx->format_errors, 0 );
+    links: []
+  - brief: |
+      Check that the event data of each fetched item of a producer was the event data
+      of the item fetched before it, plus one, plus the count of lost items which the
+      overflow items reported in between.
+    code: |
+      T_eq_u32( ctx->order_errors, 0 );
+    links: []
+  - brief: |
+      Check that the fetched items and the lost items of each producer added up to
+      the items which the producer produced.
+    code: |
+      T_eq_u32( CountBalanceErrors( ctx ), 0 );
+    links: []
+  - brief: |
+      Check that each round fetched at least one item of a producer.
+    code: |
+      T_eq_u32( CountIdleRounds( ctx ), 0 );
+    links: []
+  - brief: |
+      Check that the producers overwrote items before the fetches copied them.
+    code: |
+      T_true( ctx->producer_count == 0 || CountLostItems( ctx ) > 0 );
+    links: []
+  links: []
+- action-brief: |
+    Print the figures of the rounds and of the producers.
+  action-code: |
+    PrintFigures( ctx );
+  checks: []
+  links: []
+test-brief: |
+  Stresses ${../if/fetch:/name} with a producer on each other processor.
+test-context:
+- brief: |
+    This member contains the context of each producer.
+  description: null
+  member: |
+    Producer producers[ PROCESSOR_MAX - 1 ]
+- brief: |
+    This member contains the count of producers.
+  description: null
+  member: |
+    uint32_t producer_count
+- brief: |
+    This member contains the fetch state of each processor.
+  description: null
+  member: |
+    Processor processors[ PROCESSOR_MAX ]
+- brief: |
+    This member contains the figures of each round.
+  description: null
+  member: |
+    Round rounds[ ROUND_COUNT ]
+- brief: |
+    This member is true, while the producers shall produce.
+  description: null
+  member: |
+    atomic_uint run
+- brief: |
+    This member contains the count of producers which stopped.
+  description: null
+  member: |
+    atomic_uint acks
+- brief: |
+    This member contains the record fetch control.
+  description: null
+  member: |
+    rtems_record_fetch_control control
+- brief: |
+    This member provides the item array of the fetches.
+  description: null
+  member: |
+    rtems_record_item items[ ITEM_COUNT_MAX ]
+- brief: |
+    This member contains the count of fetches which returned an unexpected status
+    or an unexpected item.
+  description: null
+  member: |
+    uint32_t format_errors
+- brief: |
+    This member contains the count of fetched items of a producer whose event data
+    did not follow from the item fetched before it.
+  description: null
+  member: |
+    uint32_t order_errors
+- brief: |
+    This member contains the expiration time of the uptime watchdog of each
+    processor.
+  description: null
+  member: |
+    uint64_t expire[ PROCESSOR_MAX ]
+- brief: |
+    This member contains the processor affinity of the runner before the test.
+  description: null
+  member: |
+    cpu_set_t affinity
+test-context-support: |
+  #define PROCESSOR_MAX 32
+
+  #define ROUND_COUNT 4
+
+  #define ROUND_SECONDS 10
+
+  #define ITEM_COUNT_MAX 64
+
+  #define PRODUCER_PRIORITY 2
+
+  typedef struct {
+    /**
+     * @brief This member contains the identifier of the producer task.
+     */
+    rtems_id id;
+
+    /**
+     * @brief This member contains the count of items which the producer
+     *   produced.
+     */
+    uintptr_t produced;
+  } Producer;
+
+  typedef struct {
+    /**
+     * @brief This member contains the event data of the next item.
+     */
+    uintptr_t next;
+
+    /**
+     * @brief This member contains the count of lost items since the last
+     *   fetched item.
+     */
+    uintptr_t pending;
+
+    /**
+     * @brief This member contains the count of fetched items.
+     */
+    uint64_t fetched;
+
+    /**
+     * @brief This member contains the count of lost items.
+     */
+    uint64_t lost;
+  } Processor;
+
+  typedef struct {
+    /**
+     * @brief This member contains the item count of the item array.
+     */
+    size_t item_count;
+
+    /**
+     * @brief This member contains the count of fetches.
+     */
+    uint64_t fetches;
+
+    /**
+     * @brief This member contains the count of fetched items of producers.
+     */
+    uint64_t items;
+
+    /**
+     * @brief This member contains the count of lost items.
+     */
+    uint64_t lost;
+  } Round;
+test-description: |
+  A fetch of the record items competes with the producers on the other
+  processors. A producer can overwrite an item between two fetches or while a
+  fetch copies it. This test checks that ${../if/fetch:/name} returns each item
+  either unchanged or counts it as lost.
+
+  The test runs one producer on each processor except processor 0, up to 32
+  processors. Each producer is pinned to its processor and produces items of the
+  event ${../if/event:/enumerators[512]/name} with the event data 0, 1, 2 and so
+  on. It produces with interrupts disabled, so that no other item enters its
+  record buffer. The test removes the uptime watchdogs for the same reason. The
+  producers use ${../if/produce:/name}, so each production consists of one item.
+  The record buffer has 16 items.
+
+  The runner fetches the items of all processors on processor 0. The load
+  consists of four rounds of 10 s. The rounds use item arrays of 3, 4 and 9 items
+  and of the item count which ${../if/get-item-count-for-fetch:/name} returns. A
+  small item array makes the fetch of one processor take several calls. After the
+  rounds, the runner stops the producers and fetches the remaining items.
+
+  The event data of a fetched item tells its position in the stream of its
+  producer. The test checks that each fetched item follows from the item before
+  it and from the lost items which the overflow items report in between. An item
+  which a fetch returned twice, out of order or after an overwrite shows up as an
+  order error. An item which got lost without a count shows up as an order error
+  as well. At the end, the fetched items and the lost items of each producer must
+  add up to its produced items.
+
+  The test suite of this test case exists only in an SMP build without the pre-
+  qualified configuration. The build option BUILD_STRESS_TESTS enables it.
+test-header: null
+test-includes:
+- stdatomic.h
+- inttypes.h
+- sys/cpuset.h
+- rtems.h
+- rtems/record.h
+- rtems/score/percpu.h
+- rtems/score/watchdogimpl.h
+test-local-includes: []
+test-setup:
+  brief: null
+  code: |
+    rtems_status_code sc;
+    cpu_set_t         set;
+    uint32_t          n;
+    uint32_t          i;
+
+    n = rtems_scheduler_get_processor_maximum();
+    T_assert_le_u32( n, PROCESSOR_MAX );
+    T_assert_le_sz( rtems_record_get_item_count_for_fetch(), ITEM_COUNT_MAX );
+    ctx->producer_count = n - 1;
+    ctx->rounds[ 0 ].item_count = 3;
+    ctx->rounds[ 1 ].item_count = 4;
+    ctx->rounds[ 2 ].item_count = 9;
+    ctx->rounds[ 3 ].item_count = rtems_record_get_item_count_for_fetch();
+
+    sc = rtems_task_get_affinity(
+      RTEMS_SELF,
+      sizeof( ctx->affinity ),
+      &ctx->affinity
+    );
+    T_assert_rsc_success( sc );
+    CPU_ZERO( &set );
+    CPU_SET( 0, &set );
+    sc = rtems_task_set_affinity( RTEMS_SELF, sizeof( set ), &set );
+    T_assert_rsc_success( sc );
+
+    for ( i = 0; i < n; ++i ) {
+      rtems_interrupt_level level;
+      Record_Control       *control;
+
+      control = _Per_CPU_Get_by_index( i )->record;
+      rtems_interrupt_local_disable( level );
+      _Watchdog_Per_CPU_remove_ticks( &control->Watchdog );
+      ctx->expire[ i ] = control->Watchdog.expire;
+      rtems_interrupt_local_enable( level );
+      control->tail = _Record_Head( control );
+    }
+
+    for ( i = 0; i < ctx->producer_count; ++i ) {
+      Producer *p;
+
+      p = &ctx->producers[ i ];
+      sc = rtems_task_create(
+        rtems_build_name( 'P', 'R', 'O', 'D' ),
+        PRODUCER_PRIORITY,
+        RTEMS_MINIMUM_STACK_SIZE,
+        RTEMS_DEFAULT_MODES,
+        RTEMS_DEFAULT_ATTRIBUTES,
+        &p->id
+      );
+      T_assert_rsc_success( sc );
+
+      CPU_ZERO( &set );
+      CPU_SET( (int) ( i + 1 ), &set );
+      sc = rtems_task_set_affinity( p->id, sizeof( set ), &set );
+      T_assert_rsc_success( sc );
+    }
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void ProducerBody( rtems_task_argument arg )
+  {
+    Context              *ctx;
+    rtems_interrupt_level level;
+    uintptr_t             data;
+
+    ctx = T_fixture_context();
+    data = 0;
+
+    rtems_interrupt_local_disable( level );
+
+    while ( atomic_load_explicit( &ctx->run, memory_order_relaxed ) != 0 ) {
+      rtems_record_produce( RTEMS_RECORD_USER_0, data );
+      ++data;
+    }
+
+    rtems_interrupt_local_enable( level );
+
+    ctx->producers[ arg ].produced = data;
+    atomic_fetch_add_explicit( &ctx->acks, 1, memory_order_release );
+    (void) rtems_task_suspend( RTEMS_SELF );
+  }
+
+  static void Process( Context *ctx, Round *round )
+  {
+    const rtems_record_item *items;
+    size_t                   count;
+    size_t                   i;
+    uint32_t                 cpu_index;
+    Processor               *processor;
+
+    items = ctx->control.fetched_items;
+    count = ctx->control.fetched_count;
+
+    if (
+      count == 0 ||
+      RTEMS_RECORD_GET_EVENT( items[ 0 ].event ) != RTEMS_RECORD_PROCESSOR ||
+      items[ 0 ].data > ctx->producer_count
+    ) {
+      ++ctx->format_errors;
+      return;
+    }
+
+    cpu_index = (uint32_t) items[ 0 ].data;
+    processor = &ctx->processors[ cpu_index ];
+
+    for ( i = 1; i < count; ++i ) {
+      rtems_record_event event;
+      uintptr_t          data;
+
+      event = RTEMS_RECORD_GET_EVENT( items[ i ].event );
+      data = items[ i ].data;
+
+      if ( event == RTEMS_RECORD_PER_CPU_OVERFLOW && i == 1 ) {
+        processor->pending += data;
+        processor->lost += data;
+        round->lost += data;
+      } else if ( event == RTEMS_RECORD_USER_0 && cpu_index != 0 ) {
+        if ( data != processor->next + processor->pending ) {
+          ++ctx->order_errors;
+        }
+
+        processor->next = data + 1;
+        processor->pending = 0;
+        ++processor->fetched;
+        ++round->items;
+      } else {
+        ++ctx->format_errors;
+      }
+    }
+  }
+
+  static rtems_record_fetch_status Fetch( Context *ctx, Round *round )
+  {
+    rtems_record_fetch_status status;
+
+    status = rtems_record_fetch( &ctx->control );
+    ++round->fetches;
+
+    if (
+      status == RTEMS_RECORD_FETCH_CONTINUE ||
+      status == RTEMS_RECORD_FETCH_DONE
+    ) {
+      Process( ctx, round );
+    } else {
+      ++ctx->format_errors;
+    }
+
+    return status;
+  }
+
+  static void RunRound( Context *ctx, Round *round )
+  {
+    uint64_t end;
+
+    rtems_record_fetch_initialize(
+      &ctx->control,
+      &ctx->items[ 0 ],
+      round->item_count
+    );
+    end = rtems_clock_get_uptime_nanoseconds() +
+          UINT64_C( 1000000000 ) * ROUND_SECONDS;
+
+    while ( rtems_clock_get_uptime_nanoseconds() < end ) {
+      (void) Fetch( ctx, round );
+    }
+  }
+
+  static void Drain( Context *ctx, Round *round )
+  {
+    bool fetched;
+
+    fetched = false;
+
+    while ( true ) {
+      rtems_record_fetch_status status;
+
+      status = Fetch( ctx, round );
+
+      if ( ctx->control.fetched_count > 1 ) {
+        fetched = true;
+      }
+
+      if ( status != RTEMS_RECORD_FETCH_CONTINUE ) {
+        if ( status != RTEMS_RECORD_FETCH_DONE || !fetched ) {
+          break;
+        }
+
+        fetched = false;
+      }
+    }
+  }
+
+  static uint32_t CountBalanceErrors( const Context *ctx )
+  {
+    uint32_t errors;
+    uint32_t i;
+
+    errors = 0;
+
+    for ( i = 0; i < ctx->producer_count; ++i ) {
+      const Processor *processor;
+
+      processor = &ctx->processors[ i + 1 ];
+
+      if (
+        processor->next + processor->pending !=
+        ctx->producers[ i ].produced
+      ) {
+        ++errors;
+      }
+    }
+
+    return errors;
+  }
+
+  static uint32_t CountIdleRounds( const Context *ctx )
+  {
+    uint32_t idle;
+    size_t   i;
+
+    idle = 0;
+
+    for ( i = 0; i < ROUND_COUNT; ++i ) {
+      if ( ctx->producer_count > 0 && ctx->rounds[ i ].items == 0 ) {
+        ++idle;
+      }
+    }
+
+    return idle;
+  }
+
+  static uint64_t CountLostItems( const Context *ctx )
+  {
+    uint64_t lost;
+    size_t   i;
+
+    lost = 0;
+
+    for ( i = 0; i < ROUND_COUNT; ++i ) {
+      lost += ctx->rounds[ i ].lost;
+    }
+
+    return lost;
+  }
+
+  static void PrintFigures( const Context *ctx )
+  {
+    uint32_t i;
+
+    for ( i = 0; i < ROUND_COUNT; ++i ) {
+      const Round *round;
+
+      round = &ctx->rounds[ i ];
+      T_printf(
+        "round %" PRIu32 ": item count %zu, fetches %" PRIu64 ", fetched %"
+        PRIu64 ", lost %" PRIu64 "\n",
+        i,
+        round->item_count,
+        round->fetches,
+        round->items,
+        round->lost
+      );
+    }
+
+    for ( i = 0; i < ctx->producer_count; ++i ) {
+      const Processor *processor;
+
+      processor = &ctx->processors[ i + 1 ];
+      T_printf(
+        "processor %" PRIu32 ": produced %" PRIuPTR ", fetched %" PRIu64
+        ", lost %" PRIu64 "\n",
+        i + 1,
+        ctx->producers[ i ].produced,
+        processor->fetched,
+        processor->lost
+      );
+    }
+  }
+test-target: testsuites/stress/tc-stress-record-smp.c
+test-teardown:
+  brief: null
+  code: |
+    uint32_t i;
+
+    for ( i = 0; i < ctx->producer_count; ++i ) {
+      if ( ctx->producers[ i ].id != 0 ) {
+        (void) rtems_task_delete( ctx->producers[ i ].id );
+      }
+    }
+
+    for ( i = 0; i <= ctx->producer_count; ++i ) {
+      rtems_interrupt_level level;
+      Per_CPU_Control      *cpu;
+
+      cpu = _Per_CPU_Get_by_index( i );
+      rtems_interrupt_local_disable( level );
+      (void) _Watchdog_Per_CPU_insert(
+        &cpu->record->Watchdog,
+        cpu,
+        &cpu->Watchdog.Header[ PER_CPU_WATCHDOG_TICKS ],
+        ctx->expire[ i ]
+      );
+      rtems_interrupt_local_enable( level );
+    }
+
+    (void) rtems_task_set_affinity(
+      RTEMS_SELF,
+      sizeof( ctx->affinity ),
+      &ctx->affinity
+    );
+  description: null
+type: test-case
