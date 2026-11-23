@@ -19,7 +19,7 @@ definition:
       cpu_self = _Per_CPU_Get();
       control = cpu_self->record;
       context->control = control;
-      head = _Record_Head( control );
+      head = _Record_Producer_head( control );
       context->head = head;
     params:
     - ${context:/name} *${.:/params[0]/name}

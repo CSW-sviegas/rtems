@@ -14,7 +14,7 @@ definition:
       context->now = ${time-event:/name}( _Record_Now(), 0 );
       control = cpu_self->record;
       context->control = control;
-      head = _Record_Head( control );
+      head = _Record_Producer_head( control );
       context->head = head;
     params:
     - ${context:/name} *${.:/params[0]/name}
