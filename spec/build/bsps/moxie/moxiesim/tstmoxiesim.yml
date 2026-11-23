@@ -68,6 +68,8 @@ actions:
     - validation-no-clock-1
     - validation-one-cpu-0
     - validation-one-cpu-1
+    - validation-record-0
+    - validation-record-2
     - validation-timecounter-1
     - validation-tls-0
     - validation-tls-1
