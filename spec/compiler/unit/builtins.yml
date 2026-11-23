@@ -273,7 +273,7 @@ test-actions:
     T_eq_u64( __builtin_bswap64( n ), n );
   checks: []
   links:
-  - name: __builtin_popcount64
+  - name: __builtin_bswap64
     role: unit-test
     uid: ../../if/domain
 - action-brief: |
@@ -397,7 +397,7 @@ test-actions:
     T_eq_i64( i >> s, -INT64_C( 1 ) );
   checks: []
   links:
-  - name: __ashrdi2
+  - name: __ashrdi3
     role: unit-test
     uid: ../../if/domain
 - action-brief: |
@@ -428,7 +428,7 @@ test-actions:
     T_eq_u64( i >> s, UINT64_C( 0x7fffffffffffffff ) );
   checks: []
   links:
-  - name: __lshrdi2
+  - name: __lshrdi3
     role: unit-test
     uid: ../../if/domain
 - action-brief: |
@@ -455,7 +455,7 @@ test-actions:
     T_eq_i64( a * b, INT64_C( 0 ) );
   checks: []
   links:
-  - name: __negdi2
+  - name: __muldi3
     role: unit-test
     uid: ../../if/domain
 - action-brief: |
