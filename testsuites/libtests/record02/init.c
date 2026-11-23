@@ -47,6 +47,8 @@ typedef struct {
 
 static test_context test_instance;
 
+static bool test_passed;
+
 static rtems_record_client_status client_handler(
   uint64_t           bt,
   uint32_t           cpu,
@@ -214,6 +216,7 @@ static void Init( rtems_task_argument arg )
 
   wait();
   generate_events();
+  test_passed = true;
   rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, 0 );
 }
 
@@ -225,7 +228,11 @@ static void fatal_extension(
 {
   generate_events();
   _Record_Fatal_dump_base64( source, always_set_to_false, code );
-  TEST_END();
+
+  /* A failed rtems_test_assert() raises the same fatal error. */
+  if ( test_passed ) {
+    TEST_END();
+  }
 }
 
 #define INITIAL_EXTENSION \
