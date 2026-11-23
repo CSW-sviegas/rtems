@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2019, 2023 embedded brains GmbH & Co. KG
+ * Copyright (C) 2019, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -430,6 +430,14 @@
  */
 
 /**
+ * @file cpukit/compiler-rt/lib/builtins/ashldi3.c
+ *
+ * @ingroup RTEMSImplCompilerBuiltins
+ *
+ * @brief This source file contains the implemention of a compiler builtin.
+ */
+
+/**
  * @file cpukit/compiler-rt/lib/builtins/bswapdi2.c
  *
  * @ingroup RTEMSImplCompilerBuiltins
@@ -502,6 +510,14 @@
  */
 
 /**
+ * @file cpukit/compiler-rt/lib/builtins/floatdidf.c
+ *
+ * @ingroup RTEMSImplCompilerBuiltins
+ *
+ * @brief This source file contains the implemention of a compiler builtin.
+ */
+
+/**
  * @file cpukit/compiler-rt/lib/builtins/int_div_impl.inc
  *
  * @ingroup RTEMSImplCompilerBuiltins
@@ -523,6 +539,22 @@
  * @ingroup RTEMSImplCompilerBuiltins
  *
  * @brief This header file provides interfaces for compiler builtins.
+ */
+
+/**
+ * @file cpukit/compiler-rt/lib/builtins/int_to_fp.h
+ *
+ * @ingroup RTEMSImplCompilerBuiltins
+ *
+ * @brief This header file provides interfaces for compiler builtins.
+ */
+
+/**
+ * @file cpukit/compiler-rt/lib/builtins/int_to_fp_impl.inc
+ *
+ * @ingroup RTEMSImplCompilerBuiltins
+ *
+ * @brief This header file contains the implemention of compiler builtins.
  */
 
 /**
