@@ -41,6 +41,7 @@
 #include <rtems/record.h>
 #include <rtems/config.h>
 #include <rtems/score/assert.h>
+#include <rtems/score/threadimpl.h>
 
 #include <string.h>
 
@@ -128,4 +129,27 @@ size_t _Record_String_to_items(
   }
 
   return i;
+}
+
+size_t _Record_Thread_name_to_items(
+  const Thread_Control *the_thread,
+  rtems_record_item    *items
+)
+{
+  char   name[ RECORD_THREAD_NAME_SIZE ];
+  size_t len;
+
+  len = _Thread_Get_name( the_thread, name, sizeof( name ) );
+
+  if ( len >= sizeof( name ) ) {
+    len = sizeof( name ) - 1;
+  }
+
+  return _Record_String_to_items(
+    RTEMS_RECORD_THREAD_NAME,
+    name,
+    len,
+    items,
+    RECORD_THREAD_NAME_ITEM_COUNT
+  );
 }

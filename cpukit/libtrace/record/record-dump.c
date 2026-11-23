@@ -54,29 +54,13 @@ static void dump_chunk( dump_context *ctx, const void *data, size_t length )
 static bool thread_names_visitor( rtems_tcb *tcb, void *arg )
 {
   dump_context     *ctx;
-  rtems_record_data data;
-  char              name[ 2 * THREAD_DEFAULT_MAXIMUM_NAME_SIZE ];
-  rtems_record_item items[ 1 + sizeof( name ) / sizeof( data ) ];
-  size_t            len;
+  rtems_record_item items[ 1 + RECORD_THREAD_NAME_ITEM_COUNT ];
   size_t            used;
 
   ctx = arg;
   items[ 0 ].event = RTEMS_RECORD_THREAD_ID;
   items[ 0 ].data = tcb->Object.id;
-
-  len = _Thread_Get_name( tcb, name, sizeof( name ) );
-
-  if ( len >= sizeof( name ) ) {
-    len = sizeof( name ) - 1;
-  }
-
-  used = _Record_String_to_items(
-    RTEMS_RECORD_THREAD_NAME,
-    name,
-    len,
-    &items[ 1 ],
-    RTEMS_ARRAY_SIZE( items ) - 1
-  );
+  used = _Record_Thread_name_to_items( tcb, &items[ 1 ] );
   dump_chunk( ctx, items, ( used + 1 ) * sizeof( items[ 0 ] ) );
 
   return false;

@@ -215,6 +215,41 @@ size_t _Record_String_to_items(
   size_t             item_count
 );
 
+/**
+ * @brief This constant defines the size of the buffer for the name of a
+ *   thread.
+ *
+ * The buffer holds at most the first 31 characters of the name and a NUL
+ * character.
+ */
+#define RECORD_THREAD_NAME_SIZE 32
+
+/**
+ * @brief This constant defines the count of items which hold the name of a
+ *   thread.
+ */
+#define RECORD_THREAD_NAME_ITEM_COUNT \
+  ( RECORD_THREAD_NAME_SIZE / sizeof( rtems_record_data ) )
+
+/**
+ * @brief Converts the name of the thread to items of the
+ *   ::RTEMS_RECORD_THREAD_NAME event.
+ *
+ * The items hold at most the first 31 characters of the name, as
+ * _Record_String_to_items() converts them.
+ *
+ * @param the_thread is the thread.
+ *
+ * @param[out] items is the item array.  It shall have at least
+ *   #RECORD_THREAD_NAME_ITEM_COUNT items.
+ *
+ * @return Returns the count of items which the conversion wrote.
+ */
+size_t _Record_Thread_name_to_items(
+  const struct _Thread_Control *the_thread,
+  rtems_record_item            *items
+);
+
 void _Record_Caller( void *return_address );
 
 void _Record_Caller_3(

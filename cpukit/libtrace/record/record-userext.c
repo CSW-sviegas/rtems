@@ -48,23 +48,12 @@ bool _Record_Thread_create(
 {
   (void) executing;
 
-  rtems_record_data data;
-  char              name[ 2 * THREAD_DEFAULT_MAXIMUM_NAME_SIZE ];
-  rtems_record_item items[ 1 + sizeof( name ) / sizeof( data ) ];
-  size_t            len;
+  rtems_record_item items[ 1 + RECORD_THREAD_NAME_ITEM_COUNT ];
   size_t            used;
 
   items[ 0 ].event = RTEMS_RECORD_THREAD_CREATE;
   items[ 0 ].data = created->Object.id;
-
-  len = _Thread_Get_name( created, name, sizeof( name ) );
-  used = _Record_String_to_items(
-    RTEMS_RECORD_THREAD_NAME,
-    name,
-    len,
-    &items[ 1 ],
-    RTEMS_ARRAY_SIZE( items ) - 1
-  );
+  used = _Record_Thread_name_to_items( created, &items[ 1 ] );
   rtems_record_produce_n( items, used + 1 );
 
   return true;
