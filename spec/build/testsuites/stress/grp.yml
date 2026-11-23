@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by: BUILD_STRESS_TESTS
+includes:
+- ${BSP_INCLUDES}
+- testsuites/support/include
+install: []
+ldflags: []
+links:
+- role: build-dependency
+  uid: stress-record-smp
+type: build
+use-after:
+- rtemstest
+- rtemscpu
+- rtemsbsp
+use-before: []

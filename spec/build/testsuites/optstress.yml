@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-boolean: null
+- env-enable: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default:
+- enabled-by: true
+  value: false
+description: |
+  Build the stress test programs.  The option BUILD_TESTS does not enable them.
+enabled-by: true
+links: []
+name: BUILD_STRESS_TESTS
+type: build

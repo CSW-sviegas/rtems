@@ -45,6 +45,8 @@ links:
 - role: build-dependency
   uid: optsp
 - role: build-dependency
+  uid: optstress
+- role: build-dependency
   uid: opttm
 - role: build-dependency
   uid: optunit
@@ -76,6 +78,8 @@ links:
   uid: smptests/grp
 - role: build-dependency
   uid: sptests/grp
+- role: build-dependency
+  uid: stress/grp
 - role: build-dependency
   uid: tmtests/grp
 - role: build-dependency

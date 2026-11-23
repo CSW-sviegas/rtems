@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by:
+  and:
+  - RTEMS_SMP
+  - not: RTEMS_QUAL
+features: c cprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/stress/tc-stress-record-smp.c
+- testsuites/stress/ts-stress-record-smp.c
+stlib: []
+target: testsuites/stress/stress-record-smp.exe
+type: build
+use-after: []
+use-before: []
