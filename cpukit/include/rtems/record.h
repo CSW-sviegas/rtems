@@ -2317,7 +2317,7 @@ static inline void rtems_record_prepare( rtems_record_context *context )
   cpu_self = _Per_CPU_Get();
   control = cpu_self->record;
   context->control = control;
-  head = _Record_Head( control );
+  head = _Record_Producer_head( control );
   context->head = head;
 }
 
@@ -2358,7 +2358,7 @@ static inline void rtems_record_prepare_critical(
   context->now = RTEMS_RECORD_TIME_EVENT( _Record_Now(), 0 );
   control = cpu_self->record;
   context->control = control;
-  head = _Record_Head( control );
+  head = _Record_Producer_head( control );
   context->head = head;
 }
 

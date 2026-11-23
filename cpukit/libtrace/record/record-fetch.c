@@ -102,17 +102,19 @@ rtems_record_fetch_status rtems_record_fetch(
   }
 
   /*
-   * The red zone indicates an area of items before the head where new items
-   * are produced.
+   * The red zone is an area of items before the head where new items are
+   * produced.
    *
-   * In uniprocessor configurations, the record data and the record head is
-   * atomically produced so that there is no red zone.
+   * In uniprocessor configurations, a producer stores the items and the head
+   * of a production with interrupts disabled, so there is no red zone.
    *
-   * In SMP configurations, the atomic store release to update the head and the
-   * atomic fetch acquire to get the head guarantees that we read fully produced
-   * items and that the head is the last value stored by the producer.
-   * However, one item may be already in production which could be observed
-   * before the new head is stored.
+   * In SMP configurations, a producer stores the items of a production before
+   * it stores the new head.  The producer orders these stores after the store
+   * of the head of its previous production.  A load of the head which follows
+   * the load of such an item therefore returns at least the position of the
+   * first item of the production.  The red zone of one item covers this first
+   * item.  The other items of a production can overwrite copied items without
+   * a count.
    */
 #ifdef RTEMS_SMP
   red_zone = 1;

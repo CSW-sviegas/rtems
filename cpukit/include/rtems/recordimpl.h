@@ -63,9 +63,15 @@ extern "C" {
 
 typedef struct Record_Control {
   Atomic_Uint      head;
-  unsigned int     tail;
   unsigned int     mask;
   Watchdog_Control Watchdog;
+
+  /* The record producers do not access the tail. */
+#ifdef RTEMS_SMP
+  RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES )
+#endif
+  unsigned int tail;
+
   RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES )
   rtems_record_item Items[ RTEMS_ZERO_LENGTH_ARRAY ];
 } Record_Control;
@@ -136,15 +142,28 @@ static inline unsigned int _Record_Index(
 
 static inline unsigned int _Record_Head( Record_Control *control )
 {
+  return _Atomic_Load_uint( &control->head, ATOMIC_ORDER_ACQUIRE );
+}
+
+static inline unsigned int _Record_Producer_head( Record_Control *control )
+{
+  unsigned int head;
+
+  /*
+   * Only the processor which owns the record control stores the head, so the
+   * load returns the last value stored.
+   */
+  head = _Atomic_Load_uint( &control->head, ATOMIC_ORDER_RELAXED );
+
 #ifdef RTEMS_SMP
   /*
-   * Use a read-modify-write operation to get the last value stored by the
-   * record producer.
+   * The fence orders the store of the head by the previous commit before the
+   * stores of the items which follow.
    */
-  return _Atomic_Fetch_add_uint( &control->head, 0, ATOMIC_ORDER_ACQUIRE );
-#else
-  return _Atomic_Load_uint( &control->head, ATOMIC_ORDER_ACQUIRE );
+  _Atomic_Fence( ATOMIC_ORDER_RELEASE );
 #endif
+
+  return head;
 }
 
 static inline unsigned int _Record_Tail( const Record_Control *control )
