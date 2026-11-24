@@ -33,6 +33,7 @@
  */
 
 #include <rtems/asm.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if (M68K_COLDFIRE_ARCH == 0) /* All ColdFire BSPs must provide their own start vector */
 
@@ -157,3 +158,5 @@ SYM (initial_sr):
 END_DATA
 #endif
 END
+
+        RTEMS_ELF_NOTES

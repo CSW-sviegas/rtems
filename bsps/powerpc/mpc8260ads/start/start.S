@@ -31,6 +31,7 @@
 
 #include <rtems/asm.h>
 #include <libcpu/powerpc-utility.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /*
  *  The entry veneer has to clear the BSS and copy the read only
@@ -169,3 +170,5 @@ clear_bss:
 
         bdnz    clear_bss                       /* dec counter and loop */
         blr                                     /* return */
+
+        RTEMS_ELF_NOTES

@@ -344,6 +344,8 @@ SECTIONS
 
     /* Altera debug extensions */
     .debug_alt_sim_info 0 : { *(.debug_alt_sim_info) }
+
+    .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }
 /* provide a pointer for the stack */
 

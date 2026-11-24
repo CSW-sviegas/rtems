@@ -41,7 +41,6 @@
 #endif
 
 #include <rtems/test-info.h>
-#include <rtems/version.h>
 
 #if defined(RTEMS_QUAL)
 #include <rtems/bspIo.h>
@@ -50,16 +49,10 @@
 #include <rtems/test-printer.h>
 #endif
 
-static const char *const test_state_strings[] = {
-  "EXPECTED_PASS",
-  "EXPECTED_FAIL",
-  "USER_INPUT",
-  "INDETERMINATE",
-  "BENCHMARK"
-};
-
 int rtems_test_begin( const char *name, const RTEMS_TEST_STATE state )
 {
+  (void) state;
+
 #if defined(RTEMS_QUAL)
   return _IO_Printf(
     rtems_put_char,
@@ -68,36 +61,8 @@ int rtems_test_begin( const char *name, const RTEMS_TEST_STATE state )
   return rtems_printf(
     &rtems_test_printer,
 #endif
-    "\n\n*** BEGIN OF TEST %s ***\n"
-    "*** TEST VERSION: %s\n"
-    "*** TEST STATE: %s\n"
-    "*** TEST BUILD:"
-#if RTEMS_DEBUG
-    " RTEMS_DEBUG"
-#endif
-#if RTEMS_MULTIPROCESSING
-    " RTEMS_MULTIPROCESSING"
-#endif
-#if RTEMS_NETWORKING
-    " RTEMS_NETWORKING"
-#endif
-#if RTEMS_PARAVIRT
-    " RTEMS_PARAVIRT"
-#endif
-#if RTEMS_POSIX_API
-    " RTEMS_POSIX_API"
-#endif
-#if RTEMS_PROFILING
-    " RTEMS_PROFILING"
-#endif
-#if RTEMS_SMP
-    " RTEMS_SMP"
-#endif
-    "\n"
-    "*** TEST TOOLS: " __VERSION__ "\n",
-    name,
-    rtems_version(),
-    test_state_strings[ state ]
+    "\n\n*** BEGIN OF TEST %s ***\n",
+    name
   );
 }
 

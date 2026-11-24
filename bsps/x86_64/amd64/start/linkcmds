@@ -295,5 +295,7 @@ SECTIONS
   .debug_gdb_scripts 0 : { *(.debug_gdb_scripts) }
   
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
+
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 }

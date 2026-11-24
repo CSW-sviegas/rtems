@@ -41,8 +41,8 @@
 #include "fs_config.h"
 #include <tmacros.h>
 
-const char             rtems_test_name[] = "FSRMDIRPARENT " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSRMDIRPARENT " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static void rmdir_error( void )
 {

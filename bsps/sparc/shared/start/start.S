@@ -37,6 +37,7 @@
 #include <rtems/asm.h>
 #include <rtems/score/percpu.h>
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if defined(RTEMS_SMP) && defined(BSP_LEON3_SMP)
   #define START_LEON3_ENABLE_SMP
@@ -541,3 +542,5 @@ SYM(hard_reset):
 #endif
 
 /* end of file */
+
+  RTEMS_ELF_NOTES

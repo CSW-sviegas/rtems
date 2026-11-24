@@ -3,6 +3,7 @@
 /* moxie start up file. */
 
 #include "bspopts.h"
+#include <rtems/score/elfnotesbuild.h>
 
 #if defined(HAVE_OLD_MOXIE_ASM)
 #define sub sub.l
@@ -26,3 +27,5 @@ _start:
         jmpa    _start          # restart
 .Lend:
         .size   _start,(.Lend-_start)
+
+        RTEMS_ELF_NOTES

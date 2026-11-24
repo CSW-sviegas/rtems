@@ -122,3 +122,7 @@ _exit:
 	bri     0
 	.end _exit
 #endif /* __rtems__ */
+
+#include <rtems/score/elfnotesbuild.h>
+
+	RTEMS_ELF_NOTES

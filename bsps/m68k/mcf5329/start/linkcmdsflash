@@ -215,4 +215,6 @@ SECTIONS
     .comment 0 : { *(.comment) }
 
     PROVIDE (end_of_all = .);
+
+    .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

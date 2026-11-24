@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/open.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/open.norun.exe
 type: build

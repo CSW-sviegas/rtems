@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/longjmp.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/longjmp.norun.exe
 type: build

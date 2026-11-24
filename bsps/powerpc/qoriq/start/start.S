@@ -41,6 +41,7 @@
 
 #include <bsp/cache.h>
 #include <bsp/vectors.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if (QORIQ_INITIAL_MSR & MSR_FP) != 0
 #define INITIALIZE_FPU
@@ -970,3 +971,5 @@ qoriq_boot_page:
 
 	b	qoriq_boot_page
 #endif
+
+	RTEMS_ELF_NOTES

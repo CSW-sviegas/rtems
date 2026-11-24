@@ -318,4 +318,6 @@ SECTIONS
   .debug_typenames 0 : { *(.debug_typenames) }
   .debug_varnames  0 : { *(.debug_varnames) }
   /* These must appear regardless of  .  */
+
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

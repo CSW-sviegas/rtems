@@ -36,6 +36,7 @@
 #include <bspopts.h>
 #include <bsp/linker-symbols.h>
 #include <libcpu/powerpc-utility.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #if MPC55XX_CHIP_FAMILY != 551
   #define HAS_SPE
@@ -302,3 +303,5 @@ mpc55xx_start_load_section:
 	cmpw	cr7, r3, r4
 	beqlr	cr7
 	b	memcpy
+
+	RTEMS_ELF_NOTES

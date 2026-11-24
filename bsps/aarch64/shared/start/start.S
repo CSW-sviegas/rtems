@@ -39,6 +39,7 @@
 
 #include <bsp.h>
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
 
   /* Global symbols */
   .globl _start
@@ -374,3 +375,5 @@ _start:
   /* Branch to boot card */
   mov x0, #0
   bl boot_card
+
+  RTEMS_ELF_NOTES

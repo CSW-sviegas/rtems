@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/lstat.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/lstat.norun.exe
 type: build

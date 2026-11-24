@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/malloc.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/malloc.norun.exe
 type: build

@@ -29,6 +29,7 @@
 
 #include <bspopts.h>
 #include <gdt.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #ifdef BSP_MULTIBOOT_SUPPORT
 #include <multiboot2.h>
@@ -300,3 +301,5 @@ pvh_page_tables:
 	.space	PVH_PAGE_TABLE_SIZE
 
 #endif
+
+	RTEMS_ELF_NOTES

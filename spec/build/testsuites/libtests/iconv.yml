@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/iconv.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/iconv.norun.exe
 type: build

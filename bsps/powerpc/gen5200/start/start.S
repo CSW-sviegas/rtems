@@ -48,6 +48,7 @@
 
 #include <bsp.h>
 #include <bsp/mpc5200.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /* Some register offsets of MPC5x00 memory map registers */
 .set	CS0STR,			0x04
@@ -954,3 +955,5 @@ ndelay_loop:
 	bdnz	ndelay_loop
 
 	blr
+
+	RTEMS_ELF_NOTES

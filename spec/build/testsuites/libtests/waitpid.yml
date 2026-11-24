@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/waitpid.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/waitpid.norun.exe
 type: build

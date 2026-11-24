@@ -40,8 +40,8 @@
 
 #include <rtems/jffs2.h>
 
-const char             rtems_test_name[] = "FSJFFS2GC 1";
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSJFFS2GC 1";
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static const rtems_jffs2_info info_initial = {
   .flash_size = 131072,
