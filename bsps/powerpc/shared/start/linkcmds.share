@@ -263,6 +263,8 @@ SECTIONS
   _end = . ;
   __rtems_end = . ;
   PROVIDE (end = .);
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
+
   /DISCARD/ : 
   {
     *(.comment)

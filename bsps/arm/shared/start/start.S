@@ -40,6 +40,7 @@
 #include <bsp/irq.h>
 
 #include <dev/cache/arm-data-cache-loop-set-way.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	/* Global symbols */
 	.globl	_start
@@ -617,3 +618,5 @@ bsp_start_hook_0_done:
 
 	.set	bsp_start_vector_table_size, bsp_start_vector_table_end - bsp_start_vector_table_begin
 	.set	bsp_vector_table_size, bsp_start_vector_table_size
+
+	RTEMS_ELF_NOTES

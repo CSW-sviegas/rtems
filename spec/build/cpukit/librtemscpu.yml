@@ -72,6 +72,7 @@ install:
   - cpukit/include/rtems/config.h
   - cpukit/include/rtems/counter.h
   - cpukit/include/rtems/cpuuse.h
+  - cpukit/include/rtems/elfnotes.h
   - cpukit/include/rtems/extension.h
   - cpukit/include/rtems/extensiondata.h
   - cpukit/include/rtems/extensionimpl.h

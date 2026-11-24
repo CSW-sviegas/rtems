@@ -222,4 +222,6 @@ SECTIONS
     .debug_gdb_scripts 0 : { *(.debug_gdb_scripts) }
 
     PROVIDE (end_of_all = .);
+
+    .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

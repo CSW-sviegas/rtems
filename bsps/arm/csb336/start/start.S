@@ -12,6 +12,7 @@
 
 #include <rtems/asm.h>
 #include <rtems/score/cpu.h>
+#include <rtems/score/elfnotesbuild.h>
 
 .section .bsp_start_text,"ax"
          .code 32
@@ -150,3 +151,5 @@ handler_addr_irq:
 
 handler_addr_fiq:
         .word  _ARMV4_Exception_fiq_default
+
+        RTEMS_ELF_NOTES

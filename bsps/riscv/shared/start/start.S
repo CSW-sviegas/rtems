@@ -34,6 +34,9 @@
 #include <rtems/score/riscv-utility.h>
 #include <bsp/linker-symbols.h>
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
+
+	RTEMS_ELF_NOTES
 
 PUBLIC(_start)
 

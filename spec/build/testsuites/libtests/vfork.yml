@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/vfork.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/vfork.norun.exe
 type: build

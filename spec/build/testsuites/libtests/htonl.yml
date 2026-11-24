@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/htonl.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/htonl.norun.exe
 type: build

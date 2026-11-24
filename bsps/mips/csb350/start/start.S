@@ -32,6 +32,7 @@
 
 #include <rtems/asm.h>
 #include <bsp/regs.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	.text
 	.align	2
@@ -140,3 +141,5 @@ _sys_exit:
 	.end _sys_exit
 
 /* EOF crt0.S */
+
+	RTEMS_ELF_NOTES

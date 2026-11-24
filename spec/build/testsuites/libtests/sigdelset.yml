@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/sigdelset.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/sigdelset.norun.exe
 type: build

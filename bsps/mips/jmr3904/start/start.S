@@ -19,6 +19,7 @@
 
 #include <rtems/asm.h>
 #include <bsp/regs.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #ifdef __mips16
 /* This file contains 32 bit assembly code.  */
@@ -194,3 +195,5 @@ _sys_exit:
 	.end _sys_exit
 
 /* EOF crt0.S */
+
+	RTEMS_ELF_NOTES

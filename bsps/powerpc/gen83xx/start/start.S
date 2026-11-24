@@ -35,6 +35,7 @@
 #include <rtems/powerpc/cache.h>
 #include <bsp.h>
 #include <mpc83xx/mpc83xx.h>
+#include <rtems/score/elfnotesbuild.h>
 
 .macro SET_IMM_REGW base, reg2, offset, value
 	LA \reg2, \value
@@ -536,3 +537,5 @@ mpc83xx_zero_4_tail:
 
 	/* Return */
 	blr
+
+	RTEMS_ELF_NOTES

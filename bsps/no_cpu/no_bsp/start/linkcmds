@@ -87,4 +87,6 @@ SECTIONS
 	end = . ;
 	__end = . ;
 	}
+
+        .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

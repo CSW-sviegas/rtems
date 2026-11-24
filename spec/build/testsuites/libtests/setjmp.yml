@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/setjmp.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/setjmp.norun.exe
 type: build

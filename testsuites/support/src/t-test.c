@@ -51,7 +51,6 @@
 #include <rtems/score/smp.h>
 #include <rtems/score/threadimpl.h>
 #include <rtems/linkersets.h>
-#include <rtems/version.h>
 #else
 #include "t-test-printf.h"
 #endif /* __rtems__ */
@@ -828,41 +827,12 @@ static void T_system( T_context *ctx )
 {
 #if defined( __rtems__ )
   T_do_log( ctx, T_QUIET, "S:Platform:RTEMS\n" );
-  T_do_log( ctx, T_QUIET, "S:Compiler:" __VERSION__ "\n" );
-  T_do_log( ctx, T_QUIET, "S:Version:%s\n", rtems_version() );
-  T_do_log( ctx, T_QUIET, "S:BSP:%s\n", rtems_board_support_package() );
-  T_do_log( ctx, T_QUIET, "S:BuildLabel:%s\n", rtems_get_build_label() );
   T_do_log(
     ctx,
     T_QUIET,
     "S:TargetHash:SHA256:%s\n",
     rtems_get_target_hash()
   );
-#if RTEMS_DEBUG
-  T_do_log( ctx, T_QUIET, "S:RTEMS_DEBUG:1\n" );
-#else
-  T_do_log( ctx, T_QUIET, "S:RTEMS_DEBUG:0\n" );
-#endif
-#if RTEMS_MULTIPROCESSING
-  T_do_log( ctx, T_QUIET, "S:RTEMS_MULTIPROCESSING:1\n" );
-#else
-  T_do_log( ctx, T_QUIET, "S:RTEMS_MULTIPROCESSING:0\n" );
-#endif
-#if RTEMS_POSIX_API
-  T_do_log( ctx, T_QUIET, "S:RTEMS_POSIX_API:1\n" );
-#else
-  T_do_log( ctx, T_QUIET, "S:RTEMS_POSIX_API:0\n" );
-#endif
-#if RTEMS_PROFILING
-  T_do_log( ctx, T_QUIET, "S:RTEMS_PROFILING:1\n" );
-#else
-  T_do_log( ctx, T_QUIET, "S:RTEMS_PROFILING:0\n" );
-#endif
-#if RTEMS_SMP
-  T_do_log( ctx, T_QUIET, "S:RTEMS_SMP:1\n" );
-#else
-  T_do_log( ctx, T_QUIET, "S:RTEMS_SMP:0\n" );
-#endif
 #elif defined( __linux__ )
   T_do_log( ctx, T_QUIET, "S:Platform:Linux\n" );
   T_do_log( ctx, T_QUIET, "S:Compiler:" __VERSION__ "\n" );

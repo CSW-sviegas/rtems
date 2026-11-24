@@ -345,4 +345,6 @@ SECTIONS
     .debug_macinfo 0 : { *(.debug_macinfo) }
     .stab 0 : { *(.stab) }
     .stabstr 0 : { *(.stabstr) }
+
+    .note.rtems 0 : { KEEP (*(.note.rtems)) }
 }

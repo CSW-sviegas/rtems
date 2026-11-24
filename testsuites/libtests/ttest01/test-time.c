@@ -133,14 +133,15 @@ T_TEST_CASE( time )
 T_TEST_CASE( ticks )
 {
   T_time_string ts;
+  T_time_string te;
   T_time        t;
   T_time        r;
+  T_time        u;
+  T_time        d;
   T_ticks       k;
   uint64_t      f;
   uint32_t      s;
   uint32_t      ns;
-  uint32_t      m;
-  size_t        n;
 
   t = T_seconds_and_nanoseconds_to_time( 1, 0 );
   f = T_time_to_ticks( t );
@@ -151,27 +152,19 @@ T_TEST_CASE( ticks )
   T_eq_u32( s, 0 );
   T_ne_u32( ns, 0 );
 
-  n = 1;
-  m = 10;
-
-  do {
-    if ( ( ns + m / 2 ) / m == 0 ) {
-      break;
-    }
-
-    ++n;
-    m *= 10;
-  } while ( n < 10 );
-
-  n = 10 - n;
-
+  /*
+   * The conversion truncates to a tick of the counter.  The converted time
+   * differs from the time by less than two ticks.
+   */
   t = T_seconds_and_nanoseconds_to_time( 1, 100000000 );
   k = T_time_to_ticks( t );
+  u = T_ticks_to_time( k );
+  d = u > t ? u - t : t - u;
+  T_lt_u64( d, 2 * r );
 
-  n += 2;
-  T_eq_nstr( T_ticks_to_string_ns( k, ts ), "1.100000000", n );
-  T_eq_nstr( T_ticks_to_string_us( k, ts ), "1.100000", n );
-  T_eq_nstr( T_ticks_to_string_ms( k, ts ), "1.100", n );
+  T_eq_str( T_ticks_to_string_ns( k, ts ), T_time_to_string_ns( u, te ) );
+  T_eq_str( T_ticks_to_string_us( k, ts ), T_time_to_string_us( u, te ) );
+  T_eq_str( T_ticks_to_string_ms( k, ts ), T_time_to_string_ms( u, te ) );
   T_eq_str( T_ticks_to_string_s( k, ts ), "1" );
 }
 
@@ -265,14 +258,15 @@ T_TEST_OUTPUT(
 T_TEST_OUTPUT(
   ticks,
   "B:ticks\n"
-  "P:0:0:UI1:test-time.c:147\n"
-  "P:1:0:UI1:test-time.c:151\n"
-  "P:2:0:UI1:test-time.c:152\n"
-  "P:3:0:UI1:test-time.c:172\n"
-  "P:4:0:UI1:test-time.c:173\n"
-  "P:5:0:UI1:test-time.c:174\n"
-  "P:6:0:UI1:test-time.c:175\n"
-  "E:ticks:N:7:F:0:D:0.001000\n"
+  "P:0:0:UI1:test-time.c:148\n"
+  "P:1:0:UI1:test-time.c:152\n"
+  "P:2:0:UI1:test-time.c:153\n"
+  "P:3:0:UI1:test-time.c:163\n"
+  "P:4:0:UI1:test-time.c:165\n"
+  "P:5:0:UI1:test-time.c:166\n"
+  "P:6:0:UI1:test-time.c:167\n"
+  "P:7:0:UI1:test-time.c:168\n"
+  "E:ticks:N:8:F:0:D:0.001000\n"
 );
 
 T_TEST_OUTPUT(

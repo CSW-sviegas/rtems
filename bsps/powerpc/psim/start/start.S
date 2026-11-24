@@ -19,6 +19,7 @@
 #include <rtems/score/cpu.h>
 #include <libcpu/io.h>
 #include "ppc-asm.h"
+#include <rtems/score/elfnotesbuild.h>
 
 	.section ".got2","aw"
 	.align	2
@@ -122,3 +123,5 @@ FUNC_NAME(bsp_reset):
 
 .Lstart:
 	.size	_start,.Lstart-_start
+
+	RTEMS_ELF_NOTES

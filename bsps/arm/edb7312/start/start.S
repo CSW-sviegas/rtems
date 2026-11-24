@@ -16,6 +16,7 @@
 
 #include <rtems/asm.h>
 #include <rtems/score/cpu.h>
+#include <rtems/score/elfnotesbuild.h>
 
 .section ".bsp_start_text", "ax"
 .arm
@@ -118,3 +119,5 @@ zi_init:
 
 	mov     r0, #0
 	bl	boot_card
+
+        RTEMS_ELF_NOTES

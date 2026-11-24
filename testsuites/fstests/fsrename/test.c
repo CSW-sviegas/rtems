@@ -43,8 +43,8 @@
 #include <errno.h>
 #include <limits.h>
 
-const char             rtems_test_name[] = "FSRENAME " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSRENAME " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static void rename_file_twice_test( void )
 {

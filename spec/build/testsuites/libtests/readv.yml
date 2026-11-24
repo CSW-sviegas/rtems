@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/libtests/POSIX/readv.c
+- testsuites/support/src/test-state-no-run.c
 stlib: []
 target: testsuites/libtests/readv.norun.exe
 type: build

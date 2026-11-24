@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- set-value: ${ARCH}/${BSP_BASE}
+- substitute: null
+- define: null
+build-type: option
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default: []
+description: |
+  Defines the architecture and the base BSP name in the form
+  ``<arch>/<bsp>``.
+enabled-by: true
+links: []
+name: RTEMS_ARCH_BSP
+type: build

@@ -38,8 +38,8 @@
 #include "fs_config.h"
 #include <tmacros.h>
 
-const char             rtems_test_name[] = "FSSTATVFS " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSSTATVFS " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static void statvfs_validate( struct statvfs *stat )
 {

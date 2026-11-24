@@ -274,6 +274,8 @@ SECTIONS
 
   __phy_ram_end   = .;                  /* True end of physical memory */
 
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
+
   /DISCARD/ :
   {
     *(.comment)

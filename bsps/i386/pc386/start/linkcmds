@@ -253,5 +253,7 @@ SECTIONS
   /* DWARF extension */
   .debug_macro    0 : { *(.debug_macro) }
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
+  .note.rtems 0 : { KEEP (*(.note.rtems)) }
+
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) }
 }

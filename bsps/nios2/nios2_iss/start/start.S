@@ -124,4 +124,6 @@ brto_ev:
      addi et, et, %lo(_exception_vector)
      jmp et
 
+#include <rtems/score/elfnotesbuild.h>
 
+    RTEMS_ELF_NOTES

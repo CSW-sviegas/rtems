@@ -45,8 +45,8 @@
 
 #define BUF_SIZE 100
 
-const char             rtems_test_name[] = "FSPATHEVAL " FILESYSTEM;
-const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
+const char rtems_test_name[] = "FSPATHEVAL " FILESYSTEM;
+RTEMS_TEST_STATE_DEFINE( rtems_test_state );
 
 static void make_multiple_files( char **files, int is_directory )
 {

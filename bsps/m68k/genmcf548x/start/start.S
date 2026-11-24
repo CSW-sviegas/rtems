@@ -49,6 +49,7 @@
 \*===============================================================*/
 #include <rtems/asm.h>
 #include <bsp/linker-symbols.h>
+#include <rtems/score/elfnotesbuild.h>
 
 /*===============================================================*\
 | External references                                             |
@@ -426,6 +427,8 @@ exit_multitasking:
     nop
     halt
     bra     exit_multitasking
+
+    RTEMS_ELF_NOTES
 
 .end					/* end of start.S module */
 

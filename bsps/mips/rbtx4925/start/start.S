@@ -34,6 +34,7 @@ LICENSED MATERIAL - PROGRAM PROPERTY OF IDT
 #include <rtems/asm.h>
 
 #include <bsp.h>
+#include <rtems/score/elfnotesbuild.h>
 
 	.extern	mon_flush_cache
 
@@ -360,3 +361,4 @@ __sizemem:
 	nop
 	.end	__sizemem
 
+	RTEMS_ELF_NOTES

@@ -38,6 +38,7 @@
 #include <libcpu/powerpc-utility.h>
 
 #include <bspopts.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #define SYNC \
 	sync; \
@@ -110,3 +111,5 @@ __rtems_entry_point:
     /* pass result of 'save_boot_params' to 'boot_card' in R3 */
 	bl	boot_card
 	/* point of no return: reset board here ? */
+
+	RTEMS_ELF_NOTES

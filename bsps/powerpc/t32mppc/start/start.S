@@ -30,6 +30,7 @@
 #include <rtems/score/percpu.h>
 #include <libcpu/powerpc-utility.h>
 #include <bsp/vectors.h>
+#include <rtems/score/elfnotesbuild.h>
 
 #define VECTOR_TABLE_ENTRY_SIZE 32
 
@@ -168,3 +169,5 @@ bsp_exc_vector_base:
 	EXCEPTION_PROLOGUE_FATAL	34, ppc_exc_fatal_normal
 	/* Performance monitor */
 	EXCEPTION_PROLOGUE_FATAL	35, ppc_exc_fatal_normal
+
+	RTEMS_ELF_NOTES
