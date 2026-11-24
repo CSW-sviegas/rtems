@@ -69,12 +69,7 @@ int _POSIX_Message_queue_Send_support(
   Status_Control               status;
   Thread_Control              *executing;
 
-  /*
-   * Validate the priority.
-   * XXX - Do not validate msg_prio is not less than 0.
-   */
-
-  if ( msg_prio > MQ_PRIO_MAX ) {
+  if ( msg_prio >= MQ_PRIO_MAX ) {
     rtems_set_errno_and_return_minus_one( EINVAL );
   }
 
