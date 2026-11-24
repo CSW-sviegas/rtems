@@ -54,7 +54,7 @@ typedef struct rtems_printer rtems_printer;
  *
  * @ingroup RTEMSAPI
  *
- * @brief IO
+ * @brief This group contains the input and output interfaces.
  */
 
 /**
@@ -62,7 +62,8 @@ typedef struct rtems_printer rtems_printer;
  *
  * @ingroup RTEMSAPIIO
  *
- * @brief Print Support
+ * @brief This group contains the interfaces to print formatted text and
+ *   memory buffers.
  */
 
 /**

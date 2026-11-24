@@ -60,7 +60,7 @@ extern "C" {
  *
  * @ingroup RTEMSDeviceDrivers
  *
- * @brief Legacy Benchmark Drivers
+ * @brief This group contains the benchmark timer driver interface.
  */
 
 /**

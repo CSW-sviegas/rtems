@@ -53,7 +53,7 @@ extern "C" {
  *
  * @ingroup RTEMSAPI
  *
- * @brief Tracing
+ * @brief This group contains the event recording and the capture engine.
  */
 
 /**

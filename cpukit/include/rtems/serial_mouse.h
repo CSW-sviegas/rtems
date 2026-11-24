@@ -55,7 +55,8 @@
  *
  * @ingroup RTEMSDeviceDrivers
  *
- * @brief Serial Mouse
+ * @brief This group contains the serial mouse driver and the mouse parser
+ *   engine.
  */
 
 /**
