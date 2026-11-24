@@ -81,6 +81,8 @@ extern "C" {
  *
  * The Benchmark Timer may use the same hardware as the Clock Driver.
  * No RTEMS Timing Tests will use both drivers at the same time.
+ *
+ * @{
  */
 
 /**
