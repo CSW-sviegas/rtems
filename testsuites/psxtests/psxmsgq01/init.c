@@ -95,10 +95,10 @@ typedef struct {
 
 Test_Message_t Predefined_Msgs[ MAXMSG + 1 ];
 Test_Message_t Predefined_Msgs[ MAXMSG + 1 ] = {
-  { "12345678", 9, MQ_PRIO_MAX - 1 },   /* Max Length Message med  */
+  { "12345678", 9, MQ_PRIO_MAX - 2 },   /* Max Length Message med  */
   { "", 1, 1 },                         /* NULL  Message      low  */
-  { "Last", 5, MQ_PRIO_MAX },           /* Queue Full Message hi   */
-  { "No Message", 0, MQ_PRIO_MAX - 1 }, /* 0 length Message   med  */
+  { "Last", 5, MQ_PRIO_MAX - 1 },       /* Queue Full Message hi   */
+  { "No Message", 0, MQ_PRIO_MAX - 2 }, /* 0 length Message   med  */
   { "1", 2, 0 },                        /* Cause Overflow Behavior */
 };
 int Priority_Order[ MAXMSG + 1 ] = { 2, 0, 3, 1, MAXMSG };
@@ -637,7 +637,7 @@ int validate_mq_send_error_codes( void )
    */
 
   puts( "Init: mq_send - Priority out of range (EINVAL)" );
-  status = mq_send( Test_q[ RW_QUEUE ].mq, "", 1, MQ_PRIO_MAX + 1 );
+  status = mq_send( Test_q[ RW_QUEUE ].mq, "", 1, MQ_PRIO_MAX );
   fatal_posix_service_status( status, -1, "mq_send error return status" );
   fatal_posix_service_status( errno, EINVAL, "mq_send errno EINVAL" );
 
