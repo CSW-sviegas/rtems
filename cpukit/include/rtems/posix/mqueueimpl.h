@@ -173,30 +173,36 @@ static inline POSIX_Message_queue_Control *_POSIX_Message_queue_Get_open(
   return the_mq;
 }
 
-/*
- *  @brief POSIX Message Queue Convert Message Priority to Score
+/**
+ * @brief Converts the POSIX message priority to the submit type.
  *
- *  This method converts a POSIX message priority to the priorities used
- *  by the Score.
+ * The message queue handler inserts a message with a lower submit type in
+ * front of a message with a higher submit type.
+ *
+ * @param priority is the POSIX message priority.  It is less than
+ *   MQ_PRIO_MAX.
+ *
+ * @return Returns the submit type of the priority.
  */
 static inline CORE_message_queue_Submit_types
 _POSIX_Message_queue_Priority_to_core( unsigned int priority )
 {
-  return (CORE_message_queue_Submit_types) priority * -1;
+  return -(CORE_message_queue_Submit_types) priority;
 }
 
-/*
- *  @brief POSIX Message Queue Convert Message Priority from Score
+/**
+ * @brief Converts the submit type to the POSIX message priority.
  *
- *  This method converts a POSIX message priority from the priorities used
- *  by the Score.
+ * @param priority is the submit type of a message which
+ *   _POSIX_Message_queue_Priority_to_core() produced.
+ *
+ * @return Returns the POSIX message priority of the submit type.
  */
 static inline unsigned int _POSIX_Message_queue_Priority_from_core(
   CORE_message_queue_Submit_types priority
 )
 {
-  /* absolute value without a library dependency */
-  return (unsigned int) ( ( priority >= 0 ) ? priority : -priority );
+  return (unsigned int) -priority;
 }
 
 /**
