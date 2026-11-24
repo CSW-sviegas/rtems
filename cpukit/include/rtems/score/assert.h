@@ -49,7 +49,7 @@
  * @{
  */
 
-#if defined( RTEMS_DEBUG )
+#if defined( RTEMS_DEBUG ) || defined( RTEMS_STATIC_ANALYSIS )
   #include <assert.h>
 #endif
 
