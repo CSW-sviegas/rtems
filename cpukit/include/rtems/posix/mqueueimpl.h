@@ -136,6 +136,43 @@ static inline POSIX_Message_queue_Control *_POSIX_Message_queue_Get(
   );
 }
 
+/**
+ * @brief Gets the message queue of the descriptor and acquires its lock.
+ *
+ * @param mqdes is the message queue descriptor.
+ *
+ * @param[out] queue_context is the thread queue context.  The lock of the
+ *   message queue is acquired through this context if the function returns a
+ *   message queue.
+ *
+ * @retval NULL The descriptor is invalid or the message queue is not open.
+ *   The lock is not acquired and interrupts are enabled.
+ *
+ * @return Returns the message queue of the descriptor.
+ */
+static inline POSIX_Message_queue_Control *_POSIX_Message_queue_Get_open(
+  mqd_t                 mqdes,
+  Thread_queue_Context *queue_context
+)
+{
+  POSIX_Message_queue_Control *the_mq;
+
+  the_mq = _POSIX_Message_queue_Get( mqdes, queue_context );
+
+  if ( the_mq == NULL ) {
+    return NULL;
+  }
+
+  _CORE_message_queue_Acquire_critical( &the_mq->Message_queue, queue_context );
+
+  if ( the_mq->open_count == 0 ) {
+    _CORE_message_queue_Release( &the_mq->Message_queue, queue_context );
+    return NULL;
+  }
+
+  return the_mq;
+}
+
 /*
  *  @brief POSIX Message Queue Convert Message Priority to Score
  *

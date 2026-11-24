@@ -73,33 +73,19 @@ int _POSIX_Message_queue_Send_support(
     rtems_set_errno_and_return_minus_one( EINVAL );
   }
 
-  the_mq = _POSIX_Message_queue_Get( mqdes, &queue_context );
+  the_mq = _POSIX_Message_queue_Get_open( mqdes, &queue_context );
 
   if ( the_mq == NULL ) {
     rtems_set_errno_and_return_minus_one( EBADF );
   }
 
   if ( ( the_mq->oflag & O_ACCMODE ) == O_RDONLY ) {
-    _ISR_lock_ISR_enable( &queue_context.Lock_context.Lock_context );
+    _CORE_message_queue_Release( &the_mq->Message_queue, &queue_context );
     rtems_set_errno_and_return_minus_one( EBADF );
   }
 
   _Thread_queue_Context_set_enqueue_callout( &queue_context, enqueue_callout );
   _Thread_queue_Context_set_timeout_argument( &queue_context, abstime, true );
-
-  _CORE_message_queue_Acquire_critical(
-    &the_mq->Message_queue,
-    &queue_context
-  );
-
-  if ( the_mq->open_count == 0 ) {
-    _CORE_message_queue_Release( &the_mq->Message_queue, &queue_context );
-    rtems_set_errno_and_return_minus_one( EBADF );
-  }
-
-  /*
-   *  Now perform the actual message receive
-   */
   executing = _Thread_Executing;
   status = _CORE_message_queue_Submit(
     &the_mq->Message_queue,
