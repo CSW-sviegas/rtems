@@ -59,28 +59,28 @@ Init: mq_notify - Unopened message queue (EBADF)
 _____mq_notify - notify when Qnoblock gets a message
 waiting on any signal for 3 seconds.
 Init: Verify Signal when send
-Init: mq_send -  to Qnoblock msg: 12345678 priority 31
+Init: mq_send -  to Qnoblock msg: 12345678 priority 30
 waiting on any signal for 3 seconds.
 Init: Verify No Signal when send
-Init: mq_send -  to Qnoblock msg: 12345678 priority 31
+Init: mq_send -  to Qnoblock msg: 12345678 priority 30
 waiting on any signal for 3 seconds.
 ____mq_notify - notify when Qread gets a message
 waiting on any signal for 3 seconds.
 Init: mq_notify -  (EBUSY)
 Init: mq_notify - Remove notification with null
 Init: Verify No Signal when send
-Init: mq_send -  to Qnoblock msg: 12345678 priority 31
+Init: mq_send -  to Qnoblock msg: 12345678 priority 30
 waiting on any signal for 3 seconds.
 _______________multi-thread Task 1 Test
 Task_1: Fri Jan  1 00:00:18 1988
-Task_1: mq_send -  to Qblock msg: 12345678 priority 31
+Task_1: mq_send -  to Qblock msg: 12345678 priority 30
 Task_1: pthread_exit
 Init: Fri Jan  1 00:00:18 1988
 _______________multi-thread Task 2 Test
 Init: Verify Queues are empty
 Init: Fill Queues with messages
 Init: Verify Queues are full
-Init: mq_send -  to Qblock msg: Last priority 32
+Init: mq_send -  to Qblock msg: Last priority 31
 Task_2: Fri Jan  1 00:00:18 1988
 Task_2: Verify Queues are full
 Task_2: pthread_exit
