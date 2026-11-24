@@ -40,6 +40,8 @@
 
 #include <rtems/posix/mqueueimpl.h>
 
+#include <fcntl.h>
+
 int mq_setattr(
   mqd_t mqdes,
   const struct mq_attr *__restrict mqstat,
@@ -80,7 +82,8 @@ int mq_setattr(
     omqstat->mq_curmsgs = the_mq->Message_queue.number_of_pending_messages;
   }
 
-  the_mq->oflag = mqstat->mq_flags;
+  the_mq->oflag = ( the_mq->oflag & ~O_NONBLOCK ) |
+    ( mqstat->mq_flags & O_NONBLOCK );
 
   _CORE_message_queue_Release( &the_mq->Message_queue, &queue_context );
   return 0;
