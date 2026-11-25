@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 links: []
 test-actions:
@@ -111,6 +112,22 @@ test-actions:
     links:
     - role: validation
       uid: ../if/max-message-queues
+  links: []
+- action-brief: |
+    Try to allocate a POSIX key object.
+  action-code: |
+    POSIX_Keys_Control *the_key;
+
+    the_key = _POSIX_Keys_Allocate();
+    _Objects_Allocator_unlock();
+  checks:
+  - brief: |
+      Check that no POSIX key object was allocated.
+    code: |
+      T_step_null( ${.:/step}, the_key );
+    links:
+    - role: validation
+      uid: ../if/max-posix-keys
   links: []
 - action-brief: |
     Try to create a partition.
@@ -276,6 +293,7 @@ test-header: null
 test-includes:
 - bsp.h
 - string.h
+- rtems/posix/keyimpl.h
 - rtems/score/percpu.h
 - rtems/score/userextdata.h
 test-local-includes:

@@ -1,0 +1,151 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Create as many keys as the test suite configures.
+  action-code: |
+    size_t i;
+
+    for ( i = 0; i < MAX_KEYS; ++i ) {
+      key_status[ i ] = pthread_key_create( &keys[ i ], NULL );
+    }
+  checks:
+  - brief: |
+      Check that each key was created. This shows that the configured number of keys
+      can be active at the same time.
+    code: |
+      for ( i = 0; i < MAX_KEYS; ++i ) {
+        T_eq_int( key_status[ i ], 0 );
+      }
+    links:
+    - role: validation
+      uid: ../req/max-posix-keys
+  links: []
+- action-brief: |
+    Try to create one more key.
+  action-code: |
+    pthread_key_t other;
+    int           eno;
+
+    eno = pthread_key_create( &other, NULL );
+  checks:
+  - brief: |
+      Check that the create failed with ${/c/errno/if/eagain:/name}, since all
+      configured keys are active.
+    code: |
+      T_eq_int( eno, EAGAIN );
+    links:
+    - role: validation
+      uid: ../req/max-posix-keys
+  links: []
+- action-brief: |
+    Associate a value with each key in the calling thread. The test suite
+    configures as many key value pairs as keys, so that the associations use all
+    configured key value pairs.
+  action-code: |
+    int    eno[ MAX_KEYS ];
+    size_t i;
+
+    for ( i = 0; i < MAX_KEYS; ++i ) {
+      eno[ i ] = pthread_setspecific( keys[ i ], &value );
+    }
+  checks:
+  - brief: |
+      Check that each value was associated. This shows that the configured number of
+      key value pairs can be active at the same time.
+    code: |
+      for ( i = 0; i < MAX_KEYS; ++i ) {
+        T_eq_int( eno[ i ], 0 );
+      }
+    links:
+    - role: validation
+      uid: ../req/max-posix-key-value-pairs
+  links: []
+- action-brief: |
+    Try to associate a value with a key in another thread.
+  action-code: |
+    runner_id = rtems_task_self();
+    worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( worker_id, Worker, 0 );
+    (void) ReceiveAnyEvents();
+  checks:
+  - brief: |
+      Check that the association failed with ${/c/errno/if/enomem:/name}, since all
+      configured key value pairs are active.
+    code: |
+      T_eq_int( worker_status, ENOMEM );
+    links:
+    - role: validation
+      uid: ../req/max-posix-key-value-pairs
+  links: []
+test-brief: |
+  Tests the maximum number of POSIX keys and key value pairs which the test suite
+  configures.
+test-context: []
+test-context-support: null
+test-description: |
+  The test suite defines ${/acfg/if/max-posix-keys:/name} and
+  ${/acfg/if/max-posix-key-value-pairs:/name} to eight.
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+test-local-includes:
+- tx-support.h
+test-setup:
+  brief: null
+  code: |
+    size_t i;
+
+    for ( i = 0; i < MAX_KEYS; ++i ) {
+      key_status[ i ] = -1;
+    }
+
+    worker_id = 0;
+  description: null
+test-stop: null
+test-support: |
+  #define MAX_KEYS 8
+
+  static pthread_key_t keys[ MAX_KEYS ];
+
+  static int key_status[ MAX_KEYS ];
+
+  static int value;
+
+  static rtems_id runner_id;
+
+  static rtems_id worker_id;
+
+  static int worker_status;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    (void) arg;
+    worker_status = pthread_setspecific( keys[ 0 ], &value );
+    SendEvents( runner_id, RTEMS_EVENT_0 );
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+    }
+  }
+test-target: testsuites/validation/tc-acfg-posix-keys.c
+test-teardown:
+  brief: null
+  code: |
+    size_t i;
+
+    if ( worker_id != 0 ) {
+      DeleteTask( worker_id );
+    }
+
+    for ( i = 0; i < MAX_KEYS; ++i ) {
+      if ( key_status[ i ] == 0 ) {
+        T_eq_int( pthread_key_delete( keys[ i ] ), 0 );
+      }
+    }
+  description: null
+type: test-case

@@ -2,6 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 appl-config-option-type: integer
 copyrights:
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
+- Copyright (C) 2026 Critical Software S.A.
 default-value: |
   The default value is
   ${max-posix-keys:/name} *
@@ -18,8 +19,6 @@ links:
   uid: domain
 - role: interface-ingroup
   uid: group-posix
-- role: constraint
-  uid: ../constraint/option-not-pre-qualified
 - role: constraint
   uid: ../constraint/min-zero
 - role: constraint
