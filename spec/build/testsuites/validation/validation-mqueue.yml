@@ -11,6 +11,7 @@ includes: []
 ldflags: []
 links: []
 source:
+- testsuites/validation/tc-acfg-posix-message-queues.c
 - testsuites/validation/tc-posix-mq-close.c
 - testsuites/validation/tc-posix-mq-getattr.c
 - testsuites/validation/tc-posix-mq-open.c

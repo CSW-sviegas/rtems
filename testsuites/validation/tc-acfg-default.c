@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +38,7 @@
 
 #include <bsp.h>
 #include <string.h>
+#include <rtems/posix/mqueueimpl.h>
 #include <rtems/score/percpu.h>
 #include <rtems/score/userextdata.h>
 
@@ -73,6 +75,10 @@
  * - Try to construct a message queue.
  *
  *   - Check that the returned status code is RTEMS_TOO_MANY.
+ *
+ * - Try to allocate a POSIX message queue object.
+ *
+ *   - Check that no POSIX message queue object was allocated.
  *
  * - Try to create a partition.
  *
@@ -228,9 +234,26 @@ static void AcfgValDefault_Action_2( void )
 }
 
 /**
- * @brief Try to create a partition.
+ * @brief Try to allocate a POSIX message queue object.
  */
 static void AcfgValDefault_Action_3( void )
+{
+  POSIX_Message_queue_Control *the_mq;
+
+  _Objects_Allocator_lock();
+  the_mq = _POSIX_Message_queue_Allocate_unprotected();
+  _Objects_Allocator_unlock();
+
+  /*
+   * Check that no POSIX message queue object was allocated.
+   */
+  T_step_null( 7, the_mq );
+}
+
+/**
+ * @brief Try to create a partition.
+ */
+static void AcfgValDefault_Action_4( void )
 {
   RTEMS_ALIGNED( RTEMS_PARTITION_ALIGNMENT ) uint8_t buffers[ 1 ][ 32 ];
   rtems_status_code                                  sc;
@@ -248,13 +271,13 @@ static void AcfgValDefault_Action_3( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 7, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 8, sc, RTEMS_TOO_MANY );
 }
 
 /**
  * @brief Try to create a period.
  */
-static void AcfgValDefault_Action_4( void )
+static void AcfgValDefault_Action_5( void )
 {
   rtems_status_code sc;
   rtems_id          id;
@@ -264,21 +287,21 @@ static void AcfgValDefault_Action_4( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 8, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 9, sc, RTEMS_TOO_MANY );
 }
 
 /**
  * @brief Check that the processor maximum is one.
  */
-static void AcfgValDefault_Action_5( void )
+static void AcfgValDefault_Action_6( void )
 {
-  T_step_eq_u32( 9, rtems_scheduler_get_processor_maximum(), 1 );
+  T_step_eq_u32( 10, rtems_scheduler_get_processor_maximum(), 1 );
 }
 
 /**
  * @brief Try to create a semaphore.
  */
-static void AcfgValDefault_Action_6( void )
+static void AcfgValDefault_Action_7( void )
 {
   rtems_status_code sc;
   rtems_id          id;
@@ -288,13 +311,13 @@ static void AcfgValDefault_Action_6( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 10, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 11, sc, RTEMS_TOO_MANY );
 }
 
 /**
  * @brief Try to construct a task.
  */
-static void AcfgValDefault_Action_7( void )
+static void AcfgValDefault_Action_8( void )
 {
   rtems_status_code sc;
   rtems_id          id;
@@ -304,7 +327,7 @@ static void AcfgValDefault_Action_7( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 11, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 12, sc, RTEMS_TOO_MANY );
 
   /*
    * Check the default CONFIGURE_MAXIMUM_TASKS value. A maximum Classic API
@@ -315,13 +338,13 @@ static void AcfgValDefault_Action_7( void )
    * suite containing the test case. The test suite defines
    * CONFIGURE_IDLE_TASK_INITIALIZES_APPLICATION.
    */
-  T_step_eq_u32( 12, rtems_configuration_get_maximum_tasks(), 0 );
+  T_step_eq_u32( 13, rtems_configuration_get_maximum_tasks(), 0 );
 }
 
 /**
  * @brief Try to create a timer.
  */
-static void AcfgValDefault_Action_8( void )
+static void AcfgValDefault_Action_9( void )
 {
   rtems_status_code sc;
   rtems_id          id;
@@ -331,13 +354,13 @@ static void AcfgValDefault_Action_8( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 13, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 14, sc, RTEMS_TOO_MANY );
 }
 
 /**
  * @brief Try to create a user extension set.
  */
-static void AcfgValDefault_Action_9( void )
+static void AcfgValDefault_Action_10( void )
 {
   rtems_extensions_table table;
   rtems_status_code      sc;
@@ -349,13 +372,13 @@ static void AcfgValDefault_Action_9( void )
   /*
    * Check that the returned status code is RTEMS_TOO_MANY.
    */
-  T_step_rsc( 14, sc, RTEMS_TOO_MANY );
+  T_step_rsc( 15, sc, RTEMS_TOO_MANY );
 }
 
 /**
  * @brief Get the record buffer of each processor.
  */
-static void AcfgValDefault_Action_10( void )
+static void AcfgValDefault_Action_11( void )
 {
   uint32_t cpu_index;
   uint32_t record_buffers;
@@ -374,7 +397,7 @@ static void AcfgValDefault_Action_10( void )
   /*
    * Check that no processor has a record buffer.
    */
-  T_step_eq_u32( 15, record_buffers, 0 );
+  T_step_eq_u32( 16, record_buffers, 0 );
 }
 
 /**
@@ -382,7 +405,7 @@ static void AcfgValDefault_Action_10( void )
  */
 T_TEST_CASE( AcfgValDefault )
 {
-  T_plan( 16 );
+  T_plan( 17 );
 
   AcfgValDefault_Action_0();
   AcfgValDefault_Action_1();
@@ -395,6 +418,7 @@ T_TEST_CASE( AcfgValDefault )
   AcfgValDefault_Action_8();
   AcfgValDefault_Action_9();
   AcfgValDefault_Action_10();
+  AcfgValDefault_Action_11();
 }
 
 /** @} */
