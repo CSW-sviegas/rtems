@@ -9,6 +9,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2019, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 2010 Gedare Bloom
  * Copyright (C) 1988, 2023 On-Line Applications Research Corporation (OAR)
@@ -3515,11 +3516,6 @@
  * @parblock
  * The following constraints apply to this configuration option:
  *
- * - The configuration option is not included in the pre-qualified feature set
- *   of RTEMS. Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the application
- *   configuration option.
- *
  * - The value of the configuration option shall be greater than or equal to
  *   zero.
  *
@@ -3541,12 +3537,12 @@
  * configured by this option. For each message queue you have to reserve some
  * memory for the message buffers. The size depends on the maximum number of
  * pending messages and the maximum size of the messages of a message queue.
- * Use the `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` macro to specify the message
+ * Use the CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE macro to specify the message
  * buffer memory for each message queue and sum them up to define the value for
- * `CONFIGURE_MAXIMUM_MESSAGE_QUEUES`.
+ * @ref CONFIGURE_MESSAGE_BUFFER_MEMORY.
  *
- * The interface for the `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` help macro is
- * as follows:
+ * The interface for the CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE help macro is as
+ * follows:
  *
  * @code
  * CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE( max_messages, max_msg_size )
@@ -3559,7 +3555,7 @@
  * max_msg_size`) may result in an underestimate of the RTEMS Workspace size.
  *
  * The following example illustrates how the
- * `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` help macro can be used to assist in
+ * CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE help macro can be used to assist in
  * calculating the message buffer memory required. In this example, there are
  * two message queues used in this application. The first message queue has a
  * maximum of 24 pending messages with the message structure defined by the
@@ -4524,11 +4520,6 @@
  * @par Constraints
  * @parblock
  * The following constraints apply to this configuration option:
- *
- * - The configuration option is not included in the pre-qualified feature set
- *   of RTEMS. Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the application
- *   configuration option.
  *
  * - The value of the configuration option shall be greater than or equal to
  *   zero.
