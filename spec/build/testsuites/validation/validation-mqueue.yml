@@ -1,0 +1,32 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/validation/tc-posix-mq-close.c
+- testsuites/validation/tc-posix-mq-getattr.c
+- testsuites/validation/tc-posix-mq-open.c
+- testsuites/validation/tc-posix-mq-receive.c
+- testsuites/validation/tc-posix-mq-send.c
+- testsuites/validation/tc-posix-mq-setattr.c
+- testsuites/validation/tc-posix-mq-timedreceive-timeout.c
+- testsuites/validation/tc-posix-mq-timedreceive.c
+- testsuites/validation/tc-posix-mq-timedsend-timeout.c
+- testsuites/validation/tc-posix-mq-timedsend.c
+- testsuites/validation/tc-posix-mq-unlink.c
+- testsuites/validation/tr-tq-enqueue-fifo.c
+- testsuites/validation/tr-tq-timeout.c
+- testsuites/validation/ts-validation-mqueue.c
+stlib: []
+target: testsuites/validation/ts-validation-mqueue.exe
+type: build
+use-after: []
+use-before: []

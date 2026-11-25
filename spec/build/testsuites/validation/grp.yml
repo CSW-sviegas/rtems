@@ -76,6 +76,8 @@ links:
 - role: build-dependency
   uid: validation-io-kernel
 - role: build-dependency
+  uid: validation-mqueue
+- role: build-dependency
   uid: validation-no-clock-0
 - role: build-dependency
   uid: validation-no-clock-1

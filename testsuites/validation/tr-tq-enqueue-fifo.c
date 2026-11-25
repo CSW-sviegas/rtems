@@ -42,6 +42,7 @@
 /**
  * @defgroup ScoreTqReqEnqueueFifo spec:/score/tq/req/enqueue-fifo
  *
+ * @ingroup TestsuitesValidationMqueue
  * @ingroup TestsuitesValidationNoClock1
  *
  * @{

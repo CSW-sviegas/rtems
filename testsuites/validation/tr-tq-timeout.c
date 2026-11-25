@@ -45,6 +45,7 @@
 /**
  * @defgroup ScoreTqReqTimeout spec:/score/tq/req/timeout
  *
+ * @ingroup TestsuitesValidationMqueue
  * @ingroup TestsuitesValidationNoClock1
  *
  * @{
