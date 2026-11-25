@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 Critical Software S.A.
 enabled-by: true
 links: []
 test-actions:
@@ -111,6 +112,23 @@ test-actions:
     links:
     - role: validation
       uid: ../if/max-message-queues
+  links: []
+- action-brief: |
+    Try to allocate a POSIX message queue object.
+  action-code: |
+    POSIX_Message_queue_Control *the_mq;
+
+    _Objects_Allocator_lock();
+    the_mq = _POSIX_Message_queue_Allocate_unprotected();
+    _Objects_Allocator_unlock();
+  checks:
+  - brief: |
+      Check that no POSIX message queue object was allocated.
+    code: |
+      T_step_null( ${.:/step}, the_mq );
+    links:
+    - role: validation
+      uid: ../if/max-posix-message-queues
   links: []
 - action-brief: |
     Try to create a partition.
@@ -276,6 +294,7 @@ test-header: null
 test-includes:
 - bsp.h
 - string.h
+- rtems/posix/mqueueimpl.h
 - rtems/score/percpu.h
 - rtems/score/userextdata.h
 test-local-includes:

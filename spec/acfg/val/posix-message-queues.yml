@@ -1,0 +1,121 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Open as many message queues as the test suite configures. Each message queue
+    has a name with the maximum length, the maximum number of pending messages and
+    the maximum message size for which the test suite defines the message buffer
+    memory, so that the message queues use all of the configured memory.
+  action-code: |
+    struct mq_attr attr;
+    size_t         i;
+
+    memset( &attr, 0, sizeof( attr ) );
+    attr.mq_maxmsg = MAX_MSG;
+    attr.mq_msgsize = MSG_SIZE;
+
+    for ( i = 0; i < MAX_QUEUES; ++i ) {
+      queues[ i ] = mq_open( names[ i ], O_CREAT | O_EXCL | O_RDWR, 0, &attr );
+    }
+  checks:
+  - brief: |
+      Check that each message queue was opened. This shows that the configured number
+      of message queues can be active at the same time and that the message buffer
+      memory provides the message buffers of each message queue. The test suite
+      defines this memory with ${/acfg/if/message-buffers-for-queue:/name}.
+    code: |
+      for ( i = 0; i < MAX_QUEUES; ++i ) {
+        T_ne_u32( queues[ i ], (mqd_t) -1 );
+      }
+    links:
+    - role: validation
+      uid: ../req/max-posix-message-queues
+    - role: validation
+      uid: ../req/message-buffer-memory
+    - role: validation
+      uid: ../req/message-buffers-for-queue
+  links: []
+- action-brief: |
+    Try to open one more message queue.
+  action-code: |
+    struct mq_attr attr;
+    mqd_t          mqdes;
+    int            eno;
+
+    memset( &attr, 0, sizeof( attr ) );
+    attr.mq_maxmsg = 1;
+    attr.mq_msgsize = 1;
+
+    errno = 0;
+    mqdes = mq_open( OTHER_NAME, O_CREAT | O_EXCL | O_RDWR, 0, &attr );
+    eno = errno;
+  checks:
+  - brief: |
+      Check that the open failed with ${/c/errno/if/enfile:/name}, since all
+      configured message queues are active.
+    code: |
+      T_eq_u32( mqdes, (mqd_t) -1 );
+      T_eq_int( eno, ENFILE );
+    links:
+    - role: validation
+      uid: ../req/max-posix-message-queues
+  links: []
+test-brief: |
+  Tests the maximum number of POSIX message queues and the message buffer memory
+  which the test suite configures.
+test-context: []
+test-context-support: null
+test-description: |
+  The test suite defines ${/acfg/if/max-posix-message-queues:/name} to two and
+  ${/acfg/if/message-buffer-memory:/name} to the sum of two
+  ${/acfg/if/message-buffers-for-queue:/name} values for message queues with at
+  most ten pending messages of 16 bytes.
+test-header: null
+test-includes:
+- errno.h
+- fcntl.h
+- limits.h
+- mqueue.h
+- string.h
+test-local-includes: []
+test-setup:
+  brief: null
+  code: |
+    size_t i;
+
+    for ( i = 0; i < MAX_QUEUES; ++i ) {
+      memset( names[ i ], 'a' + (int) i, sizeof( names[ i ] ) - 1 );
+      names[ i ][ 0 ] = '/';
+      names[ i ][ sizeof( names[ i ] ) - 1 ] = '\0';
+    }
+  description: null
+test-stop: null
+test-support: |
+  #define MAX_QUEUES 2
+
+  #define MAX_MSG 10
+
+  #define MSG_SIZE 16
+
+  #define OTHER_NAME "/acfg-other"
+
+  static char names[ MAX_QUEUES ][ _POSIX_PATH_MAX + 1 ];
+
+  static mqd_t queues[ MAX_QUEUES ];
+test-target: testsuites/validation/tc-acfg-posix-message-queues.c
+test-teardown:
+  brief: null
+  code: |
+    size_t i;
+
+    for ( i = 0; i < MAX_QUEUES; ++i ) {
+      if ( queues[ i ] != (mqd_t) -1 ) {
+        T_eq_int( mq_close( queues[ i ] ), 0 );
+        T_eq_int( mq_unlink( names[ i ] ), 0 );
+      }
+    }
+  description: null
+type: test-case

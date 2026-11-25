@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by: true
+index-entries: []
+interface-type: unspecified-macro
+links:
+- role: interface-placement
+  uid: header-confdefs
+- role: interface-ingroup
+  uid: group-general
+name: CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE
+type: interface

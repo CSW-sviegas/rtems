@@ -2,6 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 appl-config-option-type: integer
 copyrights:
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
+- Copyright (C) 2026 Critical Software S.A.
 default-value: 0
 description: |
   The value of this configuration option defines the number of bytes reserved for
@@ -18,8 +19,6 @@ links:
 - role: interface-ingroup
   uid: group-general
 - role: constraint
-  uid: ../constraint/option-not-pre-qualified
-- role: constraint
   uid: ../constraint/min-zero
 - role: constraint
   uid: ../constraint/memory-size
@@ -33,11 +32,11 @@ notes: |
   this option. For each message queue you have to reserve some memory for the
   message buffers. The size depends on the maximum number of pending messages and
   the maximum size of the messages of a message queue. Use the
-  `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` macro to specify the message buffer
-  memory for each message queue and sum them up to define the value for
-  `CONFIGURE_MAXIMUM_MESSAGE_QUEUES`.
+  ${message-buffers-for-queue:/name} macro to specify the message buffer memory
+  for each message queue and sum them up to define the value for
+  ${message-buffer-memory:/name}.
 
-  The interface for the `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` help macro is as
+  The interface for the ${message-buffers-for-queue:/name} help macro is as
   follows:
 
   ```c
@@ -50,13 +49,13 @@ notes: |
   Not using this help macro (e.g. just using `max_messages * max_msg_size`) may
   result in an underestimate of the RTEMS Workspace size.
 
-  The following example illustrates how the
-  `CONFIGURE_MESSAGE_BUFFERS_FOR_QUEUE()` help macro can be used to assist in
-  calculating the message buffer memory required. In this example, there are two
-  message queues used in this application. The first message queue has a maximum
-  of 24 pending messages with the message structure defined by the type
-  `one_message_type`. The other message queue has a maximum of 500 pending
-  messages with the message structure defined by the type `other_message_type`.
+  The following example illustrates how the ${message-buffers-for-queue:/name}
+  help macro can be used to assist in calculating the message buffer memory
+  required. In this example, there are two message queues used in this
+  application. The first message queue has a maximum of 24 pending messages with
+  the message structure defined by the type `one_message_type`. The other message
+  queue has a maximum of 500 pending messages with the message structure defined
+  by the type `other_message_type`.
 
   ```c
   #define CONFIGURE_MESSAGE_BUFFER_MEMORY ( \
